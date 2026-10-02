@@ -2,6 +2,16 @@
 
 > Working name: **"FinStat Free"** (placeholder — rename anytime)
 > Goal: any CA, accountant or entity can go from **Tally / Zoho / Busy / Excel → print-ready financial statements in the ICAI / legal format in 3–4 minutes**, completely free.
+>
+> **Intent: solve the problem, not sell anything.** Free, open-source, non-commercial. No paid tier, no ads, no data collection.
+
+### Core principles (non-negotiable)
+1. **Law first** — every line item, heading and wording traceable to a source (Companies Act / Schedule III, ICAI Guidance Notes, Income-tax Act 2025, AS).
+2. **Data can never silently go wrong** — every number reconciles back to the source TB; the tool refuses to print if it doesn't.
+3. **Everything is logged** — append-only audit trail; nothing is ever truly deleted.
+4. **Map once, reuse forever** — mapping is remembered per client; next year only new ledgers need attention.
+5. **Plain, professional output** — conventional black-and-white statements; no decorative design.
+6. **Legal wording in statements, simple explanation on screen** — the printed statements use the exact prescribed terminology; the app explains it in simple words.
 
 ---
 
@@ -34,6 +44,21 @@ Source: their product listing / user manual (their website is blocked from our r
 | Price | Paid (listed on IndiaMART) |
 | Learning | Tutorial videos (YouTube): Basics, Master Sheet, Trial Balance Sheet |
 
+### 2.1 Benchmark: Computax — CompuBal + CompuTax (CompuOffice)
+
+Source: indexed vendor/listing pages (computaxonline.com is blocked from our research environment — verify on the site / brochure).
+
+| Product | Features found |
+|---|---|
+| **CompuBal** (Balance Sheet & Audit Report) | Financial statements in **Horizontal, Vertical and Schedule III** formats · depreciation chart as per **Schedule II** · depreciation calculator per asset · **auto Cash Flow (indirect method)** · **auto notes as per Schedule III** · MGT-9 · **import from Tally (with PY figures) & Excel** · XML import · tax audit forms **3CD, 29B, 10CCC** with IT-department validations and **error locator** · auto ratios in 3CD · DSC signing |
+| **CompuTax** (Income tax) | ITR 1–7 computation & e-filing · Form 3CD tax audit · **auto UDIN generation option for 3CA/3CB/3CD & statutory audit** (vendor claim — mechanism not public) · 26AS view/import · **imports Balance Sheet, P&L, computation from CompuBal** into ITR |
+
+**Lessons we adopt from Computax:**
+- **Data flow chain**: TB → Financial statements → Tax computation → ITR schedules (no re-typing). We export BS/P&L/depreciation in a form usable for ITR / tax audit.
+- **Error locator** concept → our error engine jumps to the exact cell.
+- **Validations mirroring government rules** (we mirror ICAI/Schedule III/IT rules).
+- **PY figures pulled at import** → we also support it.
+
 **Where we go beyond (our differentiators):**
 
 | # | Our product |
@@ -44,7 +69,9 @@ Source: their product listing / user manual (their website is blocked from our r
 | 4 | **Self-updating format packs** (law changes pushed as versioned data, not new software) |
 | 5 | **Both depreciation engines**: Companies Act Schedule II + Income-tax block WDV, with a single Fixed Asset Register |
 | 6 | **Error engine** that blocks printing until critical issues are fixed |
-| 7 | **Print designer with toggles** (what to show, when, how) |
+| 7 | **Toggles for what to show and when** — with a plain, professional final output |
+| 9 | **Tamper-evident audit trail, versions & backups** |
+| 10 | **Self-correction suggestions & connection doctor** |
 | 8 | **One-click roll-forward** to next year |
 
 ---
@@ -219,13 +246,98 @@ Per asset: name, block/class, date of purchase, **date put to use**, cost, addit
 | Draft watermark | ON until errors cleared |
 | Letterhead / firm logo | OFF |
 
-### 9.3 Print / presentation designer
-- Themes: **Classic boxed**, **Clean lines**, **Minimal** (border styles, header shading, fonts).
-- Page setup: A4 portrait/landscape, margins, **keep note on one page**, page numbers, "continued…" headers.
-- Header: entity name, address, CIN/LLPIN/PAN, period, unit statement.
+### 9.3 Print / export — plain and professional (no decorative design)
+- **One standard professional layout**: black & white, conventional serif/sans font, simple rules under headings and totals, right-aligned figures, brackets for negatives. **No themes, colours, shading or graphics** in the final output.
+- Only functional options: A4 portrait/landscape, page numbers, "continued…" headers, keep a note on one page, letterhead ON/OFF.
+- Header: entity name, address, CIN/LLPIN/PAN, period, "All amounts in ₹ …".
+- Signature block per entity type (Partners / Proprietor / Karta / Directors / Designated Partners) + auditor block: firm name, FRN, partner name, M. No., **UDIN**, place, date.
 - Exports: **PDF**, **Excel (with formulas & links)**, **Word**, and later **XBRL** (MCA AOC-4) / ITR schedules.
 
+### 9.4 Language policy (legal + simple)
+| Where | Language |
+|---|---|
+| **Printed statements & notes** | Exact headings and terminology prescribed by Schedule III / ICAI Guidance Notes / AS (e.g. "Trade Receivables", "Owners' Funds", "Contingent Liabilities and Commitments"). Policy & disclosure text from a **CA-reviewed template library**, each template tagged with its legal source. No informal words. |
+| **On screen (help)** | Simple English / Hindi / Marathi explanation next to each line: *"Trade Receivables = money customers still owe you."* |
+| **Optional "Reader's Guide"** | A separate one-page plain-language summary for the client (not part of the financial statements, clearly labelled). |
+
+Every template change goes through the same CA-reviewed format-pack process (§11).
+
 ---
+
+## 9A. Data integrity — "toughest coding that prevents data errors"
+
+| # | Safeguard | How |
+|---|---|---|
+| 1 | **No floating-point money** | All amounts stored as integer **paise** (or fixed decimal). Rounding only at display, using one tested rounding routine; rounding difference posted to a visible line and checked. |
+| 2 | **Import reconciliation** | After every import: count of ledgers, total Dr, total Cr, and a checksum are compared with the source. Mismatch = import rejected with reason. |
+| 3 | **Invariants enforced in code** | TB Dr = Cr; Assets = Liabilities + Owners' funds; P&L profit = movement in reserves/capital; sum of notes = face figure; CY opening = PY closing. Checked on every change, not only at print. |
+| 4 | **Single source of truth** | Each figure exists once; statements, notes, ratios, cash flow are **derived** — never typed twice. |
+| 5 | **Typed format packs** | Packs validated against a strict schema before loading; a broken pack can't load. |
+| 6 | **Locking** | "Finalise" locks the year (read-only). Changes after that require "Unlock with reason" — logged. |
+| 7 | **Automated tests** | Golden test files (real anonymised TBs → expected statements), property-based tests on invariants, regression tests for every bug found. Every release must pass all. |
+| 8 | **Crash-safe storage** | SQLite with transactions + write-ahead log; autosave; no half-written files. |
+
+## 9B. Data saving, versions & audit trail
+
+Inspired by the audit-trail principle in the proviso to **Rule 3(1), Companies (Accounts) Rules, 2014** (for FY from 1-4-2023: record audit trail of each transaction, edit log with dates, cannot be disabled). Our tool is a preparation tool, not the books, but we follow the same standard for every adjustment and change made inside it.
+
+- **Append-only event log**: who (user), when (timestamp), what (old value → new value), why (optional reason), source (import / manual / auto-fix).
+- **Tamper-evident**: each log entry hash-chained to the previous one; the app verifies the chain on open and warns if broken.
+- **Cannot be switched off.** No "delete history" option.
+- **Snapshots/versions**: automatic snapshot at import, at finalise, and before roll-forward; "Compare versions" shows what changed in figures.
+- **Audit trail report** (printable/exportable) for the auditor's file.
+- **Backup**: one-click backup to a single encrypted file; scheduled auto-backup to a folder of the user's choice (e.g. OneDrive/Google Drive folder); restore with integrity check.
+- **Software trail**: app version + format-pack version stamped on every export and inside the log, so any printed statement can be traced to the exact rules used.
+
+## 9C. Self-correction & troubleshooting
+
+| Situation | Tool behaviour |
+|---|---|
+| Debtor ledger with Cr balance, cash in Cr, overdraft in bank | Suggest reclassification (one click, logged as "auto-fix") |
+| Opening ≠ last year closing | Shows ledger-wise difference and offers "use last year's closing" or "keep and note" |
+| Depreciation booked ≠ FAR depreciation | Shows difference, suggests adjustment entry |
+| Ledger renamed in Tally | Re-matches using Tally's internal master identity (GUID/Master ID — to be confirmed in testing), not just the name |
+| Tally not responding | **Connection doctor**: checks Tally running → company open → HTTP/ODBC port enabled → port number → firewall; tells exactly which step fails and how to fix |
+| Zoho token expired | Prompts re-login, keeps data |
+| Excel file in wrong layout | Shows which column is missing / wrong, with a sample |
+| Unknown crash | Saves state, creates a **diagnostic bundle** (no client data unless user chooses) for reporting the issue on GitHub |
+
+Every auto-fix is a **suggestion the user confirms** — the tool never changes figures silently.
+
+## 9D. Map once, not every time
+
+- Mapping memory stored **per client** (keyed by ledger identity + name) and carried across years.
+- **Global dictionary** (common ledger names → heads) improves auto-mapping for new clients.
+- Next year, after import, the user sees **only new / changed ledgers** — typically a handful.
+- Group-level rules (e.g. "everything under *Indirect Expenses* → Other expenses") cover new ledgers automatically.
+- Optional: import a mapping from another client of same type ("use as template").
+
+## 9E. UDIN workflow
+
+Facts (ICAI UDIN FAQs / portal manual): UDIN is generated on ICAI's UDIN portal (udin.icai.org) by the member; key financial figures (e.g. turnover, net profit, net worth, total assets) are entered at generation; bulk generation exists on the portal; ICAI's API verification is used by authorities (e.g. income-tax e-filing portal validates UDIN). **No public API for third-party software to generate UDIN was found** — so the tool will not generate UDIN itself.
+
+Our workflow:
+1. On finalise, the tool shows a **"UDIN key figures" panel** (turnover, net profit/loss, net worth/owners' funds, total assets, etc.) taken from the final statements — copy with one click.
+2. Button opens the official UDIN portal in the browser.
+3. User pastes the generated UDIN back → stored, validated for format, printed in the audit report/signature block, and logged in the audit trail with date.
+4. If figures change after UDIN entry → **warning**: "Figures changed after UDIN was generated — UDIN may need revocation/regeneration."
+
+## 9F. Compliance matrix (what laws/standards the engine follows)
+
+| Area | Source | Status in product |
+|---|---|---|
+| Company formats | Companies Act 2013, **Schedule III Div I** (amended 24-03-2021) + ICAI GN on Div I (Jan 2022) | Phase 1 |
+| Company Ind AS formats | Schedule III Div II / III | Phase 4 |
+| Non-corporate formats | ICAI GN on FS of Non-Corporate Entities (Aug 2023), phased applicability (§1) | Phase 1 |
+| LLP formats | ICAI GN on FS of LLPs | Phase 2 |
+| Accounting Standards | ICAI AS (AS 2 inventories, AS 10 PPE, AS 22 deferred tax, etc.) for policy text & disclosures | Template library |
+| Book depreciation | Companies Act Schedule II | Phase 2 |
+| Tax depreciation | **Income-tax Act, 2025** + Income-tax Rules 2026 (from tax year 2026-27); IT Act 1961 + Rules 1962 for earlier years | Phase 2 |
+| Audit trail principle | Rule 3(1) proviso, Companies (Accounts) Rules 2014 | Built-in (§9B) |
+| UDIN | ICAI UDIN guidelines | §9E |
+| XBRL | MCA AOC-4 XBRL taxonomy & validation tool | Phase 4 |
+
+Each item carries its **official citation** inside the format pack; when the source changes, the pack is revised with an effective date.
 
 ## 10. Roll forward (CY → PY)
 
@@ -300,11 +412,12 @@ Later: optional web version (with file upload only) for Zoho/Excel users.
 
 ---
 
-## 15. Keeping it free (sustainability)
+## 15. Keeping it free (non-commercial by design)
 
-- Open-source licence (e.g. **AGPL-3.0** keeps derivatives open; or **MIT** for maximum adoption — decide).
-- Zero hosting (desktop + GitHub).
-- Volunteer CA reviewers for format packs; optional donations / sponsorship.
+- Purpose is public good, not revenue: **no paid tier, no ads, no telemetry of client data**.
+- Open-source licence: **AGPL-3.0 recommended** — anyone may use it free, and nobody can take it closed and sell it.
+- Zero hosting cost (desktop + GitHub) → nothing to fund.
+- Volunteer CA reviewers maintain format packs.
 - Disclaimer: tool assists preparation; responsibility for statements remains with the preparer/auditor.
 
 ---
@@ -313,7 +426,7 @@ Later: optional web version (with file upload only) for Zoho/Excel users.
 
 1. Platform: **Desktop-first (recommended)** vs Web-first?
 2. First entities for MVP: **Non-corporate + Company Div I** (recommended) — agree?
-3. Licence: AGPL vs MIT?
+3. Licence: AGPL-3.0 (recommended, keeps it free forever) — agree?
 4. Product name?
 5. Can you share 5–10 anonymised real trial balances (Tally/Busy/Excel) to train the auto-mapping?
 
@@ -332,3 +445,7 @@ Later: optional web version (with file upload only) for Zoho/Excel users.
 | Zoho Books API v3, OAuth, India domain `zohoapis.in` | Official Zoho docs | zoho.com/books/api/v3 |
 | BUSY has no public API; Excel/XML export | Vendor/secondary sources | busy.in FAQs |
 | Black Horse tool features | Indexed product pages (site blocked) | IndiaMART listing, Scribd manual |
+| CompuBal / CompuTax features | Indexed vendor pages (site blocked — verify) | computaxonline.com, computax.in, IndiaMART, SoftwareSuggest |
+| UDIN: portal generation, key figures, bulk facility; API verification used by authorities | ICAI UDIN FAQs & portal manual | udin.icai.org |
+| No public UDIN-generation API for third-party software | **Not found** in our search — treat as unavailable until ICAI states otherwise | — |
+| Audit trail: Rule 3(1) proviso, FY from 1-4-2023 | ICAI CA Journal + multiple sources | cajournal.icai.org |

@@ -223,7 +223,7 @@ Per asset: name, block/class, date of purchase, **date put to use**, cost, addit
 
 ---
 
-## 9. Notes to Accounts, Toggles & Print Designer
+## 9. Notes to Accounts, Toggles & Print
 
 ### 9.1 Notes
 - Auto-generated numerical notes (Share capital / Partners' capital, Borrowings, Trade payables with ageing, PPE, Inventories, Revenue, Other expenses, etc.).
@@ -312,15 +312,41 @@ Every auto-fix is a **suggestion the user confirms** — the tool never changes 
 - Group-level rules (e.g. "everything under *Indirect Expenses* → Other expenses") cover new ledgers automatically.
 - Optional: import a mapping from another client of same type ("use as template").
 
-## 9E. UDIN workflow
+## 9E. UDIN — paste only (no integration)
 
-Facts (ICAI UDIN FAQs / portal manual): UDIN is generated on ICAI's UDIN portal (udin.icai.org) by the member; key financial figures (e.g. turnover, net profit, net worth, total assets) are entered at generation; bulk generation exists on the portal; ICAI's API verification is used by authorities (e.g. income-tax e-filing portal validates UDIN). **No public API for third-party software to generate UDIN was found** — so the tool will not generate UDIN itself.
+Decision: **UDIN is not integrated** for now.
+- A simple **UDIN field** (plus Place and Date of signing) on the "Sign-off" screen.
+- Whatever is pasted is printed in the auditor's signature block exactly as entered. If left blank, the line prints as "UDIN: ____________" for manual writing.
+- The entry is recorded in the audit trail (who/when), like any other change.
+- No portal connection, no automatic generation, no key-figure upload.
 
-Our workflow:
-1. On finalise, the tool shows a **"UDIN key figures" panel** (turnover, net profit/loss, net worth/owners' funds, total assets, etc.) taken from the final statements — copy with one click.
-2. Button opens the official UDIN portal in the browser.
-3. User pastes the generated UDIN back → stored, validated for format, printed in the audit report/signature block, and logged in the audit trail with date.
-4. If figures change after UDIN entry → **warning**: "Figures changed after UDIN was generated — UDIN may need revocation/regeneration."
+## 9G. One-click "Export to Folder" (signing-ready)
+
+User ticks the statements needed and presses **Export**:
+
+```
+☑ Balance Sheet          ☑ Statement of Profit & Loss   ☑ Notes to Accounts
+☑ Cash Flow Statement    ☑ Partners' Capital Accounts   ☐ Depreciation chart (IT)
+☑ Fixed Asset Schedule   ☐ Ratios                        ☐ Audit trail report
+Format:  ☑ PDF   ☑ Excel   ☐ Word        Mode: (•) Signing copy  ( ) Draft
+```
+
+Files appear immediately in a fixed, predictable folder:
+```
+<Chosen root>\<Client name>\FY 2026-27\Final-2027-06-15_v3\
+    01_Balance_Sheet.pdf
+    02_Profit_and_Loss.pdf
+    03_Notes_to_Accounts.pdf
+    ...
+    Financial_Statements_Complete.pdf     <- all selected statements, continuous page numbers
+    Financial_Statements.xlsx             <- one sheet per statement, live formulas
+    export-manifest.json                  <- file list, SHA-256 hashes, app & format-pack version
+```
+- **Signing copy**: correct signature blocks on each statement (as required by entity type), place/date/UDIN filled from the Sign-off screen, no "Draft" watermark — **allowed only when there are zero blocker errors**.
+- **Draft**: watermark "DRAFT", printable anytime.
+- Folder opens automatically after export; never overwrites — each export is a new version folder.
+- The export is written to a temporary folder first and moved only when every file is complete (no half-written PDFs).
+- The manifest hashes let anyone later prove the PDF was not altered after export.
 
 ## 9F. Compliance matrix (what laws/standards the engine follows)
 
@@ -334,7 +360,7 @@ Our workflow:
 | Book depreciation | Companies Act Schedule II | Phase 2 |
 | Tax depreciation | **Income-tax Act, 2025** + Income-tax Rules 2026 (from tax year 2026-27); IT Act 1961 + Rules 1962 for earlier years | Phase 2 |
 | Audit trail principle | Rule 3(1) proviso, Companies (Accounts) Rules 2014 | Built-in (§9B) |
-| UDIN | ICAI UDIN guidelines | §9E |
+| UDIN | Paste-only field, printed as entered | §9E |
 | XBRL | MCA AOC-4 XBRL taxonomy & validation tool | Phase 4 |
 
 Each item carries its **official citation** inside the format pack; when the source changes, the pack is revised with an effective date.
@@ -379,7 +405,7 @@ format-packs/
 | 5 | **Format-pack updates** | GitHub (public repo / releases) | Free | Law updates |
 | 6 | **App updates** | GitHub Releases | Free | New versions |
 | 7 | MCA XBRL taxonomy & validation tool | Download from MCA | Free | Future XBRL export |
-| 8 | (Optional) ICAI UDIN | Manual entry only | — | Printed on report |
+| 8 | ICAI UDIN | **Not integrated** — paste field only | — | Printed on report |
 
 No paid service is required → this is what keeps the product **free**.
 
@@ -389,11 +415,12 @@ No paid service is required → this is what keeps the product **free**.
 
 | Choice | Reason |
 |---|---|
-| **Desktop app (Windows first)** using **Tauri** (or Electron) | Can talk to Tally on localhost; works offline; **client data never leaves the PC** (confidentiality); **no server cost → free forever** |
-| UI: React + TypeScript | Fast, toggle-heavy UI |
+| **Desktop app (Windows first)** using **Tauri v2** | Can talk to Tally on localhost; works offline; **client data never leaves the PC** (confidentiality); **no server cost → free forever**; small installer; built-in signed auto-updater |
+| **Calculation engine in Rust** (`rust_decimal`, no floats) | Compiler catches whole classes of bugs (nulls, type mix-ups, unhandled cases); the same engine is used for screen, PDF and Excel so they can never disagree |
+| UI: React + TypeScript (strict mode) | Fast, toggle-heavy UI; UI only displays — it never calculates |
 | Local DB: SQLite (one file per client/year) | Easy backup, portable |
 | Engine: rules from format packs (JSON) | Law changes without code changes |
-| Print: HTML → PDF (built-in) + Excel/Word export libraries | Pixel-controlled boxes & borders |
+| Print: HTML → PDF (built-in) + Excel/Word export libraries | Plain, consistent layout on every PC |
 | Source code: open-source on GitHub | Trust, community contributions |
 
 Later: optional web version (with file upload only) for Zoho/Excel users.
@@ -406,7 +433,7 @@ Later: optional web version (with file upload only) for Zoho/Excel users.
 |---|---|---|
 | **0 — Knowledge** (2–3 wks) | Collect official texts: Schedule III + GN Div I, ICAI GN Non-Corporate, ICAI GN LLP, Schedule II, IT depreciation tables (1961 & 2025); sample TBs from 10 real clients; mapping dictionary | Format packs v1 drafted |
 | **1 — MVP** | Excel + Tally import, mapping, error engine, **Non-Corporate (Firm, Proprietor, HUF, AOP/BOI)** + **Company Div I**, basic notes, PDF print | Usable by our office |
-| **2** | LLP pack, FAR + both depreciation engines, toggles, print designer, roll-forward, Excel/Word export | Public free release |
+| **2** | LLP pack, FAR + both depreciation engines, toggles, export-to-folder, roll-forward, Excel/Word export | Public free release |
 | **3** | Zoho API, BUSY auto-detect, Cash Flow auto, ratios & ageing, deferred tax | Feature parity+ with paid tools |
 | **4** | Ind AS (Div II), XBRL export, ITR schedule export, community mapping dictionary | Advanced |
 
@@ -422,9 +449,72 @@ Later: optional web version (with file upload only) for Zoho/Excel users.
 
 ---
 
+## 15A. Engineering plan — how a project this big is built without errors
+
+No software is bug-free by promise; it becomes reliable by **design + tests + process**. The plan:
+
+### Architecture (layers that cannot mix)
+```
+ Importers (Tally / Zoho / BUSY / Excel)
+      │  every importer outputs the SAME canonical Trial Balance (+ reconciliation totals)
+      ▼
+ Core engine (Rust, pure functions, no UI, no files)
+      │  TB + mapping + format pack + FAR  →  statements, notes, depreciation, checks
+      ▼
+ Storage (SQLite, transactions, append-only audit log)
+      ▼
+ Output (PDF / Excel / Word renderers — read-only consumers of engine results)
+      ▼
+ UI (React) — shows results, sends user commands; never computes figures
+```
+- **One canonical data model.** Importers only translate; all logic sits in one tested core. A bug fixed once is fixed for every source.
+- **Pure core.** Same input → same output, always. Makes it fully testable and reproducible (re-running last year's file gives byte-identical figures).
+- **Format packs are data**, validated against a schema. A law change is a reviewed data change, not new code.
+
+### Error-prevention layers
+| Layer | What it catches |
+|---|---|
+| Strong types (Rust/TypeScript strict) | Paise vs rupees mix-ups, missing fields, wrong sign handling |
+| Invariant checks at runtime | Any statement that does not balance / reconcile → blocked, never printed |
+| Unit tests | Each rule (e.g. 180-day half rate, Schedule II pro-rata) |
+| **Golden tests** | 50+ real anonymised TBs across all entity types → approved expected statements; any change in output fails the build |
+| Property-based tests | Thousands of random TBs: totals must always reconcile |
+| Importer fixtures | Saved real Tally/BUSY/Zoho/Excel exports, incl. odd cases (negative stock, blank groups, Unicode names) |
+| CA review tests | Each format pack signed off by 2 CAs against the Guidance Note before merge |
+| Continuous Integration (GitHub Actions) | All tests run on every change; nothing merges unless all pass |
+| Beta channel | New versions go to volunteer firms first, then to everyone |
+
+### Process
+1. Write the rule → write its test → write the code (test-first for all calculations).
+2. Every bug report gets a test that reproduces it before the fix.
+3. Small, reviewed changes; no direct edits to the main branch.
+4. Semantic versioning; every release has a public changelog; rollback possible.
+
+---
+
+## 15B. How users get and use the tool
+
+**Free desktop app, downloaded from GitHub — works offline. Not a website.**
+
+| Step | What happens |
+|---|---|
+| 1. Download | Project page on GitHub → **Releases** → `FinStat-Setup.exe` (Windows). Later also a simple website page linking to the same file. |
+| 2. Install | Per-user install, no admin rights needed. Installer is **code-signed** (free for open-source via SignPath Foundation — apply) so Windows SmartScreen does not show "Unknown publisher". |
+| 3. First run | Choose data folder (e.g. `D:\FinStat Data`) and export folder; enter firm details once (name, FRN, partners, M. No.). |
+| 4. Daily use | Open client → Import (Tally one-click / file) → fix the few flagged items → Sign-off screen (place, date, UDIN paste) → **Export to Folder** → print & sign. |
+| 5. Updates | App checks GitHub on start: **signed app updates** (Tauri updater verifies the signature; cannot be disabled) and **format-pack updates** (law changes). User clicks "Update". Works offline with last version. |
+| 6. Help | Built-in help + short tutorial videos; issues/suggestions via GitHub "Issues" or a simple feedback form. |
+
+- **Client data stays on the user's PC** (and their own backup folder). Nothing is uploaded.
+- Multiple staff: data folder can be on a shared office drive (one user editing a client at a time — file lock).
+- Later (optional): a browser version for Excel/Zoho-only users, running entirely inside the browser (no server storage).
+
+
+---
+
 ## 16. Decisions needed from you
 
-1. Platform: **Desktop-first (recommended)** vs Web-first?
+1. Platform: **Windows desktop app via GitHub (recommended)** — agree?
 2. First entities for MVP: **Non-corporate + Company Div I** (recommended) — agree?
 3. Licence: AGPL-3.0 (recommended, keeps it free forever) — agree?
 4. Product name?
@@ -449,3 +539,5 @@ Later: optional web version (with file upload only) for Zoho/Excel users.
 | UDIN: portal generation, key figures, bulk facility; API verification used by authorities | ICAI UDIN FAQs & portal manual | udin.icai.org |
 | No public UDIN-generation API for third-party software | **Not found** in our search — treat as unavailable until ICAI states otherwise | — |
 | Audit trail: Rule 3(1) proviso, FY from 1-4-2023 | ICAI CA Journal + multiple sources | cajournal.icai.org |
+| SignPath Foundation: free code signing for open-source (publisher shown as SignPath Foundation) | Multiple project references; apply & confirm eligibility | signpath.org |
+| Tauri v2 updater: signed updates mandatory, static `latest.json` on GitHub Releases, NSIS/MSI | Official Tauri docs | v2.tauri.app/plugin/updater |

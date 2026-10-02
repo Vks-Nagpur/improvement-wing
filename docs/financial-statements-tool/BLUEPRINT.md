@@ -1,6 +1,6 @@
-# Free Financial Statements Preparation Tool — Product Blueprint
+# LedgerCraft — Product Blueprint
 
-> Working name: **"FinStat Free"** (placeholder — rename anytime)
+> Product name: **LedgerCraft** · Platform: **Windows desktop app** · Works **fully offline**
 > Goal: any CA, accountant or entity can go from **Tally / Zoho / Busy / Excel → print-ready financial statements in the ICAI / legal format in 3–4 minutes**, completely free.
 >
 > **Intent: solve the problem, not sell anything.** Free, open-source, non-commercial. No paid tier, no ads, no data collection.
@@ -442,7 +442,8 @@ Later: optional web version (with file upload only) for Zoho/Excel users.
 ## 15. Keeping it free (non-commercial by design)
 
 - Purpose is public good, not revenue: **no paid tier, no ads, no telemetry of client data**.
-- Open-source licence: **AGPL-3.0 recommended** — anyone may use it free, and nobody can take it closed and sell it.
+- **Licence decision: no licence** (owner's choice). Effect: by default copyright law keeps all rights with the owner — others may download and **use** the released app free, but may not copy, modify or redistribute the source code without permission. A short "Free to use" notice ships with the app.
+- Note: free code-signing programmes for open-source (e.g. SignPath Foundation) are meant for open-source-licensed projects, so LedgerCraft will likely **not qualify** (to be confirmed). Options: (a) ship unsigned — Windows shows a SmartScreen warning ("More info → Run anyway") until the app builds reputation; (b) buy a code-signing certificate later.
 - Zero hosting cost (desktop + GitHub) → nothing to fund.
 - Volunteer CA reviewers maintain format packs.
 - Disclaimer: tool assists preparation; responsibility for statements remains with the preparer/auditor.
@@ -498,9 +499,9 @@ No software is bug-free by promise; it becomes reliable by **design + tests + pr
 
 | Step | What happens |
 |---|---|
-| 1. Download | Project page on GitHub → **Releases** → `FinStat-Setup.exe` (Windows). Later also a simple website page linking to the same file. |
-| 2. Install | Per-user install, no admin rights needed. Installer is **code-signed** (free for open-source via SignPath Foundation — apply) so Windows SmartScreen does not show "Unknown publisher". |
-| 3. First run | Choose data folder (e.g. `D:\FinStat Data`) and export folder; enter firm details once (name, FRN, partners, M. No.). |
+| 1. Download | Project page on GitHub → **Releases** → `LedgerCraft-Setup.exe` (Windows). Later also a simple website page linking to the same file. |
+| 2. Install | Per-user install, no admin rights needed. Installer signing: see §15 (no-licence choice affects free signing). |
+| 3. First run | Choose data folder (e.g. `D:\LedgerCraft Data`) and export folder; enter firm details once (name, FRN, partners, M. No.). |
 | 4. Daily use | Open client → Import (Tally one-click / file) → fix the few flagged items → Sign-off screen (place, date, UDIN paste) → **Export to Folder** → print & sign. |
 | 5. Updates | App checks GitHub on start: **signed app updates** (Tauri updater verifies the signature; cannot be disabled) and **format-pack updates** (law changes). User clicks "Update". Works offline with last version. |
 | 6. Help | Built-in help + short tutorial videos; issues/suggestions via GitHub "Issues" or a simple feedback form. |
@@ -512,13 +513,111 @@ No software is bug-free by promise; it becomes reliable by **design + tests + pr
 
 ---
 
+## 15C. Modular design — separate modules, linked when used together
+
+Each module works **alone** (input: Excel/Tally) or **together** (shares the same client data). Nothing is entered twice.
+
+| # | Module | Works alone? | What it does |
+|---|---|---|---|
+| 1 | **Core & Data Vault** | (base) | Client files, audit trail, versions, backup |
+| 2 | **Import Hub** | ✔ | Tally / Zoho / BUSY / Excel — TB **and full vouchers** |
+| 3 | **Mapping** | ✔ | Map once, remember forever |
+| 4 | **Statement Builder** | ✔ | Balance Sheet, P&L, Cash Flow, Notes as per the applicable format |
+| 5 | **Fixed Assets & Depreciation** | ✔ | FAR, Companies Act + Income-tax depreciation |
+| 6 | **Analysis** | ✔ | Ratios, trends, YoY variance, month-wise charts, ratio-variance explanations |
+| 7 | **Audit Assist** | ✔ | Voucher-level checks + "Auditor Reference Workbook" (§15E) |
+| 8 | **Tax Bridge** | ✔ | Disallowance summary, IT depreciation, figures needed for computation/ITR |
+| 9 | **Export & Sign-off** | — | Folder export, PDF/Excel/Word, UDIN paste |
+| 10 | **Law Library** | (base) | Versioned format packs & rule packs (law as data) |
+| 11 | **Local AI Assistant** | optional | Explanations & suggestions, fully offline (§15F) |
+
+A user can open only "Audit Assist" for an audit client, or only "Statement Builder" for a quick balance sheet.
+
+---
+
+## 15D. Very large data — thousands to millions of vouchers
+
+- **Streaming import**: Tally Day Book pulled month-by-month (small XML chunks) → no memory crash, progress bar, **resumable** if interrupted.
+- Storage: SQLite with indexes on date, ledger, voucher type, amount → checks run in seconds even on lakhs of vouchers.
+- **Voucher ↔ TB reconciliation**: sum of all vouchers per ledger + opening must equal the TB closing; any difference shown ledger-wise before anything else runs.
+- Performance target to be proven by tests: **1,000,000 vouchers** imported and all checks run on a normal office PC.
+- "Training on huge data" in practice means: (a) a large **test library** of real anonymised books on which every rule is proved, and (b) the **mapping memory** that learns from every CA's confirmed mapping. The rules themselves are exact law, not guesses — they don't need AI training.
+
+---
+
+## 15E. Audit Assist — checks for the auditor (separate Excel workbook)
+
+Output: **"Auditor Reference Workbook.xlsx"** — summary sheet + one sheet per check, each row = voucher (date, voucher no., party, amount, reason flagged). **Flags only; the auditor decides.**
+
+### A. Cash transaction & disallowance checks
+| Check | Limit (unchanged in substance) | Section reference |
+|---|---|---|
+| Cash **payment** for expense to a person in a day | > ₹10,000 (₹35,000 for transporters) | Old 40A(3) / new Act — *mapped in rule pack* |
+| Cash **receipt** from a person (day / transaction / event) | ≥ ₹2,00,000 | Old 269ST / new Act |
+| Loan/deposit/specified sum **accepted** in cash | ≥ ₹20,000 | Old 269SS / new Act |
+| Loan/deposit **repaid** in cash | ≥ ₹20,000 | Old 269T / new Act |
+| Cash share of total receipts & payments (tax-audit threshold test) | ≤ 5% test | Old 44AB / new Act |
+| Day-wise **negative cash balance** | any day | Books quality |
+
+> New-Act section numbers for these are reported differently by secondary sources (e.g. old 269T → "220" vs "188"). They are stored **as data** and will be filled only from the **official Act text** before release. Old-Act references are used for FY up to 2025-26.
+
+### B. Other tax-audit helper checks
+- Expenses of TDS nature with no TDS deducted / deposited late (old 40(a)(ia)).
+- Payments to MSME suppliers beyond allowed days (old 43B(h)) — uses MSME tag on party.
+- Statutory dues (GST, PF, ESI, TDS) unpaid at year-end / paid late; employee PF/ESI paid after due date (old 36(1)(va)).
+- Payments to related parties / partners / directors (old 40A(2)(b)) — list for review.
+- Capital vs revenue: large repairs, items above a threshold in expense ledgers.
+- GST blocked-credit indicators (motor vehicle, food, gifts) where ITC taken.
+
+### C. Data-quality / fraud-risk checks (audit analytics)
+- Duplicate vouchers (same party, amount, date), voucher-number gaps.
+- Entries on Sundays / holidays, posted after year-end but dated within the year (from audit-trail data where available).
+- Round-sum entries, unusual journals to cash/bank/revenue, large JVs near year-end.
+- Benford's-law first-digit test on expenses.
+- Ledgers with both large Dr and Cr flows (possible accommodation entries).
+
+All thresholds and section references live in the **rule pack** (changeable when law changes), never hard-coded.
+
+---
+
+## 15F. Local AI (optional, free, offline)
+
+**LedgerCraft works 100% without AI.** AI is an optional add-on for convenience.
+
+- Uses **Ollama** (free, open-source, runs on the user's own Windows PC) with a free open model. LedgerCraft detects it automatically; one-click setup guide.
+- **No internet, no paid API, no client data leaves the PC.**
+- What AI may do (suggestions only):
+  - Suggest mapping for a new, unusually-named ledger.
+  - Explain any line / note / flag in simple language (English / Hindi / Marathi).
+  - Draft variance explanations for ratios (>25% change) for CA review.
+  - Search the Law Library in plain words ("what is required for partners' remuneration note?").
+- What AI may **never** do: calculate or change any figure, mark a check as cleared, or print anything without the user's confirmation. Every AI suggestion is labelled "AI suggestion" and logged in the audit trail.
+- Hardware: AI add-on needs a reasonably modern PC (around 16 GB RAM recommended); without it, LedgerCraft runs normally.
+
+---
+
+## 15G. Two user modes — Simple and Expert
+
+| | **Simple mode** (business owner / accountant) | **Expert mode** (CA / auditor) |
+|---|---|---|
+| Screens | Step-by-step wizard, plain words | Full control, all toggles |
+| Legal references | Hidden — the tool just follows the law | Shown: Guidance Note para / Schedule III / section, with source |
+| Errors | "Fix this" with one suggested action | Full detail + override with reason (logged) |
+| Audit Assist | Hidden | Full |
+| Output | Same legally correct statements | Same + auditor workbook + audit trail report |
+
+**No repetition, no unnecessary data:** only applicable lines and notes are printed; zero/not-applicable items are hidden automatically (Expert can force-show).
+
+---
+
 ## 16. Decisions needed from you
 
-1. Platform: **Windows desktop app via GitHub (recommended)** — agree?
-2. First entities for MVP: **Non-corporate + Company Div I** (recommended) — agree?
-3. Licence: AGPL-3.0 (recommended, keeps it free forever) — agree?
-4. Product name?
-5. Can you share 5–10 anonymised real trial balances (Tally/Busy/Excel) to train the auto-mapping?
+Decided: **Windows desktop** ✔ · **No licence** ✔ · Name **LedgerCraft** ✔
+
+Still open:
+1. First entities for MVP: **Non-corporate + Company Div I** (recommended).
+2. Sample data: 5–10 anonymised real books (Tally backup or exports — TB **and** day book) to build the test library.
+3. Code signing: ship unsigned initially, or buy a certificate?
 
 ---
 
@@ -540,4 +639,7 @@ No software is bug-free by promise; it becomes reliable by **design + tests + pr
 | No public UDIN-generation API for third-party software | **Not found** in our search — treat as unavailable until ICAI states otherwise | — |
 | Audit trail: Rule 3(1) proviso, FY from 1-4-2023 | ICAI CA Journal + multiple sources | cajournal.icai.org |
 | SignPath Foundation: free code signing for open-source (publisher shown as SignPath Foundation) | Multiple project references; apply & confirm eligibility | signpath.org |
+| Cash limits ₹10,000 / ₹2 lakh / ₹20,000 unchanged under IT Act 2025 | Secondary sources | ClearTax, TaxGarden |
+| New-Act section numbers for 269SS/269T/269ST/40A(3) | **Conflicting — confirm from official Act text** | incorpx, taxgarden |
+| Ollama runs locally on Windows, free | Project docs / earlier research | ollama.com |
 | Tauri v2 updater: signed updates mandatory, static `latest.json` on GitHub Releases, NSIS/MSI | Official Tauri docs | v2.tauri.app/plugin/updater |

@@ -320,7 +320,7 @@ Decision: **UDIN is not integrated** for now.
 - The entry is recorded in the audit trail (who/when), like any other change.
 - No portal connection, no automatic generation, no key-figure upload.
 
-## 9G. One-click "Export to Folder" (signing-ready)
+## 9F. One-click "Export to Folder" (signing-ready)
 
 User ticks the statements needed and presses **Export**:
 
@@ -348,7 +348,7 @@ Files appear immediately in a fixed, predictable folder:
 - The export is written to a temporary folder first and moved only when every file is complete (no half-written PDFs).
 - The manifest hashes let anyone later prove the PDF was not altered after export.
 
-## 9F. Compliance matrix (what laws/standards the engine follows)
+## 9G. Compliance matrix (what laws/standards the engine follows)
 
 | Area | Source | Status in product |
 |---|---|---|

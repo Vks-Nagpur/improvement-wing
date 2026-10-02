@@ -70,9 +70,9 @@ Source: indexed vendor/listing pages (computaxonline.com is blocked from our res
 | 5 | **Both depreciation engines**: Companies Act Schedule II + Income-tax block WDV, with a single Fixed Asset Register |
 | 6 | **Error engine** that blocks printing until critical issues are fixed |
 | 7 | **Toggles for what to show and when** — with a plain, professional final output |
+
 | 9 | **Tamper-evident audit trail, versions & backups** |
 | 10 | **Self-correction suggestions & connection doctor** |
-| 8 | **One-click roll-forward** to next year |
 
 ---
 

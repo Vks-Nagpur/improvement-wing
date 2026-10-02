@@ -643,3 +643,14 @@ Still open:
 | New-Act section numbers for 269SS/269T/269ST/40A(3) | **Conflicting — confirm from official Act text** | incorpx, taxgarden |
 | Ollama runs locally on Windows, free | Project docs / earlier research | ollama.com |
 | Tauri v2 updater: signed updates mandatory, static `latest.json` on GitHub Releases, NSIS/MSI | Official Tauri docs | v2.tauri.app/plugin/updater |
+
+---
+
+## 18. Build status (engine v0.1)
+
+Working code is in [`ledgercraft/`](../../ledgercraft/README.md):
+- Core engine (Rust, exact paise arithmetic): 32 checks covering trial balance, opening balances, wrong grouping, presentation reclassification, voucher integrity, cash limits and the loan register (principal vs interest).
+- Statements for Company (Schedule III Div I) and Non-Corporate entities (draft packs), with notes, comparatives and plain print layout.
+- Excel/CSV import, versioned export folder (Excel statements, print-ready HTML, Auditor Reference Workbook, manifest with SHA-256).
+- Practice-book generator with planted mistakes and known answers. Tests prove every planted mistake is found, no false alarms on 60 random clean books, identical results after the Excel/CSV round trip, and ~1 million vouchers checked in about 5 seconds.
+- Automated test run on every change (GitHub Actions, Linux + Windows).

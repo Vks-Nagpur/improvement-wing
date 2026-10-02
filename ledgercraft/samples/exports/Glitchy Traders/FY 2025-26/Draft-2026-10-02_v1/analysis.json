@@ -1,0 +1,2492 @@
+{
+  "findings": [
+    {
+      "code": "CASH_ASSET_PURCHASE",
+      "severity": "warning",
+      "title": "Asset bought in cash above limit",
+      "message": "Asset bought in cash above the limit; that amount is not counted in tax depreciation. ₹18,000.00 paid in cash for 'Furniture & Fixtures' on 08-10-2025. Vouchers: Payment 322 dt 08-10-2025.",
+      "legal_ref": "s.43(1), 6th proviso",
+      "ledger": "Furniture & Fixtures",
+      "voucher": "Payment 322 dt 08-10-2025",
+      "date": "2025-10-08",
+      "amount": 1800000,
+      "suggestion": "Exclude this amount from the asset's cost for tax depreciation.",
+      "key": "CASH_ASSET_PURCHASE:08-10-2025 Furniture & Fixtures"
+    },
+    {
+      "code": "CASH_PAYMENT_LIMIT",
+      "severity": "warning",
+      "title": "Cash payment above limit",
+      "message": "Cash paid for an expense/purchase to one person in a day is above the limit. The expense may be disallowed. ₹40,000.00 paid in cash to 'Shree Roadlines' on 01-06-2025 (limit ₹35,000.00). Vouchers: Payment 114 dt 01-06-2025.",
+      "legal_ref": "s.40A(3)/(3A), Rule 6DD exceptions; Form 3CD cl. 21(d)",
+      "ledger": "Shree Roadlines",
+      "voucher": "Payment 114 dt 01-06-2025",
+      "date": "2025-06-01",
+      "amount": 4000000,
+      "suggestion": "Check Rule 6DD exceptions; otherwise consider disallowance in tax computation.",
+      "key": "CASH_PAYMENT_LIMIT:01-06-2025 Shree Roadlines"
+    },
+    {
+      "code": "CASH_PAYMENT_LIMIT",
+      "severity": "warning",
+      "title": "Cash payment above limit",
+      "message": "Cash paid for an expense/purchase to one person in a day is above the limit. The expense may be disallowed. ₹13,500.00 paid in cash to 'Shree Ganesh Hardware' on 16-05-2025 (limit ₹10,000.00). Vouchers: Payment 73 dt 16-05-2025; Payment 74 dt 16-05-2025.",
+      "legal_ref": "s.40A(3)/(3A), Rule 6DD exceptions; Form 3CD cl. 21(d)",
+      "ledger": "Shree Ganesh Hardware",
+      "voucher": "Payment 73 dt 16-05-2025; Payment 74 dt 16-05-2025",
+      "date": "2025-05-16",
+      "amount": 1350000,
+      "suggestion": "Check Rule 6DD exceptions; otherwise consider disallowance in tax computation.",
+      "key": "CASH_PAYMENT_LIMIT:16-05-2025 Shree Ganesh Hardware"
+    },
+    {
+      "code": "CASH_PAYMENT_LIMIT",
+      "severity": "warning",
+      "title": "Cash payment above limit",
+      "message": "Cash paid for an expense/purchase to one person in a day is above the limit. The expense may be disallowed. Payment 91 dt 21-05-2025: ₹12,500.00 paid in cash for 'Repairs & Maintenance' (limit ₹10,000.00).",
+      "legal_ref": "s.40A(3)/(3A), Rule 6DD exceptions; Form 3CD cl. 21(d)",
+      "ledger": "Repairs & Maintenance",
+      "voucher": "Payment 91 dt 21-05-2025",
+      "date": "2025-05-21",
+      "amount": 1250000,
+      "suggestion": "Check Rule 6DD exceptions; otherwise consider disallowance in tax computation.",
+      "key": "CASH_PAYMENT_LIMIT:Payment 91 dt 21-05-2025 Repairs & Maintenance"
+    },
+    {
+      "code": "CASH_RECEIPT_LIMIT",
+      "severity": "warning",
+      "title": "Cash received ₹2 lakh or more",
+      "message": "Cash of ₹2 lakh or more received from one person in a day / one transaction. Penalty may apply. ₹2,10,000.00 received in cash from 'Om Sai Enterprises' on 03-09-2025. Vouchers: Receipt 213 dt 03-09-2025; Receipt 214 dt 03-09-2025.",
+      "legal_ref": "s.269ST; s.271DA",
+      "ledger": "Om Sai Enterprises",
+      "voucher": "Receipt 213 dt 03-09-2025; Receipt 214 dt 03-09-2025",
+      "date": "2025-09-03",
+      "amount": 21000000,
+      "suggestion": "Receipt of ₹2 lakh or more in cash from a person in a day attracts penalty.",
+      "key": "CASH_RECEIPT_LIMIT:03-09-2025 Om Sai Enterprises"
+    },
+    {
+      "code": "CASH_RECEIPT_LIMIT",
+      "severity": "warning",
+      "title": "Cash received ₹2 lakh or more",
+      "message": "Cash of ₹2 lakh or more received from one person in a day / one transaction. Penalty may apply. Sales 333 dt 08-09-2025: ₹2,50,000.00 received in cash ('Sales - Local').",
+      "legal_ref": "s.269ST; s.271DA",
+      "ledger": "Sales - Local",
+      "voucher": "Sales 333 dt 08-09-2025",
+      "date": "2025-09-08",
+      "amount": 25000000,
+      "suggestion": "Identify the customer; receipt of ₹2 lakh or more in cash attracts penalty.",
+      "key": "CASH_RECEIPT_LIMIT:Sales 333 dt 08-09-2025 Sales - Local"
+    },
+    {
+      "code": "DUPLICATE_VOUCHER",
+      "severity": "warning",
+      "title": "Possible duplicate voucher",
+      "message": "Two vouchers have the same date, ledgers and amounts. Sales 413 dt 18-10-2025 looks the same as Sales 412 dt 18-10-2025.",
+      "legal_ref": "",
+      "ledger": null,
+      "voucher": "Sales 413 dt 18-10-2025",
+      "date": "2025-10-18",
+      "amount": 4712345,
+      "suggestion": "Delete one if it was entered twice.",
+      "key": "DUPLICATE_VOUCHER:Sales 413 dt 18-10-2025"
+    },
+    {
+      "code": "LOAN_ACCEPTED_CASH",
+      "severity": "warning",
+      "title": "Loan accepted in cash (limit test)",
+      "message": "Loan taken in cash where the loan (with earlier unpaid principal) is ₹20,000 or more. Receipt 121 dt 30-06-2025: ₹10,000.00 accepted from 'Loan from Anil Joshi' (cash); unpaid principal before this ₹15,000.00, aggregate ₹25,000.00.",
+      "legal_ref": "s.269SS; s.271D; Form 3CD cl. 31(a)",
+      "ledger": "Loan from Anil Joshi",
+      "voucher": "Receipt 121 dt 30-06-2025",
+      "date": "2025-06-30",
+      "amount": 1000000,
+      "suggestion": "Report in Form 3CD clause 31(a) with mode; check penalty exposure.",
+      "key": "LOAN_ACCEPTED_CASH:Receipt 121 dt 30-06-2025 Loan from Anil Joshi"
+    },
+    {
+      "code": "LOAN_ACCEPTED_CASH",
+      "severity": "warning",
+      "title": "Loan accepted in cash (limit test)",
+      "message": "Loan taken in cash where the loan (with earlier unpaid principal) is ₹20,000 or more. Receipt 97 dt 10-06-2025: ₹25,000.00 accepted from 'Loan from Mahesh Patil' (cash); unpaid principal before this ₹0.00, aggregate ₹25,000.00.",
+      "legal_ref": "s.269SS; s.271D; Form 3CD cl. 31(a)",
+      "ledger": "Loan from Mahesh Patil",
+      "voucher": "Receipt 97 dt 10-06-2025",
+      "date": "2025-06-10",
+      "amount": 2500000,
+      "suggestion": "Report in Form 3CD clause 31(a) with mode; check penalty exposure.",
+      "key": "LOAN_ACCEPTED_CASH:Receipt 97 dt 10-06-2025 Loan from Mahesh Patil"
+    },
+    {
+      "code": "LOAN_ACCEPTED_JOURNAL",
+      "severity": "warning",
+      "title": "Loan accepted by journal entry",
+      "message": "Loan credited through a journal (not bank or cash). Check the mode; book adjustments may count as 'otherwise than banking channel'. Journal 7 dt 19-08-2025: ₹30,000.00 accepted from 'Loan from Prakash Jain' (journal entry); unpaid principal before this ₹0.00, aggregate ₹30,000.00.",
+      "legal_ref": "s.269SS; Form 3CD cl. 31(a)",
+      "ledger": "Loan from Prakash Jain",
+      "voucher": "Journal 7 dt 19-08-2025",
+      "date": "2025-08-19",
+      "amount": 3000000,
+      "suggestion": "Report in Form 3CD clause 31(a) with mode; check penalty exposure.",
+      "key": "LOAN_ACCEPTED_JOURNAL:Journal 7 dt 19-08-2025 Loan from Prakash Jain"
+    },
+    {
+      "code": "LOAN_REPAID_CASH",
+      "severity": "warning",
+      "title": "Loan repaid in cash (limit test)",
+      "message": "Loan repaid in cash where the amount, or the balance with interest, is ₹20,000 or more. Payment 198 dt 30-07-2025: ₹2,000.00 repaid in cash to 'Loan from Ravi Mehta'; balance (with interest) before repayment ₹24,500.00.",
+      "legal_ref": "s.269T; s.271E; Form 3CD cl. 31(b)",
+      "ledger": "Loan from Ravi Mehta",
+      "voucher": "Payment 198 dt 30-07-2025",
+      "date": "2025-07-30",
+      "amount": 200000,
+      "suggestion": "Report in Form 3CD clause 31(b); check penalty exposure.",
+      "key": "LOAN_REPAID_CASH:Payment 198 dt 30-07-2025 Loan from Ravi Mehta"
+    },
+    {
+      "code": "LOAN_REPAID_CASH",
+      "severity": "warning",
+      "title": "Loan repaid in cash (limit test)",
+      "message": "Loan repaid in cash where the amount, or the balance with interest, is ₹20,000 or more. Payment 221 dt 09-08-2025: ₹15,000.00 repaid in cash to 'Loan from Vinod Shah'; balance (with interest) before repayment ₹50,000.00.",
+      "legal_ref": "s.269T; s.271E; Form 3CD cl. 31(b)",
+      "ledger": "Loan from Vinod Shah",
+      "voucher": "Payment 221 dt 09-08-2025",
+      "date": "2025-08-09",
+      "amount": 1500000,
+      "suggestion": "Report in Form 3CD clause 31(b); check penalty exposure.",
+      "key": "LOAN_REPAID_CASH:Payment 221 dt 09-08-2025 Loan from Vinod Shah"
+    },
+    {
+      "code": "LOAN_REPAID_CASH",
+      "severity": "warning",
+      "title": "Loan repaid in cash (limit test)",
+      "message": "Loan repaid in cash where the amount, or the balance with interest, is ₹20,000 or more. Payment 351 dt 18-10-2025: ₹25,000.00 repaid in cash to 'Loan from Suresh Kumar'; balance (with interest) before repayment ₹50,000.00.",
+      "legal_ref": "s.269T; s.271E; Form 3CD cl. 31(b)",
+      "ledger": "Loan from Suresh Kumar",
+      "voucher": "Payment 351 dt 18-10-2025",
+      "date": "2025-10-18",
+      "amount": 2500000,
+      "suggestion": "Report in Form 3CD clause 31(b); check penalty exposure.",
+      "key": "LOAN_REPAID_CASH:Payment 351 dt 18-10-2025 Loan from Suresh Kumar"
+    },
+    {
+      "code": "MISGROUP_LOAN",
+      "severity": "warning",
+      "title": "Loan grouped as creditor/debtor",
+      "message": "This looks like a loan but is grouped as a party. Loans go under Borrowings, and cash loan limits apply. 'Loan from Suresh Kumar' looks like a loan taken but is under 'Sundry Creditors'.",
+      "legal_ref": "Schedule III; s.269SS/269T; Form 3CD cl. 31",
+      "ledger": "Loan from Suresh Kumar",
+      "voucher": null,
+      "date": null,
+      "amount": -2500000,
+      "suggestion": "Move to Unsecured Loans / Secured Loans (Borrowings). Cash-loan limits are already being tested on it.",
+      "key": "MISGROUP_LOAN:Loan from Suresh Kumar"
+    },
+    {
+      "code": "MISGROUP_OD",
+      "severity": "warning",
+      "title": "Overdraft / cash credit grouped as bank account",
+      "message": "Overdraft and cash credit accounts are borrowings, not bank balances. 'State Bank of India CC A/c' is under Bank Accounts.",
+      "legal_ref": "Schedule III",
+      "ledger": "State Bank of India CC A/c",
+      "voucher": null,
+      "date": null,
+      "amount": -10000000,
+      "suggestion": "Move to Bank OD A/c (shown under Short-term Borrowings).",
+      "key": "MISGROUP_OD:State Bank of India CC A/c"
+    },
+    {
+      "code": "MISGROUP_TAX",
+      "severity": "warning",
+      "title": "Tax ledger grouped as creditor",
+      "message": "GST/TDS ledgers belong under Duties & Taxes (statutory dues), not trade creditors. 'GST Payable - Old' is under 'Sundry Creditors'.",
+      "legal_ref": "Schedule III",
+      "ledger": "GST Payable - Old",
+      "voucher": null,
+      "date": null,
+      "amount": -180000,
+      "suggestion": "Move to Duties & Taxes.",
+      "key": "MISGROUP_TAX:GST Payable - Old"
+    },
+    {
+      "code": "NEGATIVE_CASH",
+      "severity": "warning",
+      "title": "Cash balance negative",
+      "message": "Cash in hand went below zero at the end of this day, which is not possible in reality. 'Cash' closed 18-09-2025 at 10,000.00 Cr.",
+      "legal_ref": "",
+      "ledger": "Cash",
+      "voucher": null,
+      "date": "2025-09-18",
+      "amount": -1000000,
+      "suggestion": "Check missing cash receipts / withdrawals, or wrong dates.",
+      "key": "NEGATIVE_CASH:Cash 18-09-2025"
+    },
+    {
+      "code": "OPENING_DIFF",
+      "severity": "warning",
+      "title": "Opening balance differs from last year's closing",
+      "message": "This ledger's opening this year does not match its closing last year. 'Customer 03': opening this year 1,15,296.37 Dr, expected 1,10,296.37 Dr (last year's closing). Difference ₹5,000.00.",
+      "legal_ref": "AS 5 / consistency of comparatives",
+      "ledger": "Customer 03",
+      "voucher": null,
+      "date": null,
+      "amount": 500000,
+      "suggestion": "Correct the opening balance, or record the reason (e.g. prior-period adjustment).",
+      "key": "OPENING_DIFF:Customer 03"
+    },
+    {
+      "code": "OPENING_DIFF",
+      "severity": "warning",
+      "title": "Opening balance differs from last year's closing",
+      "message": "This ledger's opening this year does not match its closing last year. 'Partner B - Capital': opening this year 19,48,848.21 Cr, expected 19,43,848.21 Cr (last year's closing). Difference ₹5,000.00.",
+      "legal_ref": "AS 5 / consistency of comparatives",
+      "ledger": "Partner B - Capital",
+      "voucher": null,
+      "date": null,
+      "amount": -500000,
+      "suggestion": "Correct the opening balance, or record the reason (e.g. prior-period adjustment).",
+      "key": "OPENING_DIFF:Partner B - Capital"
+    },
+    {
+      "code": "OPENING_DIFF",
+      "severity": "warning",
+      "title": "Opening balance differs from last year's closing",
+      "message": "This ledger's opening this year does not match its closing last year. 'Profit & Loss A/c': opening this year 5,000.00 Cr, expected 0.00 Dr (last year's closing plus last year's profit/loss). Difference ₹5,000.00.",
+      "legal_ref": "AS 5 / consistency of comparatives",
+      "ledger": "Profit & Loss A/c",
+      "voucher": null,
+      "date": null,
+      "amount": -500000,
+      "suggestion": "Correct the opening balance, or record the reason (e.g. prior-period adjustment).",
+      "key": "OPENING_DIFF:Profit & Loss A/c"
+    },
+    {
+      "code": "OPENING_MISSING_LEDGER",
+      "severity": "warning",
+      "title": "Last year's ledger missing this year",
+      "message": "A ledger had a closing balance last year but is not in this year's books. 'Old Debtor' closed last year at 7,000.00 Dr but is not in this year's books.",
+      "legal_ref": "",
+      "ledger": "Old Debtor",
+      "voucher": null,
+      "date": null,
+      "amount": 700000,
+      "suggestion": "Check if it was renamed or merged.",
+      "key": "OPENING_MISSING_LEDGER:Old Debtor"
+    },
+    {
+      "code": "OPENING_NEW_LEDGER",
+      "severity": "warning",
+      "title": "New ledger with opening balance",
+      "message": "A ledger has an opening balance but did not exist last year. 'Old Debtor - Renamed' has opening 7,000.00 Dr but no such ledger existed last year.",
+      "legal_ref": "",
+      "ledger": "Old Debtor - Renamed",
+      "voucher": null,
+      "date": null,
+      "amount": 700000,
+      "suggestion": "Check if the ledger was renamed; if so, link it to last year's name.",
+      "key": "OPENING_NEW_LEDGER:Old Debtor - Renamed"
+    },
+    {
+      "code": "PL_OPENING",
+      "severity": "warning",
+      "title": "Income/expense ledger has an opening balance",
+      "message": "Income and expense ledgers must start the year at zero. 'Rent' starts the year with 5,000.00 Dr.",
+      "legal_ref": "",
+      "ledger": "Rent",
+      "voucher": null,
+      "date": null,
+      "amount": 500000,
+      "suggestion": null,
+      "key": "PL_OPENING:Rent"
+    },
+    {
+      "code": "SUSPENSE_BALANCE",
+      "severity": "warning",
+      "title": "Suspense account has a balance",
+      "message": "Suspense must be cleared before finalising. 'Suspense A/c' shows 1,234.00 Cr.",
+      "legal_ref": "",
+      "ledger": "Suspense A/c",
+      "voucher": null,
+      "date": null,
+      "amount": -123400,
+      "suggestion": null,
+      "key": "SUSPENSE_BALANCE:Suspense A/c"
+    },
+    {
+      "code": "CAPITAL_IN_EXPENSE",
+      "severity": "info",
+      "title": "Possible capital item in expenses",
+      "message": "This expense ledger name suggests an asset purchase. Check whether it should be capitalised. 'Laptop Purchase' (Indirect Expenses) shows 65,000.00 Dr.",
+      "legal_ref": "AS 10",
+      "ledger": "Laptop Purchase",
+      "voucher": null,
+      "date": null,
+      "amount": 6500000,
+      "suggestion": "If it gives benefit for more than a year, move to Fixed Assets and charge depreciation.",
+      "key": "CAPITAL_IN_EXPENSE:Laptop Purchase"
+    },
+    {
+      "code": "RECLASS_BANK_CR",
+      "severity": "info",
+      "title": "Bank credit balance shown as borrowing",
+      "message": "Bank account is overdrawn; shown under Short-term Borrowings. 'State Bank of India CC A/c' shows 1,00,000.00 Cr.",
+      "legal_ref": "Schedule III / ICAI GN",
+      "ledger": "State Bank of India CC A/c",
+      "voucher": null,
+      "date": null,
+      "amount": -10000000,
+      "suggestion": null,
+      "key": "RECLASS_BANK_CR:State Bank of India CC A/c"
+    },
+    {
+      "code": "RECLASS_DEBTOR_CR",
+      "severity": "info",
+      "title": "Customer credit balance shown as liability",
+      "message": "Customer has paid in advance; shown under Other Current Liabilities (advance from customers). 'Patil Agro Industries' shows 15,000.00 Cr.",
+      "legal_ref": "Schedule III / ICAI GN: no netting of assets and liabilities",
+      "ledger": "Patil Agro Industries",
+      "voucher": null,
+      "date": null,
+      "amount": -1500000,
+      "suggestion": null,
+      "key": "RECLASS_DEBTOR_CR:Patil Agro Industries"
+    }
+  ],
+  "mapping": [
+    {
+      "name": "Partner A - Capital",
+      "group": "Capital Account",
+      "class": "CapitalAccount",
+      "head": "CAPITAL",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -65000000,
+      "tb_closing": -65000000
+    },
+    {
+      "name": "Partner B - Capital",
+      "group": "Capital Account",
+      "class": "CapitalAccount",
+      "head": "CAPITAL",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -209884821,
+      "tb_closing": -209884821
+    },
+    {
+      "name": "Partners' Remuneration",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "PARTNERS_REMUNERATION",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 24000000,
+      "tb_closing": 24000000
+    },
+    {
+      "name": "Interest on Partners' Capital",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "PARTNERS_REMUNERATION",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 6000000,
+      "tb_closing": 6000000
+    },
+    {
+      "name": "Profit & Loss A/c",
+      "group": "Profit & Loss A/c",
+      "class": "ProfitLossAc",
+      "head": "CAPITAL",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -500000,
+      "tb_closing": -500000
+    },
+    {
+      "name": "Cash",
+      "group": "Cash-in-Hand",
+      "class": "CashInHand",
+      "head": "CASH_BANK",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 371228081,
+      "tb_closing": 371228081
+    },
+    {
+      "name": "HDFC Bank Current A/c",
+      "group": "Bank Accounts",
+      "class": "BankAccounts",
+      "head": "CASH_BANK",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 2535979199,
+      "tb_closing": 2535979199
+    },
+    {
+      "name": "Sales - Local",
+      "group": "Sales Accounts",
+      "class": "SalesAccounts",
+      "head": "REVENUE_OPS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -5619342307,
+      "tb_closing": -5619342307
+    },
+    {
+      "name": "Purchases - Local",
+      "group": "Purchase Accounts",
+      "class": "PurchaseAccounts",
+      "head": "PURCHASES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 2513882403,
+      "tb_closing": 2513882403
+    },
+    {
+      "name": "Freight Inward",
+      "group": "Direct Expenses",
+      "class": "DirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 8000000,
+      "tb_closing": 8000000
+    },
+    {
+      "name": "Office Expenses",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 26018623,
+      "tb_closing": 26018623
+    },
+    {
+      "name": "Printing & Stationery",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 25365259,
+      "tb_closing": 25365259
+    },
+    {
+      "name": "Telephone Expenses",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 21135959,
+      "tb_closing": 21135959
+    },
+    {
+      "name": "Staff Welfare",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "EMPLOYEE_BENEFITS",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 21540003,
+      "tb_closing": 21540003
+    },
+    {
+      "name": "Conveyance",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 29051907,
+      "tb_closing": 29051907
+    },
+    {
+      "name": "Rent",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 33500000,
+      "tb_closing": 33500000
+    },
+    {
+      "name": "Electricity Charges",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 6919604,
+      "tb_closing": 6919604
+    },
+    {
+      "name": "Salary",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "EMPLOYEE_BENEFITS",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 58672890,
+      "tb_closing": 58672890
+    },
+    {
+      "name": "Bank Charges",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 1071198,
+      "tb_closing": 1071198
+    },
+    {
+      "name": "Depreciation",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "DEPRECIATION",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 13680000,
+      "tb_closing": 13680000
+    },
+    {
+      "name": "Interest on Unsecured Loans",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "FINANCE_COSTS",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 4100000,
+      "tb_closing": 4100000
+    },
+    {
+      "name": "Interest Received",
+      "group": "Indirect Incomes",
+      "class": "IndirectIncomes",
+      "head": "OTHER_INCOME",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -10862260,
+      "tb_closing": -10862260
+    },
+    {
+      "name": "Plant & Machinery",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "PPE",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 68000000,
+      "tb_closing": 68000000
+    },
+    {
+      "name": "Furniture & Fixtures",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "PPE",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 15120000,
+      "tb_closing": 15120000
+    },
+    {
+      "name": "TDS Payable",
+      "group": "Duties & Taxes",
+      "class": "DutiesTaxes",
+      "head": "OTHER_CURRENT_LIABILITIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Unsecured Loan - Rajesh Kumar",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -33240000,
+      "tb_closing": -33240000
+    },
+    {
+      "name": "Stock-in-Trade",
+      "group": "Stock-in-Hand",
+      "class": "StockInHand",
+      "head": "INVENTORIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 25337132,
+      "tb_closing": 37774956
+    },
+    {
+      "name": "Customer 01",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 22997526,
+      "tb_closing": 22997526
+    },
+    {
+      "name": "Customer 02",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 25912157,
+      "tb_closing": 25912157
+    },
+    {
+      "name": "Customer 03",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 58046236,
+      "tb_closing": 58046236
+    },
+    {
+      "name": "Customer 04",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 107388,
+      "tb_closing": 107388
+    },
+    {
+      "name": "Customer 05",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 12196582,
+      "tb_closing": 12196582
+    },
+    {
+      "name": "Customer 06",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 22607444,
+      "tb_closing": 22607444
+    },
+    {
+      "name": "Customer 07",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 19261594,
+      "tb_closing": 19261594
+    },
+    {
+      "name": "Customer 08",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 1435877,
+      "tb_closing": 1435877
+    },
+    {
+      "name": "Customer 09",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 44492339,
+      "tb_closing": 44492339
+    },
+    {
+      "name": "Customer 10",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 19174933,
+      "tb_closing": 19174933
+    },
+    {
+      "name": "Customer 11",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 4439,
+      "tb_closing": 4439
+    },
+    {
+      "name": "Customer 12",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 10854312,
+      "tb_closing": 10854312
+    },
+    {
+      "name": "Supplier 01",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -22019183,
+      "tb_closing": -22019183
+    },
+    {
+      "name": "Supplier 02",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -43947243,
+      "tb_closing": -43947243
+    },
+    {
+      "name": "Supplier 03",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -2438717,
+      "tb_closing": -2438717
+    },
+    {
+      "name": "Supplier 04",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -10549467,
+      "tb_closing": -10549467
+    },
+    {
+      "name": "Supplier 05",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -5762645,
+      "tb_closing": -5762645
+    },
+    {
+      "name": "Supplier 06",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -25484567,
+      "tb_closing": -25484567
+    },
+    {
+      "name": "Supplier 07",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -186132,
+      "tb_closing": -186132
+    },
+    {
+      "name": "Supplier 08",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -60367,
+      "tb_closing": -60367
+    },
+    {
+      "name": "Loan from Suresh Kumar",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -2500000,
+      "tb_closing": -2500000
+    },
+    {
+      "name": "Shree Ganesh Hardware",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -650000,
+      "tb_closing": -650000
+    },
+    {
+      "name": "Balaji Traders",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -600000,
+      "tb_closing": -600000
+    },
+    {
+      "name": "Repairs & Maintenance",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 2250000,
+      "tb_closing": 2250000
+    },
+    {
+      "name": "Shree Roadlines",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -1000000,
+      "tb_closing": -1000000
+    },
+    {
+      "name": "Loan from Mahesh Patil",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -2500000,
+      "tb_closing": -2500000
+    },
+    {
+      "name": "Loan from Anil Joshi",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -2500000,
+      "tb_closing": -2500000
+    },
+    {
+      "name": "Loan from Kiran Rao",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -1999900,
+      "tb_closing": -1999900
+    },
+    {
+      "name": "Loan from Prakash Jain",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -3000000,
+      "tb_closing": -3000000
+    },
+    {
+      "name": "Loan from Ravi Mehta",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -2250000,
+      "tb_closing": -2250000
+    },
+    {
+      "name": "Loan from Vinod Shah",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -3500000,
+      "tb_closing": -3500000
+    },
+    {
+      "name": "Loan from Sunil Patel",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Om Sai Enterprises",
+      "group": "Sundry Debtors",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 9000000,
+      "tb_closing": 9000000
+    },
+    {
+      "name": "Sai Krupa Stores",
+      "group": "Sundry Debtors",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 5000100,
+      "tb_closing": 5000100
+    },
+    {
+      "name": "Patil Agro Industries",
+      "group": "Sundry Debtors",
+      "class": "SundryDebtors",
+      "head": "OTHER_CURRENT_LIABILITIES",
+      "source": "group_default",
+      "reclassified": true,
+      "amount": -1500000,
+      "tb_closing": -1500000
+    },
+    {
+      "name": "State Bank of India CC A/c",
+      "group": "Bank Accounts",
+      "class": "BankAccounts",
+      "head": "ST_BORROWINGS",
+      "source": "group_default",
+      "reclassified": true,
+      "amount": -10000000,
+      "tb_closing": -10000000
+    },
+    {
+      "name": "Suspense A/c",
+      "group": "Suspense A/c",
+      "class": "SuspenseAc",
+      "head": "OTHER_CURRENT_LIABILITIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -123400,
+      "tb_closing": -123400
+    },
+    {
+      "name": "GST Payable - Old",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -180000,
+      "tb_closing": -180000
+    },
+    {
+      "name": "Laptop Purchase",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 6500000,
+      "tb_closing": 6500000
+    },
+    {
+      "name": "Old Debtor - Renamed",
+      "group": "Sundry Debtors",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 700000,
+      "tb_closing": 700000
+    }
+  ],
+  "py_mapping": [
+    {
+      "name": "Sales - Local",
+      "group": "Sales Accounts",
+      "class": "SalesAccounts",
+      "head": "REVENUE_OPS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -582460346,
+      "tb_closing": -582460346
+    },
+    {
+      "name": "Purchases - Local",
+      "group": "Purchase Accounts",
+      "class": "PurchaseAccounts",
+      "head": "PURCHASES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 300418733,
+      "tb_closing": 300418733
+    },
+    {
+      "name": "Rent",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 30000000,
+      "tb_closing": 30000000
+    },
+    {
+      "name": "Salary",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "EMPLOYEE_BENEFITS",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 57751454,
+      "tb_closing": 57751454
+    },
+    {
+      "name": "Electricity Charges",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 6169847,
+      "tb_closing": 6169847
+    },
+    {
+      "name": "Office Expenses",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 4770118,
+      "tb_closing": 4770118
+    },
+    {
+      "name": "Depreciation",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "DEPRECIATION",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 13064818,
+      "tb_closing": 13064818
+    },
+    {
+      "name": "Partner A - Capital",
+      "group": "Capital Account",
+      "class": "CapitalAccount",
+      "head": "CAPITAL",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -50000000,
+      "tb_closing": -50000000
+    },
+    {
+      "name": "Partner B - Capital",
+      "group": "Capital Account",
+      "class": "CapitalAccount",
+      "head": "CAPITAL",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -194384821,
+      "tb_closing": -194384821
+    },
+    {
+      "name": "Profit & Loss A/c",
+      "group": "Profit & Loss A/c",
+      "class": "ProfitLossAc",
+      "head": "CAPITAL",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 189148594,
+      "tb_closing": 189148594
+    },
+    {
+      "name": "Cash",
+      "group": "Cash-in-Hand",
+      "class": "CashInHand",
+      "head": "CASH_BANK",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 6000000,
+      "tb_closing": 6000000
+    },
+    {
+      "name": "HDFC Bank Current A/c",
+      "group": "Bank Accounts",
+      "class": "BankAccounts",
+      "head": "CASH_BANK",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 90000000,
+      "tb_closing": 90000000
+    },
+    {
+      "name": "Plant & Machinery",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "PPE",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 80000000,
+      "tb_closing": 80000000
+    },
+    {
+      "name": "Furniture & Fixtures",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "PPE",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 15000000,
+      "tb_closing": 15000000
+    },
+    {
+      "name": "TDS Payable",
+      "group": "Duties & Taxes",
+      "class": "DutiesTaxes",
+      "head": "OTHER_CURRENT_LIABILITIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Unsecured Loan - Rajesh Kumar",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -30000000,
+      "tb_closing": -30000000
+    },
+    {
+      "name": "Stock-in-Trade",
+      "group": "Stock-in-Hand",
+      "class": "StockInHand",
+      "head": "INVENTORIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 37774956,
+      "tb_closing": 18911738
+    },
+    {
+      "name": "Customer 01",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 9731025,
+      "tb_closing": 9731025
+    },
+    {
+      "name": "Customer 02",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 10661050,
+      "tb_closing": 10661050
+    },
+    {
+      "name": "Customer 03",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 11029637,
+      "tb_closing": 11029637
+    },
+    {
+      "name": "Customer 04",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 1040488,
+      "tb_closing": 1040488
+    },
+    {
+      "name": "Customer 05",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 8976217,
+      "tb_closing": 8976217
+    },
+    {
+      "name": "Customer 06",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 2875084,
+      "tb_closing": 2875084
+    },
+    {
+      "name": "Customer 07",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 4772234,
+      "tb_closing": 4772234
+    },
+    {
+      "name": "Customer 08",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 4961041,
+      "tb_closing": 4961041
+    },
+    {
+      "name": "Customer 09",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 13640560,
+      "tb_closing": 13640560
+    },
+    {
+      "name": "Customer 10",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 1260625,
+      "tb_closing": 1260625
+    },
+    {
+      "name": "Customer 11",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 2992395,
+      "tb_closing": 2992395
+    },
+    {
+      "name": "Customer 12",
+      "group": "Debtors - Local",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 14650251,
+      "tb_closing": 14650251
+    },
+    {
+      "name": "Supplier 01",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -4183393,
+      "tb_closing": -4183393
+    },
+    {
+      "name": "Supplier 02",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -2602819,
+      "tb_closing": -2602819
+    },
+    {
+      "name": "Supplier 03",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -9307354,
+      "tb_closing": -9307354
+    },
+    {
+      "name": "Supplier 04",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -2690387,
+      "tb_closing": -2690387
+    },
+    {
+      "name": "Supplier 05",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -1797841,
+      "tb_closing": -1797841
+    },
+    {
+      "name": "Supplier 06",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -2314035,
+      "tb_closing": -2314035
+    },
+    {
+      "name": "Supplier 07",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -6551847,
+      "tb_closing": -6551847
+    },
+    {
+      "name": "Supplier 08",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -4233066,
+      "tb_closing": -4233066
+    },
+    {
+      "name": "Loan from Suresh Kumar",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Shree Ganesh Hardware",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Balaji Traders",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Shree Roadlines",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Loan from Mahesh Patil",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Loan from Anil Joshi",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Loan from Kiran Rao",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Loan from Prakash Jain",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Loan from Ravi Mehta",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -1800000,
+      "tb_closing": -1800000
+    },
+    {
+      "name": "Loan from Vinod Shah",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -5000000,
+      "tb_closing": -5000000
+    },
+    {
+      "name": "Loan from Sunil Patel",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -1200000,
+      "tb_closing": -1200000
+    },
+    {
+      "name": "Om Sai Enterprises",
+      "group": "Sundry Debtors",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Sai Krupa Stores",
+      "group": "Sundry Debtors",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Patil Agro Industries",
+      "group": "Sundry Debtors",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "State Bank of India CC A/c",
+      "group": "Bank Accounts",
+      "class": "BankAccounts",
+      "head": "CASH_BANK",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Suspense A/c",
+      "group": "Suspense A/c",
+      "class": "SuspenseAc",
+      "head": "OTHER_CURRENT_LIABILITIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "GST Payable - Old",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0
+    },
+    {
+      "name": "Old Debtor",
+      "group": "Sundry Debtors",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 700000,
+      "tb_closing": 700000
+    }
+  ],
+  "statements": {
+    "pack_id": "non_corporate",
+    "pack_status": "draft – line items to be verified against the ICAI Guidance Note text",
+    "bs_title": "Balance Sheet as at 31 March 2026",
+    "pl_title": "Statement of Profit and Loss for the year ended 31 March 2026",
+    "balance_sheet": [
+      {
+        "kind": "heading",
+        "label": "I. EQUITY AND LIABILITIES",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "sub_heading",
+        "label": "(1) Owners' funds",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "(a) Partners' capital accounts",
+        "note": 1,
+        "cy": 3091463718,
+        "py": 244384821
+      },
+      {
+        "kind": "sub_heading",
+        "label": "(2) Non-current liabilities",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "(a) Long-term borrowings",
+        "note": 2,
+        "cy": 48989900,
+        "py": 38000000
+      },
+      {
+        "kind": "sub_heading",
+        "label": "(3) Current liabilities",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "(a) Short-term borrowings",
+        "note": 3,
+        "cy": 10000000,
+        "py": 0
+      },
+      {
+        "kind": "item",
+        "label": "(b) Trade payables",
+        "note": 4,
+        "cy": 115378321,
+        "py": 33680742
+      },
+      {
+        "kind": "item",
+        "label": "(c) Other current liabilities",
+        "note": 5,
+        "cy": 1623400,
+        "py": 0
+      },
+      {
+        "kind": "total",
+        "label": "TOTAL",
+        "note": null,
+        "cy": 3267455339,
+        "py": 316065563
+      },
+      {
+        "kind": "heading",
+        "label": "II. ASSETS",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "sub_heading",
+        "label": "(a) Property, Plant and Equipment and Intangible assets",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "(i) Property, Plant and Equipment",
+        "note": 6,
+        "cy": 83120000,
+        "py": 95000000
+      },
+      {
+        "kind": "sub_heading",
+        "label": "(2) Current assets",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "(b) Inventories",
+        "note": 7,
+        "cy": 25337132,
+        "py": 37774956
+      },
+      {
+        "kind": "item",
+        "label": "(c) Trade receivables",
+        "note": 8,
+        "cy": 251790927,
+        "py": 87290607
+      },
+      {
+        "kind": "item",
+        "label": "(d) Cash and bank balances",
+        "note": 9,
+        "cy": 2907207280,
+        "py": 96000000
+      },
+      {
+        "kind": "total",
+        "label": "TOTAL",
+        "note": null,
+        "cy": 3267455339,
+        "py": 316065563
+      }
+    ],
+    "profit_loss": [
+      {
+        "kind": "item",
+        "label": "I. Revenue from operations",
+        "note": 10,
+        "cy": 5619342307,
+        "py": 582460346
+      },
+      {
+        "kind": "item",
+        "label": "II. Other income",
+        "note": 11,
+        "cy": 10862260,
+        "py": 0
+      },
+      {
+        "kind": "subtotal",
+        "label": "III. Total Income (I + II)",
+        "note": null,
+        "cy": 5630204567,
+        "py": 582460346
+      },
+      {
+        "kind": "heading",
+        "label": "IV. Expenses:",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "Purchases of Stock-in-Trade",
+        "note": 12,
+        "cy": 2513882403,
+        "py": 300418733
+      },
+      {
+        "kind": "item",
+        "label": "Changes in inventories of finished goods, work-in-progress and Stock-in-Trade",
+        "note": 13,
+        "cy": 12437824,
+        "py": -18863218
+      },
+      {
+        "kind": "item",
+        "label": "Employee benefits expense",
+        "note": 14,
+        "cy": 80212893,
+        "py": 57751454
+      },
+      {
+        "kind": "item",
+        "label": "Finance costs",
+        "note": 15,
+        "cy": 4100000,
+        "py": 0
+      },
+      {
+        "kind": "item",
+        "label": "Depreciation and amortisation expense",
+        "note": 16,
+        "cy": 13680000,
+        "py": 13064818
+      },
+      {
+        "kind": "item",
+        "label": "Other expenses",
+        "note": 17,
+        "cy": 159812550,
+        "py": 40939965
+      },
+      {
+        "kind": "subtotal",
+        "label": "Total expenses",
+        "note": null,
+        "cy": 2784125670,
+        "py": 393311752
+      },
+      {
+        "kind": "subtotal",
+        "label": "V. Profit before Partners' remuneration and interest and tax (III - IV)",
+        "note": null,
+        "cy": 2846078897,
+        "py": 189148594
+      },
+      {
+        "kind": "item",
+        "label": "VI. Partners' remuneration and interest",
+        "note": 18,
+        "cy": 30000000,
+        "py": 0
+      },
+      {
+        "kind": "subtotal",
+        "label": "VII. Profit before tax (V - VI)",
+        "note": null,
+        "cy": 2816078897,
+        "py": 189148594
+      },
+      {
+        "kind": "item",
+        "label": "VIII. Tax expense",
+        "note": null,
+        "cy": 0,
+        "py": 0
+      },
+      {
+        "kind": "subtotal",
+        "label": "IX. Profit / (Loss) for the year (VII - VIII)",
+        "note": null,
+        "cy": 2816078897,
+        "py": 189148594
+      }
+    ],
+    "notes": [
+      {
+        "no": 1,
+        "title": "Partners' capital accounts",
+        "lines": [
+          {
+            "label": "Partner A - Capital",
+            "cy": 65000000,
+            "py": 50000000
+          },
+          {
+            "label": "Partner B - Capital",
+            "cy": 209884821,
+            "py": 194384821
+          },
+          {
+            "label": "Profit & Loss A/c",
+            "cy": 500000,
+            "py": -189148594
+          },
+          {
+            "label": "Add: Profit / (Loss) for the year",
+            "cy": 2816078897,
+            "py": 189148594
+          }
+        ],
+        "total_cy": 3091463718,
+        "total_py": 244384821
+      },
+      {
+        "no": 2,
+        "title": "Long-term borrowings",
+        "lines": [
+          {
+            "label": "Unsecured Loan - Rajesh Kumar",
+            "cy": 33240000,
+            "py": 30000000
+          },
+          {
+            "label": "Loan from Mahesh Patil",
+            "cy": 2500000,
+            "py": 0
+          },
+          {
+            "label": "Loan from Anil Joshi",
+            "cy": 2500000,
+            "py": 0
+          },
+          {
+            "label": "Loan from Kiran Rao",
+            "cy": 1999900,
+            "py": 0
+          },
+          {
+            "label": "Loan from Prakash Jain",
+            "cy": 3000000,
+            "py": 0
+          },
+          {
+            "label": "Loan from Ravi Mehta",
+            "cy": 2250000,
+            "py": 1800000
+          },
+          {
+            "label": "Loan from Vinod Shah",
+            "cy": 3500000,
+            "py": 5000000
+          },
+          {
+            "label": "Loan from Sunil Patel",
+            "cy": 0,
+            "py": 1200000
+          }
+        ],
+        "total_cy": 48989900,
+        "total_py": 38000000
+      },
+      {
+        "no": 3,
+        "title": "Short-term borrowings",
+        "lines": [
+          {
+            "label": "State Bank of India CC A/c",
+            "cy": 10000000,
+            "py": 0
+          }
+        ],
+        "total_cy": 10000000,
+        "total_py": 0
+      },
+      {
+        "no": 4,
+        "title": "Trade payables",
+        "lines": [
+          {
+            "label": "Supplier 01",
+            "cy": 22019183,
+            "py": 4183393
+          },
+          {
+            "label": "Supplier 02",
+            "cy": 43947243,
+            "py": 2602819
+          },
+          {
+            "label": "Supplier 03",
+            "cy": 2438717,
+            "py": 9307354
+          },
+          {
+            "label": "Supplier 04",
+            "cy": 10549467,
+            "py": 2690387
+          },
+          {
+            "label": "Supplier 05",
+            "cy": 5762645,
+            "py": 1797841
+          },
+          {
+            "label": "Supplier 06",
+            "cy": 25484567,
+            "py": 2314035
+          },
+          {
+            "label": "Supplier 07",
+            "cy": 186132,
+            "py": 6551847
+          },
+          {
+            "label": "Supplier 08",
+            "cy": 60367,
+            "py": 4233066
+          },
+          {
+            "label": "Loan from Suresh Kumar",
+            "cy": 2500000,
+            "py": 0
+          },
+          {
+            "label": "Shree Ganesh Hardware",
+            "cy": 650000,
+            "py": 0
+          },
+          {
+            "label": "Balaji Traders",
+            "cy": 600000,
+            "py": 0
+          },
+          {
+            "label": "Shree Roadlines",
+            "cy": 1000000,
+            "py": 0
+          },
+          {
+            "label": "GST Payable - Old",
+            "cy": 180000,
+            "py": 0
+          }
+        ],
+        "total_cy": 115378321,
+        "total_py": 33680742
+      },
+      {
+        "no": 5,
+        "title": "Other current liabilities",
+        "lines": [
+          {
+            "label": "Patil Agro Industries",
+            "cy": 1500000,
+            "py": 0
+          },
+          {
+            "label": "Suspense A/c",
+            "cy": 123400,
+            "py": 0
+          }
+        ],
+        "total_cy": 1623400,
+        "total_py": 0
+      },
+      {
+        "no": 6,
+        "title": "Property, Plant and Equipment",
+        "lines": [
+          {
+            "label": "Plant & Machinery",
+            "cy": 68000000,
+            "py": 80000000
+          },
+          {
+            "label": "Furniture & Fixtures",
+            "cy": 15120000,
+            "py": 15000000
+          }
+        ],
+        "total_cy": 83120000,
+        "total_py": 95000000
+      },
+      {
+        "no": 7,
+        "title": "Inventories",
+        "lines": [
+          {
+            "label": "Stock-in-Trade",
+            "cy": 25337132,
+            "py": 37774956
+          }
+        ],
+        "total_cy": 25337132,
+        "total_py": 37774956
+      },
+      {
+        "no": 8,
+        "title": "Trade receivables",
+        "lines": [
+          {
+            "label": "Customer 01",
+            "cy": 22997526,
+            "py": 9731025
+          },
+          {
+            "label": "Customer 02",
+            "cy": 25912157,
+            "py": 10661050
+          },
+          {
+            "label": "Customer 03",
+            "cy": 58046236,
+            "py": 11029637
+          },
+          {
+            "label": "Customer 04",
+            "cy": 107388,
+            "py": 1040488
+          },
+          {
+            "label": "Customer 05",
+            "cy": 12196582,
+            "py": 8976217
+          },
+          {
+            "label": "Customer 06",
+            "cy": 22607444,
+            "py": 2875084
+          },
+          {
+            "label": "Customer 07",
+            "cy": 19261594,
+            "py": 4772234
+          },
+          {
+            "label": "Customer 08",
+            "cy": 1435877,
+            "py": 4961041
+          },
+          {
+            "label": "Customer 09",
+            "cy": 44492339,
+            "py": 13640560
+          },
+          {
+            "label": "Customer 10",
+            "cy": 19174933,
+            "py": 1260625
+          },
+          {
+            "label": "Customer 11",
+            "cy": 4439,
+            "py": 2992395
+          },
+          {
+            "label": "Customer 12",
+            "cy": 10854312,
+            "py": 14650251
+          },
+          {
+            "label": "Om Sai Enterprises",
+            "cy": 9000000,
+            "py": 0
+          },
+          {
+            "label": "Sai Krupa Stores",
+            "cy": 5000100,
+            "py": 0
+          },
+          {
+            "label": "Old Debtor - Renamed",
+            "cy": 700000,
+            "py": 0
+          },
+          {
+            "label": "Old Debtor",
+            "cy": 0,
+            "py": 700000
+          }
+        ],
+        "total_cy": 251790927,
+        "total_py": 87290607
+      },
+      {
+        "no": 9,
+        "title": "Cash and bank balances",
+        "lines": [
+          {
+            "label": "Cash",
+            "cy": 371228081,
+            "py": 6000000
+          },
+          {
+            "label": "HDFC Bank Current A/c",
+            "cy": 2535979199,
+            "py": 90000000
+          }
+        ],
+        "total_cy": 2907207280,
+        "total_py": 96000000
+      },
+      {
+        "no": 10,
+        "title": "Revenue from operations",
+        "lines": [
+          {
+            "label": "Sales - Local",
+            "cy": 5619342307,
+            "py": 582460346
+          }
+        ],
+        "total_cy": 5619342307,
+        "total_py": 582460346
+      },
+      {
+        "no": 11,
+        "title": "Other income",
+        "lines": [
+          {
+            "label": "Interest Received",
+            "cy": 10862260,
+            "py": 0
+          }
+        ],
+        "total_cy": 10862260,
+        "total_py": 0
+      },
+      {
+        "no": 12,
+        "title": "Purchases of Stock-in-Trade",
+        "lines": [
+          {
+            "label": "Purchases - Local",
+            "cy": 2513882403,
+            "py": 300418733
+          }
+        ],
+        "total_cy": 2513882403,
+        "total_py": 300418733
+      },
+      {
+        "no": 13,
+        "title": "Changes in inventories of finished goods, work-in-progress and Stock-in-Trade",
+        "lines": [
+          {
+            "label": "Inventories at the beginning of the year",
+            "cy": 37774956,
+            "py": 18911738
+          },
+          {
+            "label": "Less: Inventories at the end of the year",
+            "cy": -25337132,
+            "py": -37774956
+          }
+        ],
+        "total_cy": 12437824,
+        "total_py": -18863218
+      },
+      {
+        "no": 14,
+        "title": "Employee benefits expense",
+        "lines": [
+          {
+            "label": "Staff Welfare",
+            "cy": 21540003,
+            "py": 0
+          },
+          {
+            "label": "Salary",
+            "cy": 58672890,
+            "py": 57751454
+          }
+        ],
+        "total_cy": 80212893,
+        "total_py": 57751454
+      },
+      {
+        "no": 15,
+        "title": "Finance costs",
+        "lines": [
+          {
+            "label": "Interest on Unsecured Loans",
+            "cy": 4100000,
+            "py": 0
+          }
+        ],
+        "total_cy": 4100000,
+        "total_py": 0
+      },
+      {
+        "no": 16,
+        "title": "Depreciation and amortisation expense",
+        "lines": [
+          {
+            "label": "Depreciation",
+            "cy": 13680000,
+            "py": 13064818
+          }
+        ],
+        "total_cy": 13680000,
+        "total_py": 13064818
+      },
+      {
+        "no": 17,
+        "title": "Other expenses",
+        "lines": [
+          {
+            "label": "Freight Inward",
+            "cy": 8000000,
+            "py": 0
+          },
+          {
+            "label": "Office Expenses",
+            "cy": 26018623,
+            "py": 4770118
+          },
+          {
+            "label": "Printing & Stationery",
+            "cy": 25365259,
+            "py": 0
+          },
+          {
+            "label": "Telephone Expenses",
+            "cy": 21135959,
+            "py": 0
+          },
+          {
+            "label": "Conveyance",
+            "cy": 29051907,
+            "py": 0
+          },
+          {
+            "label": "Rent",
+            "cy": 33500000,
+            "py": 30000000
+          },
+          {
+            "label": "Electricity Charges",
+            "cy": 6919604,
+            "py": 6169847
+          },
+          {
+            "label": "Bank Charges",
+            "cy": 1071198,
+            "py": 0
+          },
+          {
+            "label": "Repairs & Maintenance",
+            "cy": 2250000,
+            "py": 0
+          },
+          {
+            "label": "Laptop Purchase",
+            "cy": 6500000,
+            "py": 0
+          }
+        ],
+        "total_cy": 159812550,
+        "total_py": 40939965
+      },
+      {
+        "no": 18,
+        "title": "Partners' remuneration and interest",
+        "lines": [
+          {
+            "label": "Partners' Remuneration",
+            "cy": 24000000,
+            "py": 0
+          },
+          {
+            "label": "Interest on Partners' Capital",
+            "cy": 6000000,
+            "py": 0
+          }
+        ],
+        "total_cy": 30000000,
+        "total_py": 0
+      }
+    ],
+    "total_assets": [
+      3267455339,
+      316065563
+    ],
+    "total_liabilities": [
+      3267455339,
+      316065563
+    ],
+    "profit": [
+      2816078897,
+      189148594
+    ]
+  },
+  "loans": [
+    {
+      "ledger": "Unsecured Loan - Rajesh Kumar",
+      "group": "Unsecured Loans",
+      "exempt": false,
+      "opening": 30000000,
+      "accepted_bank": 0,
+      "accepted_cash": 0,
+      "accepted_journal": 0,
+      "interest_credited": 3240000,
+      "tds_on_interest": 0,
+      "repaid_bank": 0,
+      "repaid_cash": 0,
+      "repaid_journal": 0,
+      "closing": 33240000,
+      "max_outstanding": 33240000,
+      "squared_up": false
+    },
+    {
+      "ledger": "Loan from Suresh Kumar",
+      "group": "Sundry Creditors",
+      "exempt": false,
+      "opening": 0,
+      "accepted_bank": 5000000,
+      "accepted_cash": 0,
+      "accepted_journal": 0,
+      "interest_credited": 0,
+      "tds_on_interest": 0,
+      "repaid_bank": 0,
+      "repaid_cash": 2500000,
+      "repaid_journal": 0,
+      "closing": 2500000,
+      "max_outstanding": 5000000,
+      "squared_up": false
+    },
+    {
+      "ledger": "Loan from Mahesh Patil",
+      "group": "Unsecured Loans",
+      "exempt": false,
+      "opening": 0,
+      "accepted_bank": 0,
+      "accepted_cash": 2500000,
+      "accepted_journal": 0,
+      "interest_credited": 0,
+      "tds_on_interest": 0,
+      "repaid_bank": 0,
+      "repaid_cash": 0,
+      "repaid_journal": 0,
+      "closing": 2500000,
+      "max_outstanding": 2500000,
+      "squared_up": false
+    },
+    {
+      "ledger": "Loan from Anil Joshi",
+      "group": "Unsecured Loans",
+      "exempt": false,
+      "opening": 0,
+      "accepted_bank": 0,
+      "accepted_cash": 2500000,
+      "accepted_journal": 0,
+      "interest_credited": 0,
+      "tds_on_interest": 0,
+      "repaid_bank": 0,
+      "repaid_cash": 0,
+      "repaid_journal": 0,
+      "closing": 2500000,
+      "max_outstanding": 2500000,
+      "squared_up": false
+    },
+    {
+      "ledger": "Loan from Kiran Rao",
+      "group": "Unsecured Loans",
+      "exempt": false,
+      "opening": 0,
+      "accepted_bank": 0,
+      "accepted_cash": 1999900,
+      "accepted_journal": 0,
+      "interest_credited": 0,
+      "tds_on_interest": 0,
+      "repaid_bank": 0,
+      "repaid_cash": 0,
+      "repaid_journal": 0,
+      "closing": 1999900,
+      "max_outstanding": 1999900,
+      "squared_up": false
+    },
+    {
+      "ledger": "Loan from Prakash Jain",
+      "group": "Unsecured Loans",
+      "exempt": false,
+      "opening": 0,
+      "accepted_bank": 0,
+      "accepted_cash": 0,
+      "accepted_journal": 3000000,
+      "interest_credited": 0,
+      "tds_on_interest": 0,
+      "repaid_bank": 0,
+      "repaid_cash": 0,
+      "repaid_journal": 0,
+      "closing": 3000000,
+      "max_outstanding": 3000000,
+      "squared_up": false
+    },
+    {
+      "ledger": "Loan from Ravi Mehta",
+      "group": "Unsecured Loans",
+      "exempt": false,
+      "opening": 1800000,
+      "accepted_bank": 0,
+      "accepted_cash": 150000,
+      "accepted_journal": 0,
+      "interest_credited": 500000,
+      "tds_on_interest": 0,
+      "repaid_bank": 0,
+      "repaid_cash": 200000,
+      "repaid_journal": 0,
+      "closing": 2250000,
+      "max_outstanding": 2450000,
+      "squared_up": false
+    },
+    {
+      "ledger": "Loan from Vinod Shah",
+      "group": "Unsecured Loans",
+      "exempt": false,
+      "opening": 5000000,
+      "accepted_bank": 0,
+      "accepted_cash": 0,
+      "accepted_journal": 0,
+      "interest_credited": 0,
+      "tds_on_interest": 0,
+      "repaid_bank": 0,
+      "repaid_cash": 1500000,
+      "repaid_journal": 0,
+      "closing": 3500000,
+      "max_outstanding": 5000000,
+      "squared_up": false
+    },
+    {
+      "ledger": "Loan from Sunil Patel",
+      "group": "Unsecured Loans",
+      "exempt": false,
+      "opening": 1200000,
+      "accepted_bank": 0,
+      "accepted_cash": 0,
+      "accepted_journal": 0,
+      "interest_credited": 0,
+      "tds_on_interest": 0,
+      "repaid_bank": 0,
+      "repaid_cash": 1200000,
+      "repaid_journal": 0,
+      "closing": 0,
+      "max_outstanding": 1200000,
+      "squared_up": true
+    }
+  ],
+  "printable": true,
+  "rules_version": "2026.10-draft"
+}

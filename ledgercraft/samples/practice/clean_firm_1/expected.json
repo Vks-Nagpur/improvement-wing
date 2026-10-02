@@ -1,0 +1,9 @@
+{
+  "description": "Clean partnership firm books, 4 vouchers/day, no planted errors",
+  "entity": "firm",
+  "entity_name": "Clean Traders (Partnership Firm)",
+  "expected_findings": [],
+  "expected_profit": "1,79,13,008.55",
+  "fy": "2025-26",
+  "scenario": "clean_firm_1"
+}

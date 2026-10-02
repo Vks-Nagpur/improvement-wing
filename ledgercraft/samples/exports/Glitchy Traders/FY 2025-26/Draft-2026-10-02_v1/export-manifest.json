@@ -1,0 +1,28 @@
+{
+  "app": "LedgerCraft",
+  "app_version": "0.1.0",
+  "rules_version": "2026.10-draft",
+  "format_pack": "non_corporate",
+  "entity": "Glitchy Traders",
+  "financial_year": "2025-26",
+  "mode": "draft",
+  "created": "2026-10-02T21:27:38.896301009+00:00",
+  "files": [
+    [
+      "Auditor_Reference_Workbook.xlsx",
+      "ec9fd0b6459d589c4cc452221f0b93df7223fbb7c868f9abd6319663e2b71580"
+    ],
+    [
+      "Financial_Statements.xlsx",
+      "e5613d45196d611869bab69f1ac6e7c6526c4b0f22e6c65a788d2c334e915f8f"
+    ],
+    [
+      "Financial_Statements_print.html",
+      "2a31840cf4ee76bc7a9f049aa0da1f7405ce53ecce55e6dd61a299220a22b015"
+    ],
+    [
+      "analysis.json",
+      "611fa0c9b232f28ab8740cee4955b8ccd745e2436b709c334a80b9702fc5f392"
+    ]
+  ]
+}

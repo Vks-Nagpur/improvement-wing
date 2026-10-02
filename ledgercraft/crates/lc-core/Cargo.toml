@@ -1,0 +1,10 @@
+[package]
+name = "lc-core"
+version.workspace = true
+edition.workspace = true
+description = "LedgerCraft core engine: checks, mapping and financial statements (pure, no I/O)"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true

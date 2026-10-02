@@ -1,0 +1,280 @@
+//! Ledger -> financial statement head mapping.
+//!
+//! Order: (1) remembered mapping, (2) name rules within the ledger's nature,
+//! (3) standard-group default. Then presentation reclassification by balance
+//! side (no netting of assets and liabilities).
+
+use crate::groups::{Class, Nature};
+use crate::model::norm_name;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum Head {
+    // Owners' funds / equity
+    Capital,
+    ReservesSurplus,
+    // Liabilities
+    LtBorrowings,
+    OtherLtLiabilities,
+    LtProvisions,
+    StBorrowings,
+    TradePayables,
+    OtherCurrentLiabilities,
+    StProvisions,
+    // Assets
+    Ppe,
+    Intangibles,
+    Cwip,
+    NcInvestments,
+    LtLoansAdvances,
+    OtherNcAssets,
+    CurrentInvestments,
+    Inventories,
+    TradeReceivables,
+    CashBank,
+    StLoansAdvances,
+    OtherCurrentAssets,
+    // Profit and loss
+    RevenueOps,
+    OtherIncome,
+    Purchases,
+    ChangeInInventories,
+    EmployeeBenefits,
+    FinanceCosts,
+    Depreciation,
+    PartnersRemuneration,
+    OtherExpenses,
+    TaxExpense,
+}
+
+impl Head {
+    pub fn id(self) -> String {
+        serde_json::to_value(self)
+            .ok()
+            .and_then(|v| v.as_str().map(String::from))
+            .unwrap_or_default()
+    }
+    pub fn from_id(s: &str) -> Option<Head> {
+        serde_json::from_value(serde_json::Value::String(s.to_string())).ok()
+    }
+    pub fn nature(self) -> Nature {
+        use Head::*;
+        match self {
+            Capital | ReservesSurplus => Nature::Capital,
+            LtBorrowings
+            | OtherLtLiabilities
+            | LtProvisions
+            | StBorrowings
+            | TradePayables
+            | OtherCurrentLiabilities
+            | StProvisions => Nature::Liability,
+            Ppe | Intangibles | Cwip | NcInvestments | LtLoansAdvances | OtherNcAssets
+            | CurrentInvestments | Inventories | TradeReceivables | CashBank | StLoansAdvances
+            | OtherCurrentAssets => Nature::Asset,
+            RevenueOps | OtherIncome => Nature::Income,
+            Purchases | ChangeInInventories | EmployeeBenefits | FinanceCosts | Depreciation
+            | PartnersRemuneration | OtherExpenses | TaxExpense => Nature::Expense,
+        }
+    }
+    pub const ALL: [Head; 31] = {
+        use Head::*;
+        [
+            Capital,
+            ReservesSurplus,
+            LtBorrowings,
+            OtherLtLiabilities,
+            LtProvisions,
+            StBorrowings,
+            TradePayables,
+            OtherCurrentLiabilities,
+            StProvisions,
+            Ppe,
+            Intangibles,
+            Cwip,
+            NcInvestments,
+            LtLoansAdvances,
+            OtherNcAssets,
+            CurrentInvestments,
+            Inventories,
+            TradeReceivables,
+            CashBank,
+            StLoansAdvances,
+            OtherCurrentAssets,
+            RevenueOps,
+            OtherIncome,
+            Purchases,
+            ChangeInInventories,
+            EmployeeBenefits,
+            FinanceCosts,
+            Depreciation,
+            PartnersRemuneration,
+            OtherExpenses,
+            TaxExpense,
+        ]
+    };
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MapSource {
+    Memory,
+    NameRule,
+    GroupDefault,
+}
+
+/// Word-boundary keyword test on a normalised name.
+pub fn has_word(name_norm: &str, words: &[&str]) -> bool {
+    let padded = format!(" {name_norm} ");
+    words.iter().any(|w| padded.contains(&format!(" {w} ")))
+}
+
+/// Substring keyword test on a normalised name (for stems like "depreciat").
+pub fn has_stem(name_norm: &str, stems: &[&str]) -> bool {
+    stems.iter().any(|s| name_norm.contains(s))
+}
+
+pub fn group_default(class: Class) -> Head {
+    use Class::*;
+    match class {
+        CapitalAccount => Head::Capital,
+        ReservesSurplus | ProfitLossAc => Head::ReservesSurplus,
+        LoansLiability | SecuredLoans | UnsecuredLoans => Head::LtBorrowings,
+        BankOdAc => Head::StBorrowings,
+        SundryCreditors => Head::TradePayables,
+        CurrentLiabilities | DutiesTaxes | BranchDivisions | SuspenseAc => {
+            Head::OtherCurrentLiabilities
+        }
+        Provisions => Head::StProvisions,
+        FixedAssets => Head::Ppe,
+        Investments => Head::NcInvestments,
+        DepositsAsset => Head::LtLoansAdvances,
+        LoansAdvancesAsset => Head::StLoansAdvances,
+        StockInHand => Head::Inventories,
+        SundryDebtors => Head::TradeReceivables,
+        BankAccounts | CashInHand => Head::CashBank,
+        CurrentAssets | MiscExpensesAsset => Head::OtherCurrentAssets,
+        SalesAccounts | DirectIncomes => Head::RevenueOps,
+        IndirectIncomes => Head::OtherIncome,
+        PurchaseAccounts => Head::Purchases,
+        DirectExpenses | IndirectExpenses => Head::OtherExpenses,
+    }
+}
+
+/// Name-based refinement inside the same nature. Never moves a ledger to a
+/// different nature (that is reported as a mis-grouping instead).
+pub fn name_rule(class: Class, name: &str) -> Option<Head> {
+    let n = norm_name(name);
+    match class.nature() {
+        Nature::Expense if class != Class::PurchaseAccounts => {
+            if has_word(&n, &["partner", "partners", "partner s"])
+                && has_stem(&n, &["remuneration", "salary", "interest"])
+            {
+                Some(Head::PartnersRemuneration)
+            } else if has_stem(&n, &["depreciat", "amortis", "amortiz"]) {
+                Some(Head::Depreciation)
+            } else if has_stem(
+                &n,
+                &["income tax", "tax expense", "current tax", "deferred tax"],
+            ) {
+                Some(Head::TaxExpense)
+            } else if has_stem(&n, &["interest"]) && !has_stem(&n, &["penal"]) {
+                Some(Head::FinanceCosts)
+            } else if has_stem(
+                &n,
+                &[
+                    "salar",
+                    "wage",
+                    "bonus",
+                    "staff welfare",
+                    "gratuity",
+                    "provident",
+                    "leave encash",
+                ],
+            ) || has_word(&n, &["pf", "esi", "esic"])
+            {
+                Some(Head::EmployeeBenefits)
+            } else {
+                None
+            }
+        }
+        Nature::Asset if class == Class::FixedAssets => {
+            if has_stem(&n, &["capital work", "cwip"]) {
+                Some(Head::Cwip)
+            } else if has_stem(
+                &n,
+                &[
+                    "software",
+                    "goodwill",
+                    "trademark",
+                    "patent",
+                    "copyright",
+                    "licence",
+                    "license",
+                ],
+            ) {
+                Some(Head::Intangibles)
+            } else {
+                None
+            }
+        }
+        Nature::Income if class == Class::IndirectIncomes => None,
+        _ => None,
+    }
+}
+
+/// Presentation reclassification by balance side. Returns (head, rule code).
+pub fn reclass_by_side(
+    head: Head,
+    class: Class,
+    balance: crate::money::Money,
+) -> Option<(Head, &'static str)> {
+    match head {
+        Head::TradeReceivables if balance.is_cr() => {
+            Some((Head::OtherCurrentLiabilities, "RECLASS_DEBTOR_CR"))
+        }
+        Head::TradePayables if balance.is_dr() => {
+            Some((Head::StLoansAdvances, "RECLASS_CREDITOR_DR"))
+        }
+        Head::CashBank if balance.is_cr() && class == Class::BankAccounts => {
+            Some((Head::StBorrowings, "RECLASS_BANK_CR"))
+        }
+        _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn ids_roundtrip() {
+        for h in Head::ALL {
+            assert_eq!(Head::from_id(&h.id()), Some(h));
+        }
+        assert_eq!(Head::LtBorrowings.id(), "LT_BORROWINGS");
+    }
+    #[test]
+    fn name_rules() {
+        assert_eq!(
+            name_rule(Class::IndirectExpenses, "Salary"),
+            Some(Head::EmployeeBenefits)
+        );
+        assert_eq!(
+            name_rule(Class::IndirectExpenses, "Interest on Partners' Capital"),
+            Some(Head::PartnersRemuneration)
+        );
+        assert_eq!(
+            name_rule(Class::IndirectExpenses, "Interest on Term Loan"),
+            Some(Head::FinanceCosts)
+        );
+        assert_eq!(
+            name_rule(Class::IndirectExpenses, "Depreciation"),
+            Some(Head::Depreciation)
+        );
+        assert_eq!(name_rule(Class::IndirectExpenses, "Rent"), None);
+        assert_eq!(
+            name_rule(Class::FixedAssets, "Tally Software"),
+            Some(Head::Intangibles)
+        );
+    }
+}

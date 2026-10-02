@@ -1,0 +1,18 @@
+[package]
+name = "lc-io"
+version.workspace = true
+edition.workspace = true
+description = "LedgerCraft input readers (Excel/CSV) and output writers (Excel, HTML, JSON)"
+
+[dependencies]
+lc-core = { path = "../lc-core" }
+chrono = { version = "0.4", default-features = false, features = ["std", "clock", "serde"] }
+serde.workspace = true
+serde_json.workspace = true
+calamine = "0.26"
+rust_xlsxwriter = "0.79"
+csv = "1"
+sha2 = "0.10"
+
+[dev-dependencies]
+lc-testdata = { path = "../lc-testdata" }

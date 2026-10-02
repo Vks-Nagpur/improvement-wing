@@ -1,0 +1,16 @@
+[package]
+name = "lc-cli"
+version.workspace = true
+edition.workspace = true
+description = "LedgerCraft command line (engine runner until the desktop app is ready)"
+
+[[bin]]
+name = "ledgercraft"
+path = "src/main.rs"
+
+[dependencies]
+lc-core = { path = "../lc-core" }
+lc-io = { path = "../lc-io" }
+lc-testdata = { path = "../lc-testdata" }
+serde_json.workspace = true
+chrono.workspace = true

@@ -1,0 +1,11 @@
+LedgerCraft – financial statements and audit checks (offline)
+
+Commands:
+  analyse        Check books and export statements + auditor workbook
+     --name "ABC & Co"   --entity company|llp|firm|proprietor|huf|aop|boi   --fy 2025-26
+     --tb trial_balance.xlsx   [--py-tb last_year.xlsx]   [--vouchers daybook.csv|.xlsx]
+     [--signoff signoff.json] [--mapping saved_mapping.json] [--out folder] [--final] [--expert]
+  practice-data  Write sample books with planted mistakes and the expected answers
+     [--out folder]
+  bench          Speed test on a large generated book
+     [--vouchers 1000000] [--write file.csv]

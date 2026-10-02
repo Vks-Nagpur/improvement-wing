@@ -1,0 +1,9 @@
+LedgerCraft – Clean Traders (Partnership Firm) – FY 2025-26
+Must fix: 0   Check: 0   Notes: 0
+
+Profit / (Loss) for the year: 1,79,13,008.55
+Balance Sheet total: 2,17,00,093.24
+Ready for a signing copy.
+
+Read 1506 vouchers in 6.07ms; checked in 1.23ms.
+Files saved in: samples/exports/Clean Traders/FY 2025-26/Draft-2026-10-02_v1

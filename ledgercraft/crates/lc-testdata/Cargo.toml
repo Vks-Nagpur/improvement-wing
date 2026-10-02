@@ -1,0 +1,9 @@
+[package]
+name = "lc-testdata"
+version.workspace = true
+edition.workspace = true
+description = "Synthetic books (basic to complex, with planted glitches and ground truth) for testing LedgerCraft"
+
+[dependencies]
+lc-core = { path = "../lc-core" }
+chrono.workspace = true

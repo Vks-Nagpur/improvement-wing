@@ -1,0 +1,134 @@
+LedgerCraft – Glitchy Traders (Partnership Firm) – FY 2025-26
+Must fix: 0   Check: 24   Notes: 3
+
+[Check] Asset bought in cash above limit
+  Asset bought in cash above the limit; that amount is not counted in tax depreciation. ₹18,000.00 paid in cash for 'Furniture & Fixtures' on 08-10-2025. Vouchers: Payment 322 dt 08-10-2025.
+  What to do: Exclude this amount from the asset's cost for tax depreciation.
+  Reference: s.43(1), 6th proviso
+
+[Check] Cash payment above limit
+  Cash paid for an expense/purchase to one person in a day is above the limit. The expense may be disallowed. ₹40,000.00 paid in cash to 'Shree Roadlines' on 01-06-2025 (limit ₹35,000.00). Vouchers: Payment 114 dt 01-06-2025.
+  What to do: Check Rule 6DD exceptions; otherwise consider disallowance in tax computation.
+  Reference: s.40A(3)/(3A), Rule 6DD exceptions; Form 3CD cl. 21(d)
+
+[Check] Cash payment above limit
+  Cash paid for an expense/purchase to one person in a day is above the limit. The expense may be disallowed. ₹13,500.00 paid in cash to 'Shree Ganesh Hardware' on 16-05-2025 (limit ₹10,000.00). Vouchers: Payment 73 dt 16-05-2025; Payment 74 dt 16-05-2025.
+  What to do: Check Rule 6DD exceptions; otherwise consider disallowance in tax computation.
+  Reference: s.40A(3)/(3A), Rule 6DD exceptions; Form 3CD cl. 21(d)
+
+[Check] Cash payment above limit
+  Cash paid for an expense/purchase to one person in a day is above the limit. The expense may be disallowed. Payment 91 dt 21-05-2025: ₹12,500.00 paid in cash for 'Repairs & Maintenance' (limit ₹10,000.00).
+  What to do: Check Rule 6DD exceptions; otherwise consider disallowance in tax computation.
+  Reference: s.40A(3)/(3A), Rule 6DD exceptions; Form 3CD cl. 21(d)
+
+[Check] Cash received ₹2 lakh or more
+  Cash of ₹2 lakh or more received from one person in a day / one transaction. Penalty may apply. ₹2,10,000.00 received in cash from 'Om Sai Enterprises' on 03-09-2025. Vouchers: Receipt 213 dt 03-09-2025; Receipt 214 dt 03-09-2025.
+  What to do: Receipt of ₹2 lakh or more in cash from a person in a day attracts penalty.
+  Reference: s.269ST; s.271DA
+
+[Check] Cash received ₹2 lakh or more
+  Cash of ₹2 lakh or more received from one person in a day / one transaction. Penalty may apply. Sales 333 dt 08-09-2025: ₹2,50,000.00 received in cash ('Sales - Local').
+  What to do: Identify the customer; receipt of ₹2 lakh or more in cash attracts penalty.
+  Reference: s.269ST; s.271DA
+
+[Check] Possible duplicate voucher
+  Two vouchers have the same date, ledgers and amounts. Sales 413 dt 18-10-2025 looks the same as Sales 412 dt 18-10-2025.
+  What to do: Delete one if it was entered twice.
+
+[Check] Loan accepted in cash (limit test)
+  Loan taken in cash where the loan (with earlier unpaid principal) is ₹20,000 or more. Receipt 121 dt 30-06-2025: ₹10,000.00 accepted from 'Loan from Anil Joshi' (cash); unpaid principal before this ₹15,000.00, aggregate ₹25,000.00.
+  What to do: Report in Form 3CD clause 31(a) with mode; check penalty exposure.
+  Reference: s.269SS; s.271D; Form 3CD cl. 31(a)
+
+[Check] Loan accepted in cash (limit test)
+  Loan taken in cash where the loan (with earlier unpaid principal) is ₹20,000 or more. Receipt 97 dt 10-06-2025: ₹25,000.00 accepted from 'Loan from Mahesh Patil' (cash); unpaid principal before this ₹0.00, aggregate ₹25,000.00.
+  What to do: Report in Form 3CD clause 31(a) with mode; check penalty exposure.
+  Reference: s.269SS; s.271D; Form 3CD cl. 31(a)
+
+[Check] Loan accepted by journal entry
+  Loan credited through a journal (not bank or cash). Check the mode; book adjustments may count as 'otherwise than banking channel'. Journal 7 dt 19-08-2025: ₹30,000.00 accepted from 'Loan from Prakash Jain' (journal entry); unpaid principal before this ₹0.00, aggregate ₹30,000.00.
+  What to do: Report in Form 3CD clause 31(a) with mode; check penalty exposure.
+  Reference: s.269SS; Form 3CD cl. 31(a)
+
+[Check] Loan repaid in cash (limit test)
+  Loan repaid in cash where the amount, or the balance with interest, is ₹20,000 or more. Payment 198 dt 30-07-2025: ₹2,000.00 repaid in cash to 'Loan from Ravi Mehta'; balance (with interest) before repayment ₹24,500.00.
+  What to do: Report in Form 3CD clause 31(b); check penalty exposure.
+  Reference: s.269T; s.271E; Form 3CD cl. 31(b)
+
+[Check] Loan repaid in cash (limit test)
+  Loan repaid in cash where the amount, or the balance with interest, is ₹20,000 or more. Payment 221 dt 09-08-2025: ₹15,000.00 repaid in cash to 'Loan from Vinod Shah'; balance (with interest) before repayment ₹50,000.00.
+  What to do: Report in Form 3CD clause 31(b); check penalty exposure.
+  Reference: s.269T; s.271E; Form 3CD cl. 31(b)
+
+[Check] Loan repaid in cash (limit test)
+  Loan repaid in cash where the amount, or the balance with interest, is ₹20,000 or more. Payment 351 dt 18-10-2025: ₹25,000.00 repaid in cash to 'Loan from Suresh Kumar'; balance (with interest) before repayment ₹50,000.00.
+  What to do: Report in Form 3CD clause 31(b); check penalty exposure.
+  Reference: s.269T; s.271E; Form 3CD cl. 31(b)
+
+[Check] Loan grouped as creditor/debtor
+  This looks like a loan but is grouped as a party. Loans go under Borrowings, and cash loan limits apply. 'Loan from Suresh Kumar' looks like a loan taken but is under 'Sundry Creditors'.
+  What to do: Move to Unsecured Loans / Secured Loans (Borrowings). Cash-loan limits are already being tested on it.
+  Reference: Schedule III; s.269SS/269T; Form 3CD cl. 31
+
+[Check] Overdraft / cash credit grouped as bank account
+  Overdraft and cash credit accounts are borrowings, not bank balances. 'State Bank of India CC A/c' is under Bank Accounts.
+  What to do: Move to Bank OD A/c (shown under Short-term Borrowings).
+  Reference: Schedule III
+
+[Check] Tax ledger grouped as creditor
+  GST/TDS ledgers belong under Duties & Taxes (statutory dues), not trade creditors. 'GST Payable - Old' is under 'Sundry Creditors'.
+  What to do: Move to Duties & Taxes.
+  Reference: Schedule III
+
+[Check] Cash balance negative
+  Cash in hand went below zero at the end of this day, which is not possible in reality. 'Cash' closed 18-09-2025 at 10,000.00 Cr.
+  What to do: Check missing cash receipts / withdrawals, or wrong dates.
+
+[Check] Opening balance differs from last year's closing
+  This ledger's opening this year does not match its closing last year. 'Customer 03': opening this year 1,15,296.37 Dr, expected 1,10,296.37 Dr (last year's closing). Difference ₹5,000.00.
+  What to do: Correct the opening balance, or record the reason (e.g. prior-period adjustment).
+  Reference: AS 5 / consistency of comparatives
+
+[Check] Opening balance differs from last year's closing
+  This ledger's opening this year does not match its closing last year. 'Partner B - Capital': opening this year 19,48,848.21 Cr, expected 19,43,848.21 Cr (last year's closing). Difference ₹5,000.00.
+  What to do: Correct the opening balance, or record the reason (e.g. prior-period adjustment).
+  Reference: AS 5 / consistency of comparatives
+
+[Check] Opening balance differs from last year's closing
+  This ledger's opening this year does not match its closing last year. 'Profit & Loss A/c': opening this year 5,000.00 Cr, expected 0.00 Dr (last year's closing plus last year's profit/loss). Difference ₹5,000.00.
+  What to do: Correct the opening balance, or record the reason (e.g. prior-period adjustment).
+  Reference: AS 5 / consistency of comparatives
+
+[Check] Last year's ledger missing this year
+  A ledger had a closing balance last year but is not in this year's books. 'Old Debtor' closed last year at 7,000.00 Dr but is not in this year's books.
+  What to do: Check if it was renamed or merged.
+
+[Check] New ledger with opening balance
+  A ledger has an opening balance but did not exist last year. 'Old Debtor - Renamed' has opening 7,000.00 Dr but no such ledger existed last year.
+  What to do: Check if the ledger was renamed; if so, link it to last year's name.
+
+[Check] Income/expense ledger has an opening balance
+  Income and expense ledgers must start the year at zero. 'Rent' starts the year with 5,000.00 Dr.
+
+[Check] Suspense account has a balance
+  Suspense must be cleared before finalising. 'Suspense A/c' shows 1,234.00 Cr.
+
+[Note] Possible capital item in expenses
+  This expense ledger name suggests an asset purchase. Check whether it should be capitalised. 'Laptop Purchase' (Indirect Expenses) shows 65,000.00 Dr.
+  What to do: If it gives benefit for more than a year, move to Fixed Assets and charge depreciation.
+  Reference: AS 10
+
+[Note] Bank credit balance shown as borrowing
+  Bank account is overdrawn; shown under Short-term Borrowings. 'State Bank of India CC A/c' shows 1,00,000.00 Cr.
+  Reference: Schedule III / ICAI GN
+
+[Note] Customer credit balance shown as liability
+  Customer has paid in advance; shown under Other Current Liabilities (advance from customers). 'Patil Agro Industries' shows 15,000.00 Cr.
+  Reference: Schedule III / ICAI GN: no netting of assets and liabilities
+
+Profit / (Loss) for the year: 2,81,60,788.97
+Balance Sheet total: 3,26,74,553.39
+Ready for a signing copy.
+
+Read 2253 vouchers in 9.06ms; checked in 2.00ms.
+Files saved in: samples/exports/Glitchy Traders/FY 2025-26/Draft-2026-10-02_v1

@@ -430,7 +430,13 @@ fn write_auditor_workbook(
     }
     {
         let ws = x(wb.add_worksheet().set_name("Loan register"))?;
-        x(ws.write_string_with_format(0, 0, "Loans and deposits taken – helper for Form 3CD clause 31 (amounts owed shown positive)", &f.title))?;
+        let new_act = eng.fy_start >= chrono::NaiveDate::from_ymd_opt(2026, 4, 1).unwrap();
+        let title = if new_act {
+            "Loans and deposits taken – helper for Form 26 (ss.185 and 188 of the Income-tax Act, 2025; amounts owed shown positive)"
+        } else {
+            "Loans and deposits taken – helper for Form 3CD clause 31 (ss.269SS and 269T; amounts owed shown positive)"
+        };
+        x(ws.write_string_with_format(0, 0, title, &f.title))?;
         let heads = [
             "Lender (ledger)",
             "Group",

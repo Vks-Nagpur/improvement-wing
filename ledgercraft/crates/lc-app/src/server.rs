@@ -397,17 +397,8 @@ impl App {
             p.log("user", "checks_run", run)?;
         }
         let key = |f: &lc_core::facts::YearFacts| -> Value {
-            let h = |x: Head| -> i64 {
-                let m = f.head(x);
-                if matches!(
-                    x.nature(),
-                    lc_core::groups::Nature::Asset | lc_core::groups::Nature::Expense
-                ) {
-                    m.0
-                } else {
-                    -m.0
-                }
-            };
+            // Face figures are already in presentation sign (assets, liabilities, income positive).
+            let h = |x: Head| -> i64 { f.head(x).0 };
             json!({
                 "revenue": h(Head::RevenueOps), "other_income": h(Head::OtherIncome), "profit": f.profit().0,
                 "total_assets": f.total_assets().0, "receivables": h(Head::TradeReceivables), "payables": h(Head::TradePayables),

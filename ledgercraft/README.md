@@ -11,9 +11,12 @@ needed; an optional local AI (Ollama) can explain and suggest.
 1. Download `LedgerCraft.exe` (GitHub → Actions/Releases → *LedgerCraft-windows*).
 2. Double-click it. A small window opens (keep it open) and the app opens in
    your browser at `http://127.0.0.1:7878`. Nothing is sent anywhere.
-3. Work through the steps on the left:
-   **Clients and years → Import books → Check → Map ledgers → Presentation →
-   Sign and export → Audit trail.**
+3. The first screen asks what you want to do: **Make financial statements**,
+   **Check and analyse books**, or **Tax audit help**. Only the steps for that
+   job are then shown on the left, numbered, with progress under each and
+   "What to do now" at the bottom. Main buttons are always at the top right of
+   each screen; help on every screen in English, Hindi or Marathi.
+   Find any client with the search bar at the top (Ctrl+K); Alt+1…9 jumps to a step.
 4. Your work is saved in `Documents\LedgerCraft Data` (one folder per client
    and year). Copy that folder to back up.
 
@@ -44,6 +47,24 @@ schedule, 11 ratios with reasons; tax depreciation annexure. In ₹, thousands,
 lakhs, millions or crores, **always casting exactly**. Two layouts: Boxed or
 Ruled. Outputs: PDF, Excel, HTML preview, Auditor Reference Workbook, and a
 manifest with SHA-256 fingerprints. See [DESIGN.md](DESIGN.md).
+
+### Your own changes (all optional, all recorded)
+* **Adjustments:** pass journal entries over the imported books (provisions,
+  rectifications, audit adjustments, closing stock). New ledgers can be
+  created. Each can be edited, switched off or deleted; the books themselves
+  are never changed. They are listed in the auditor workbook.
+* **What to print:** switch the Balance Sheet, P&L, Cash Flow Statement, notes,
+  tax depreciation annexure and cover on or off; choose which files to export.
+* **Mapping:** change where any ledger is shown; **Reset** returns to the
+  automatic choice.
+* **Delete** a client year (it goes to the Recycle Bin and can be restored);
+  **Remove** an imported file.
+
+### Tax audit
+FY 2025-26 and earlier: Income-tax Act, 1961 sections and Form 3CA/3CB/3CD.
+From Tax Year 2026-27: Income-tax Act, 2025 (ss.36, 185, 186, 188) and the new
+Form 26 (section 63, Rule 47 of the Income-tax Rules, 2026). The app picks the
+references by the year of the client.
 
 ### Audit trail
 Every import, mapping, setting, export and AI suggestion is recorded in a

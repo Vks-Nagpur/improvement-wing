@@ -11,6 +11,10 @@
 <body>
 <header class="topbar">
   <button type="button" class="brand" id="homeBtn" title="Back to the start screen"><span class="mark" aria-hidden="true"></span>LedgerCraft</button>
+  <div class="search-wrap">
+    <input type="search" id="clientSearch" placeholder="Search client by name or year  (Ctrl+K)" autocomplete="off" aria-label="Search client" aria-controls="searchResults" aria-expanded="false">
+    <ul class="search-results" id="searchResults" role="listbox" hidden></ul>
+  </div>
   <div class="project-name" id="projectName">No client open</div>
   <div class="top-actions">
     <label class="lang" title="Language of the help on each screen">Help in
@@ -61,8 +65,8 @@
           <span class="in-s">Client → Import → Check → Analysis</span>
         </button>
         <button type="button" class="intent" data-intent="taxaudit">
-          <span class="in-k">3</span><span class="in-t">Tax audit help (Form 3CD)</span>
-          <span class="in-d">Cash payments above the limit, cash receipts, loans taken and repaid (principal only), with an Excel workbook for the auditor.</span>
+          <span class="in-k">3</span><span class="in-t">Tax audit help</span>
+          <span class="in-d">Cash payments above the limit, cash receipts, loans taken and repaid (principal only), with an Excel workbook for the auditor. Form 26 under the Income-tax Act, 2025 from Tax Year 2026-27; Form 3CD for FY 2025-26 and earlier.</span>
           <span class="in-s">Client → Import → Check → Analysis → Auditor workbook</span>
         </button>
       </div>
@@ -98,6 +102,11 @@
         <p class="error" id="npError" role="alert"></p>
       </div>
       <div id="projectsWrap">
+        <div class="filters">
+          <input type="search" id="plSearch" placeholder="Filter clients" aria-label="Filter clients">
+          <select id="plType" aria-label="Type of entity"><option value="">All types</option><option value="firm">Partnership firm</option><option value="llp">LLP</option><option value="company">Company</option><option value="proprietor">Proprietorship</option><option value="huf">HUF</option><option value="aop">AOP</option><option value="boi">BOI</option></select>
+          <span class="spacer"></span><span class="muted small" id="plCount"></span>
+        </div>
         <table class="grid" id="projectList"><thead><tr><th>Business</th><th>Type</th><th>Year</th><th>Last changed</th><th class="act">Actions</th></tr></thead><tbody></tbody></table>
       </div>
       <div id="binWrap" hidden>
@@ -361,6 +370,14 @@
   </div>
 </dialog>
 
+<footer class="statusbar" aria-label="Status">
+  <span id="sbClient">No client open</span>
+  <span id="sbSave">All changes saved</span>
+  <span id="sbRules"></span>
+  <span class="spacer"></span>
+  <span id="sbData"></span>
+  <span id="sbVer"></span>
+</footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/help.js"></script>
 <script src="/app.js"></script>

@@ -125,5 +125,10 @@ Format packs are marked *draft* until each line is compared with the official
 Schedule III text and the ICAI Guidance Notes (the official sites could not be
 opened from the build environment). Income-tax Act 2025 references for
 ss.185, 186, 188 (cash loans and receipts) and s.33 (depreciation) come from
-incometaxindia.gov.in section listings and secondary sources; the provision
-corresponding to s.40A(3) is not yet confirmed and is left unnumbered.
+incometaxindia.gov.in section listings and secondary sources. s.36 is used as
+the counterpart of s.40A(3) on the strength of published section listings;
+its sub-section, and the counterpart of the s.43(1) cash proviso, still have to
+be read in the statute. Form 26 (Rule 47, Income-tax Rules 2026, notified by
+G.S.R. 198(E) of 20 March 2026 as reported) replaces Forms 3CA/3CB/3CD from
+Tax Year 2026-27; its clause numbers are not yet mapped because the official
+form could not be opened from the build environment.

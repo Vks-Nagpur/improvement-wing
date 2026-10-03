@@ -302,6 +302,12 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         .call("POST", &format!("/api/projects/{pid}/analyse"), None)
         .unwrap();
     let profit = |a: &Value| a["key"]["cy"]["profit"].as_i64().unwrap();
+    for k in ["revenue", "payables", "receivables", "total_assets"] {
+        assert!(
+            before["key"]["cy"][k].as_i64().unwrap() > 0,
+            "{k} shown in presentation sign"
+        );
+    }
     let mismatches = |a: &Value| {
         a["findings"]
             .as_array()

@@ -6,7 +6,18 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const state = { id: null, settings: null, analysis: null, heads: [], filter: "all", status: null, view: "projects", lastExport: null, adj: null, editing: null };
 
+let pending = 0;
+function saving(d) {
+  pending += d;
+  const el = document.getElementById("sbSave"); if (!el) return;
+  el.textContent = pending > 0 ? "Working..." : "All changes saved";
+  el.classList.toggle("busy", pending > 0);
+}
 async function api(method, path, body, raw) {
+  if (method !== "GET") saving(1);
+  try { return await apiInner(method, path, body, raw); } finally { if (method !== "GET") saving(-1); }
+}
+async function apiInner(method, path, body, raw) {
   const opt = { method, headers: { "X-LC-Token": TOKEN } };
   if (raw) { opt.body = raw; }
   else if (body !== undefined) { opt.body = JSON.stringify(body); opt.headers["Content-Type"] = "application/json"; }
@@ -112,6 +123,9 @@ function nextAction() {
 }
 function renderNext() {
   stepStatus();
+  const st = state.settings;
+  $("#sbClient").textContent = st ? `${st.entity_name} · ${TYPE_LABEL[st.entity_type] || ""} · FY ${st.fy}` : "No client open";
+  $("#sbRules").textContent = st ? (Number(st.fy.slice(0, 4)) >= 2026 ? "Income-tax Act, 2025 · Form 26" : "Income-tax Act, 1961 · Form 3CD") : "";
   const [text, view] = nextAction();
   $("#nextBox").hidden = false;
   $("#nextText").textContent = text;
@@ -195,6 +209,7 @@ async function refreshStatus() {
     const s = await api("GET", "/api/status");
     state.status = s;
     $("#dataDir").textContent = "Data folder: " + s.data_dir;
+    $("#sbData").textContent = "Data: " + s.data_dir; $("#sbVer").textContent = `LedgerCraft ${s.version}`;
     const pill = $("#aiPill");
     const have = s.ai.running && s.ai.models.some(m => m.replace(":latest", "") === s.ai.model.replace(":latest", ""));
     pill.textContent = !s.ai.running ? "Local AI: off" : have ? "Local AI: ready" : "Local AI: set up";
@@ -257,14 +272,25 @@ const TYPE_LABEL = { firm: "Partnership firm", llp: "LLP", company: "Company", p
 const when = s => esc((s || "").slice(0, 16).replace("T", " "));
 
 async function loadProjects() {
-  const list = await api("GET", "/api/projects");
+  state.projects = await api("GET", "/api/projects");
+  renderProjects();
+}
+function renderProjects() {
+  const all = state.projects || [];
+  const q = $("#plSearch").value.trim().toLowerCase(), ty = $("#plType").value;
+  const list = all.filter(p => (!ty || p.entity_type === ty) && (!q || `${p.entity_name} ${p.fy}`.toLowerCase().includes(q)))
+    .sort((a, b) => a.entity_name.localeCompare(b.entity_name) || b.fy.localeCompare(a.fy));
+  $("#plCount").textContent = all.length ? `${new Set(all.map(p => p.entity_name)).size} clients, ${all.length} years` : "";
   const tb = $("#projectList tbody");
-  tb.innerHTML = list.length ? "" : `<tr><td colspan="5" class="empty">No clients yet. Type the name of the business above and press <b>Create</b>.</td></tr>`;
+  tb.innerHTML = all.length ? (list.length ? "" : `<tr><td colspan="5" class="empty">No client matches.</td></tr>`) : `<tr><td colspan="5" class="empty">No clients yet. Type the name of the business above and press <b>Create</b>.</td></tr>`;
+  let prev = null;
   for (const p of list) {
     const tr = document.createElement("tr");
     const cur = p.id === state.id;
     if (cur) tr.className = "current";
-    tr.innerHTML = `<td>${esc(p.entity_name)}</td><td>${esc(TYPE_LABEL[p.entity_type] || p.entity_type)}</td><td>${esc(p.fy)}</td><td class="muted">${when(p.modified)}</td>
+    const same = prev === p.entity_name; prev = p.entity_name;
+    if (same) tr.classList.add("same");
+    tr.innerHTML = `<td>${same ? '<span class="muted small">same client</span>' : `<b>${esc(p.entity_name)}</b>`}</td><td>${esc(TYPE_LABEL[p.entity_type] || p.entity_type)}</td><td><span class="chip">FY ${esc(p.fy)}</span></td><td class="muted">${when(p.modified)}</td>
       <td class="act"><button class="small ${cur ? "" : "primary"}" data-a="open">${cur ? "Open now" : "Open"}</button><button class="small danger-ghost" data-a="del">Delete</button></td>`;
     tr.querySelector('[data-a="open"]').addEventListener("click", () => openProject(p.id));
     tr.querySelector('[data-a="del"]').addEventListener("click", async () => {
@@ -278,6 +304,42 @@ async function loadProjects() {
     tb.appendChild(tr);
   }
 }
+$("#plSearch").addEventListener("input", renderProjects);
+$("#plType").addEventListener("change", renderProjects);
+
+// Client search in the top bar (Ctrl+K).
+function searchClients() {
+  const q = $("#clientSearch").value.trim().toLowerCase();
+  const ul = $("#searchResults");
+  if (!q) { ul.hidden = true; $("#clientSearch").setAttribute("aria-expanded", "false"); return; }
+  const hits = (state.projects || []).filter(p => `${p.entity_name} ${p.fy} ${TYPE_LABEL[p.entity_type] || ""}`.toLowerCase().includes(q)).slice(0, 12);
+  ul.innerHTML = hits.length ? hits.map((p, i) => `<li role="option" data-id="${esc(p.id)}" class="${i === 0 ? "hi" : ""}"><b>${esc(p.entity_name)}</b><span>FY ${esc(p.fy)} · ${esc(TYPE_LABEL[p.entity_type] || "")}</span></li>`).join("")
+    : `<li class="none">No client found. <button type="button" class="small" id="srNew">Create "${esc($("#clientSearch").value.trim())}"</button></li>`;
+  ul.hidden = false; $("#clientSearch").setAttribute("aria-expanded", "true");
+  $$("li[data-id]", ul).forEach(li => li.addEventListener("mousedown", e => { e.preventDefault(); pickClient(li.dataset.id); }));
+  $("#srNew")?.addEventListener("mousedown", e => { e.preventDefault(); const n = $("#clientSearch").value.trim(); closeSearch(); show("projects"); $("#npName").value = n; $("#npName").focus(); });
+}
+function closeSearch() { $("#searchResults").hidden = true; $("#clientSearch").value = ""; $("#clientSearch").setAttribute("aria-expanded", "false"); }
+function pickClient(id) { closeSearch(); openProject(id).catch(e => toast(e.message, true)); }
+$("#clientSearch").addEventListener("input", searchClients);
+$("#clientSearch").addEventListener("focus", () => { if (!state.projects) loadProjects(); });
+$("#clientSearch").addEventListener("blur", () => setTimeout(() => ($("#searchResults").hidden = true), 120));
+$("#clientSearch").addEventListener("keydown", e => {
+  const items = $$("#searchResults li[data-id]"); let i = items.findIndex(x => x.classList.contains("hi"));
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); if (!items.length) return; items[i]?.classList.remove("hi"); i = (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length; items[i].classList.add("hi"); }
+  else if (e.key === "Enter") { e.preventDefault(); if (items[i]) pickClient(items[i].dataset.id); }
+  else if (e.key === "Escape") { closeSearch(); e.target.blur(); }
+});
+// Keyboard: Ctrl+K search, Alt+1..9 steps.
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#clientSearch").focus(); }
+  if (e.altKey && /^[0-9]$/.test(e.key)) {
+    const vis = $$(".steps button[data-view]").filter(b => !b.hidden && !b.disabled).sort((a, b) => (+a.style.order || 0) - (+b.style.order || 0));
+    const b = e.key === "0" ? vis.find(x => x.dataset.view === "home") : vis.filter(x => x.dataset.view !== "home")[+e.key - 1];
+    if (b) { e.preventDefault(); show(b.dataset.view); }
+  }
+});
+
 async function loadBin() {
   const list = await api("GET", "/api/recycle-bin");
   const tb = $("#binList tbody");
@@ -631,15 +693,17 @@ $("#adjForm").addEventListener("submit", async e => {
 });
 
 // ---- analysis ------------------------------------------------------------------
+// Section numbers: Income-tax Act, 1961 up to FY 2025-26; Income-tax Act, 2025 from Tax Year 2026-27.
 const TAX_ITEMS = [
-  ["CASH_PAYMENT_LIMIT", "Cash payments above the limit", "s.40A(3)"],
-  ["CASH_ASSET_PURCHASE", "Assets bought in cash", "s.43(1) / 32"],
-  ["CASH_RECEIPT_LIMIT", "Cash receipts of ₹2 lakh or more", "s.269ST"],
-  ["LOAN_ACCEPTED_CASH", "Loans taken in cash", "s.269SS"],
-  ["LOAN_ACCEPTED_JOURNAL", "Loans taken by journal entry", "s.269SS"],
-  ["LOAN_REPAID_CASH", "Loans repaid in cash", "s.269T"],
-  ["NEGATIVE_CASH", "Cash balance below zero", ""],
+  ["CASH_PAYMENT_LIMIT", "Cash payments above the limit", "s.40A(3)", "s.36"],
+  ["CASH_ASSET_PURCHASE", "Assets bought in cash", "s.43(1)", "actual-cost rule"],
+  ["CASH_RECEIPT_LIMIT", "Cash receipts of ₹2 lakh or more", "s.269ST", "s.186"],
+  ["LOAN_ACCEPTED_CASH", "Loans taken in cash", "s.269SS", "s.185"],
+  ["LOAN_ACCEPTED_JOURNAL", "Loans taken by journal entry", "s.269SS", "s.185"],
+  ["LOAN_REPAID_CASH", "Loans repaid in cash", "s.269T", "s.188"],
+  ["NEGATIVE_CASH", "Cash balance below zero", "", ""],
 ];
+const newAct = () => Number(String(state.settings?.fy || "").slice(0, 4)) >= 2026;
 const pct = (c, p) => (p ? (((c - p) / Math.abs(p)) * 100).toFixed(1) + "%" : "");
 function renderAnalysis() {
   const a = state.analysis, box = $("#anBody");
@@ -652,12 +716,13 @@ function renderAnalysis() {
     KEY.map(([k, l]) => `<tr><td>${l}</td><td class="num">${money(cy[k])}</td>${py ? `<td class="num">${money(py[k])}</td><td class="num">${pct(cy[k], py[k])}</td>` : ""}</tr>`).join("") + "</tbody></table></div>";
   // Tax-audit sensitive items, from the findings.
   h += `<div class="box"><h2>Items for tax audit</h2><table class="grid dense"><thead><tr><th>Item</th><th>Section</th><th class="num">Cases</th><th class="num">Amount (₹)</th><th class="act"></th></tr></thead><tbody>`;
-  for (const [code, label, sec] of TAX_ITEMS) {
+  for (const [code, label, oldSec, newSec] of TAX_ITEMS) {
+    const sec = newAct() ? newSec : oldSec;
     const fs = a.findings.filter(f => f.code === code);
     const total = fs.reduce((s, f) => s + Math.abs(f.amount || 0), 0);
     h += `<tr class="${fs.length ? "" : "nil"}"><td>${label}</td><td class="muted">${sec}</td><td class="num">${fs.length}</td><td class="num">${fs.length ? rupees(total) : "-"}</td><td class="act">${fs.length ? `<button type="button" class="small" data-code="${code}" data-label="${esc(label)}">See list</button>` : ""}</td></tr>`;
   }
-  h += `</tbody></table><p class="muted small">Section numbers are of the Income-tax Act, 1961. Loans count only the principal accepted or repaid; interest and TDS are kept apart.</p></div></div>`;
+  h += `</tbody></table><p class="muted small">${newAct() ? "Sections of the Income-tax Act, 2025; reported in Form 26 (tax audit under section 63)." : "Sections of the Income-tax Act, 1961; reported in Form 3CA/3CB with Form 3CD."} Loans count only the principal accepted or repaid; interest and TDS are kept apart.</p></div></div>`;
   // Loans
   const loans = a.loans || [];
   h += `<div class="box"><h2>Loans and deposits taken (₹)</h2>` + (loans.length ? `<div class="scroll"><table class="grid dense"><thead><tr><th>Lender</th><th class="num">Opening</th><th class="num">Taken by bank</th><th class="num">Taken in cash</th><th class="num">By journal</th><th class="num">Interest</th><th class="num">Repaid by bank</th><th class="num">Repaid in cash</th><th class="num">Closing</th><th class="num">Highest balance</th></tr></thead><tbody>` +

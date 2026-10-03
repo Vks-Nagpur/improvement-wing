@@ -498,6 +498,19 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
         }
     }
 
+    if !opt.hidden_sections.is_empty() {
+        sections.retain(|s| {
+            let hide = opt.hidden_sections.iter().any(|h| h == &s.id);
+            if hide && matches!(s.id.as_str(), "balance_sheet" | "profit_and_loss" | "notes") {
+                c.warnings.push(format!(
+                    "'{}' is left out of this print. A complete set of financial statements must include it.",
+                    s.title
+                ));
+            }
+            !hide
+        });
+    }
+
     let meta = Meta {
         entity: eng.entity_name.clone(),
         entity_type: eng.entity_type.label().into(),

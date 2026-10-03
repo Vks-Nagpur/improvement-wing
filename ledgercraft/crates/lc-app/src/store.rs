@@ -72,6 +72,8 @@ pub struct Settings {
     pub tags: BTreeMap<String, Vec<String>>,
     pub depreciation_basis: BookBasis,
     pub inputs: Inputs,
+    /// Manual adjustment entries over the imported books.
+    pub adjustments: Vec<lc_core::adjust::Adjustment>,
     pub created: String,
     pub modified: String,
 }
@@ -88,6 +90,7 @@ impl Default for Settings {
             tags: BTreeMap::new(),
             depreciation_basis: BookBasis::IncomeTaxRates,
             inputs: Inputs::default(),
+            adjustments: Vec::new(),
             created: String::new(),
             modified: String::new(),
         }
@@ -173,6 +176,40 @@ impl Project {
 
     pub fn inputs_dir(&self) -> PathBuf {
         self.dir.join("inputs")
+    }
+
+    /// Take an imported file out of the project. The file itself is kept in
+    /// `inputs/removed/` so the audit trail can always be traced back.
+    pub fn remove_input(&self, kind: &str) -> Result<String, String> {
+        let mut st = self.load_settings()?;
+        let slot = match kind {
+            "tb" => &mut st.inputs.tb,
+            "py_tb" => &mut st.inputs.py_tb,
+            "vouchers" => &mut st.inputs.vouchers,
+            "far" => &mut st.inputs.far,
+            "accounts_master" => &mut st.inputs.accounts_master,
+            _ => return Err("unknown file kind".into()),
+        };
+        let file = slot.take().ok_or("Nothing is loaded here.")?;
+        let from = self.inputs_dir().join(&file);
+        if from.exists() {
+            let to = self
+                .inputs_dir()
+                .join("removed")
+                .join(format!("{}-{file}", Local::now().format("%Y%m%d-%H%M%S")));
+            fs::create_dir_all(to.parent().unwrap()).map_err(|e| e.to_string())?;
+            fs::rename(&from, &to).map_err(|e| e.to_string())?;
+        }
+        if kind == "tb" {
+            st.inputs.tally_company = None;
+        }
+        self.save_settings(&st)?;
+        self.log(
+            "user",
+            "file_removed",
+            serde_json::json!({"kind": kind, "file": file}),
+        )?;
+        Ok(file)
     }
 
     // ---- audit trail ---------------------------------------------------------
@@ -266,7 +303,22 @@ impl Project {
     }
 
     // ---- building the engagement ---------------------------------------------
+    /// The engagement with every active manual adjustment applied.
     pub fn engagement(&self) -> Result<Engagement, String> {
+        Ok(self.engagement_adjusted()?.0)
+    }
+
+    pub fn engagement_adjusted(
+        &self,
+    ) -> Result<(Engagement, Vec<lc_core::adjust::Applied>), String> {
+        let s = self.load_settings()?;
+        let mut eng = self.engagement_books()?;
+        let applied = lc_core::adjust::apply(&mut eng, &s.adjustments)?;
+        Ok((eng, applied))
+    }
+
+    /// The engagement exactly as imported (no manual adjustments).
+    pub fn engagement_books(&self) -> Result<Engagement, String> {
         let s = self.load_settings()?;
         let entity_type = EntityType::parse(&s.entity_type).ok_or("unknown entity type")?;
         let (fy_start, fy_end) =
@@ -415,6 +467,92 @@ impl Store {
             "user",
             "project_created",
             serde_json::json!({"entity": name, "type": entity_type, "fy": fy}),
+        )?;
+        Ok(id)
+    }
+
+    fn bin(&self) -> PathBuf {
+        self.root.join("Recycle Bin")
+    }
+
+    /// Delete = move to `<data>/Recycle Bin/<client>/<fy>~<time>`; nothing is
+    /// erased, so a deleted year can be restored. The client's remembered
+    /// mapping stays in place for its other years.
+    pub fn delete(&self, id: &str) -> Result<String, String> {
+        let p = self.project(id)?;
+        let (client, fy) = id.split_once('~').ok_or("bad project id")?;
+        p.log(
+            "user",
+            "project_deleted",
+            serde_json::json!({"moved_to": "Recycle Bin"}),
+        )?;
+        let to = self
+            .bin()
+            .join(client)
+            .join(format!("{fy}~{}", Local::now().format("%Y%m%d-%H%M%S")));
+        fs::create_dir_all(to.parent().unwrap()).map_err(|e| e.to_string())?;
+        fs::rename(&p.dir, &to).map_err(|e| format!("could not move to the Recycle Bin: {e}"))?;
+        Ok(to.display().to_string())
+    }
+
+    /// Items in the Recycle Bin. Id is "<client>~<fy>~<time>".
+    pub fn deleted(&self) -> Vec<ProjectSummary> {
+        let mut out = Vec::new();
+        let Ok(clients) = fs::read_dir(self.bin()) else {
+            return out;
+        };
+        for c in clients.flatten() {
+            for y in fs::read_dir(c.path()).into_iter().flatten().flatten() {
+                if let Some(s) = fs::read_to_string(y.path().join("settings.json"))
+                    .ok()
+                    .and_then(|t| serde_json::from_str::<Settings>(&t).ok())
+                {
+                    out.push(ProjectSummary {
+                        id: format!(
+                            "{}~{}",
+                            c.file_name().to_string_lossy(),
+                            y.file_name().to_string_lossy()
+                        ),
+                        entity_name: s.entity_name,
+                        entity_type: s.entity_type,
+                        fy: s.fy,
+                        modified: s.modified,
+                    });
+                }
+            }
+        }
+        out.sort_by(|a, b| b.id.cmp(&a.id));
+        out
+    }
+
+    pub fn restore(&self, bin_id: &str) -> Result<String, String> {
+        let mut it = bin_id.splitn(3, '~');
+        let (Some(client), Some(fy), Some(stamp)) = (it.next(), it.next(), it.next()) else {
+            return Err("bad item".into());
+        };
+        for part in [client, fy, stamp] {
+            if part.is_empty() || part.contains("..") || part.contains('/') || part.contains('\\') {
+                return Err("bad item".into());
+            }
+        }
+        let from = self.bin().join(client).join(format!("{fy}~{stamp}"));
+        if !from.join("settings.json").exists() {
+            return Err("This item is no longer in the Recycle Bin.".into());
+        }
+        let client_dir = self.root.join("clients").join(client);
+        let to = client_dir.join(fy);
+        if to.exists() {
+            return Err(format!(
+                "FY {fy} of this client already exists. Delete or rename that one first."
+            ));
+        }
+        fs::create_dir_all(&client_dir).map_err(|e| e.to_string())?;
+        fs::rename(&from, &to).map_err(|e| e.to_string())?;
+        let id = format!("{client}~{fy}");
+        self.project(&id)?.log(
+            "user",
+            "project_restored",
+            serde_json::json!({"from": "Recycle Bin"}),
         )?;
         Ok(id)
     }

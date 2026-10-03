@@ -72,6 +72,42 @@ impl Class {
         }
     }
 
+    /// Every reserved group, in the order Tally lists them.
+    pub const ALL: [Class; 29] = {
+        use Class::*;
+        [
+            CapitalAccount,
+            ReservesSurplus,
+            LoansLiability,
+            SecuredLoans,
+            UnsecuredLoans,
+            BankOdAc,
+            CurrentLiabilities,
+            SundryCreditors,
+            DutiesTaxes,
+            Provisions,
+            FixedAssets,
+            Investments,
+            CurrentAssets,
+            StockInHand,
+            DepositsAsset,
+            LoansAdvancesAsset,
+            SundryDebtors,
+            CashInHand,
+            BankAccounts,
+            MiscExpensesAsset,
+            SalesAccounts,
+            DirectIncomes,
+            IndirectIncomes,
+            PurchaseAccounts,
+            DirectExpenses,
+            IndirectExpenses,
+            SuspenseAc,
+            BranchDivisions,
+            ProfitLossAc,
+        ]
+    };
+
     pub fn label(self) -> &'static str {
         use Class::*;
         match self {

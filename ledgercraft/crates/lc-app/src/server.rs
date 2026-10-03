@@ -17,6 +17,7 @@ use std::sync::{Arc, Mutex};
 const INDEX: &str = include_str!("ui/index.html");
 const APP_JS: &str = include_str!("ui/app.js");
 const APP_CSS: &str = include_str!("ui/app.css");
+const HELP_JS: &str = include_str!("ui/help.js");
 
 #[derive(Default, Clone, serde::Serialize)]
 pub struct PullState {
@@ -38,6 +39,8 @@ pub struct App {
     pub quit: Mutex<bool>,
     /// Per-run secret: every /api call must carry it (blocks other websites).
     pub token: String,
+    /// Requests run in parallel; changes to saved data run one at a time.
+    pub write: Mutex<()>,
 }
 
 pub struct Reply {
@@ -90,6 +93,26 @@ fn query(q: &str) -> HashMap<String, String> {
         .collect()
 }
 
+/// Show a folder in Explorer (Finder / file manager elsewhere).
+fn open_folder(path: &str) -> Result<Value, String> {
+    let p = PathBuf::from(path);
+    if path.trim().is_empty() || !p.is_dir() {
+        return Err("That folder does not exist.".into());
+    }
+    let cmd = if cfg!(windows) {
+        "explorer"
+    } else if cfg!(target_os = "macos") {
+        "open"
+    } else {
+        "xdg-open"
+    };
+    std::process::Command::new(cmd)
+        .arg(&p)
+        .spawn()
+        .map_err(|e| format!("Could not open the folder: {e}"))?;
+    Ok(json!({"ok": true}))
+}
+
 fn s(v: &Value, k: &str) -> String {
     v.get(k).and_then(|x| x.as_str()).unwrap_or("").to_string()
 }
@@ -103,6 +126,7 @@ impl App {
             cache: Mutex::new(HashMap::new()),
             pull: Arc::new(Mutex::new(PullState::default())),
             quit: Mutex::new(false),
+            write: Mutex::new(()),
             token: {
                 use std::hash::{BuildHasher, Hasher};
                 let mut t = String::new();
@@ -135,6 +159,7 @@ impl App {
         let r = match (method, p.as_slice()) {
             ("GET", [""]) | ("GET", ["index.html"]) => return Reply { status: 200, content_type: "text/html; charset=utf-8", body: INDEX.replace("__LC_TOKEN__", &self.token).into_bytes() },
             ("GET", ["app.js"]) => return Reply { status: 200, content_type: "text/javascript; charset=utf-8", body: APP_JS.as_bytes().to_vec() },
+            ("GET", ["help.js"]) => return Reply { status: 200, content_type: "text/javascript; charset=utf-8", body: HELP_JS.as_bytes().to_vec() },
             ("GET", ["app.css"]) => return Reply { status: 200, content_type: "text/css; charset=utf-8", body: APP_CSS.as_bytes().to_vec() },
             ("GET", ["api", "status"]) => Ok(self.status()),
             ("GET", ["api", "heads"]) => Ok(json!(Head::ALL.iter().filter(|h| **h != Head::ChangeInInventories).map(|h| json!({"id": h.id(), "label": h.label(), "nature": format!("{:?}", h.nature())})).collect::<Vec<_>>())),
@@ -144,6 +169,21 @@ impl App {
                 self.store.create(&s(&b, "name"), &s(&b, "entity_type"), &s(&b, "fy")).map(|id| json!({"id": id}))
             }
             ("GET", ["api", "projects", id]) => self.project_info(id),
+            ("POST", ["api", "projects", id, "delete"]) => {
+                self.invalidate(id);
+                self.store.delete(id).map(|to| json!({"ok": true, "moved_to": to}))
+            }
+            ("POST", ["api", "open-folder"]) => open_folder(&s(&json_body(), "path")),
+            ("GET", ["api", "recycle-bin"]) => Ok(json!(self.store.deleted())),
+            ("POST", ["api", "recycle-bin", item, "restore"]) => self.store.restore(item).map(|id| json!({"id": id})),
+            ("GET", ["api", "projects", id, "adjustments"]) => self.adjustments(id),
+            ("POST", ["api", "projects", id, "adjustments"]) => self.save_adjustment(id, &json_body()),
+            ("POST", ["api", "projects", id, "adjustments", n, what]) => self.adjustment_action(id, n, what, &json_body()),
+            ("POST", ["api", "projects", id, "remove-input"]) => {
+                let kind = s(&json_body(), "kind");
+                self.invalidate(id);
+                self.store.project(id).and_then(|p| p.remove_input(&kind)).map(|f| json!({"ok": true, "file": f}))
+            }
             ("POST", ["api", "projects", id, "upload"]) => self.upload(id, q.get("kind").map(|s| s.as_str()).unwrap_or(""), q.get("name").map(|s| s.as_str()).unwrap_or("file"), body),
             ("GET", ["api", "tally", "companies"]) => {
                 let port = q.get("port").and_then(|p| p.parse().ok()).unwrap_or(9000);
@@ -176,7 +216,8 @@ impl App {
     }
 
     fn status(&self) -> Value {
-        let c = self.ai();
+        let mut c = self.ai();
+        c.timeout = std::time::Duration::from_secs(3);
         let (running, version, models) = match c.version() {
             Ok(v) => (
                 true,
@@ -344,7 +385,37 @@ impl App {
                 })
             })
             .collect();
-        p.log("user", "checks_run", json!({"must_fix": a.count(Severity::Blocker), "check": a.count(Severity::Warning), "notes": a.count(Severity::Info), "rules_version": a.rules_version}))?;
+        let run = json!({"must_fix": a.count(Severity::Blocker), "check": a.count(Severity::Warning), "notes": a.count(Severity::Info), "rules_version": a.rules_version});
+        // Record a run only when its result differs from the last recorded one.
+        if p.audit()
+            .iter()
+            .rev()
+            .find(|e| e.action == "checks_run")
+            .map(|e| e.details != run)
+            .unwrap_or(true)
+        {
+            p.log("user", "checks_run", run)?;
+        }
+        let key = |f: &lc_core::facts::YearFacts| -> Value {
+            let h = |x: Head| -> i64 {
+                let m = f.head(x);
+                if matches!(
+                    x.nature(),
+                    lc_core::groups::Nature::Asset | lc_core::groups::Nature::Expense
+                ) {
+                    m.0
+                } else {
+                    -m.0
+                }
+            };
+            json!({
+                "revenue": h(Head::RevenueOps), "other_income": h(Head::OtherIncome), "profit": f.profit().0,
+                "total_assets": f.total_assets().0, "receivables": h(Head::TradeReceivables), "payables": h(Head::TradePayables),
+                "inventories": h(Head::Inventories), "cash_bank": h(Head::CashBank),
+                "borrowings": h(Head::LtBorrowings) + h(Head::StBorrowings), "ppe": h(Head::Ppe),
+                "finance_costs": h(Head::FinanceCosts), "employee": h(Head::EmployeeBenefits), "depreciation": h(Head::Depreciation),
+            })
+        };
         Ok(json!({
             "summary": {
                 "entity": eng.entity_name, "entity_type": eng.entity_type.label(), "fy": st.fy,
@@ -355,6 +426,8 @@ impl App {
             "findings": a.findings,
             "mapping": mapping,
             "ratios": a.ratios,
+            "key": {"cy": key(&a.facts_cy), "py": a.facts_py.as_ref().map(key)},
+            "ageing": {"receivables": a.ageing_receivables, "payables": a.ageing_payables},
             "loans": a.loans,
             "warnings": rep.warnings,
         }))
@@ -440,6 +513,133 @@ impl App {
         Ok(json!({"ok": true}))
     }
 
+    fn adjustments(&self, id: &str) -> Result<Value, String> {
+        let p = self.store.project(id)?;
+        let st = p.load_settings()?;
+        let books = p.engagement_books()?;
+        let (adjusted, effects) = p.engagement_adjusted()?;
+        let mut groups: Vec<String> = lc_core::groups::Class::ALL
+            .iter()
+            .filter(|c| **c != lc_core::groups::Class::ProfitLossAc)
+            .map(|c| c.label().to_string())
+            .collect();
+        for (g, _) in &books.cy.groups {
+            if !groups.contains(g) {
+                groups.push(g.clone());
+            }
+        }
+        let ledgers: Vec<Value> = adjusted
+            .cy
+            .ledgers
+            .iter()
+            .map(|l| {
+                let created_by = effects.iter().find(|e| e.created && e.ledger == l.name).map(|e| e.id);
+                json!({"name": l.name, "group": l.group, "balance": l.closing_stock.unwrap_or(l.closing).fmt_drcr(), "stock": l.closing_stock.is_some(), "created_by": created_by})
+            })
+            .collect();
+        Ok(json!({
+            "list": st.adjustments.iter().map(|a| json!({
+                "id": a.id, "kind": a.kind, "kind_label": a.kind.label(), "narration": a.narration, "active": a.active,
+                "lines": a.lines.iter().map(|l| json!({"ledger": l.ledger, "amount": l.amount.0, "new_group": l.new_group})).collect::<Vec<_>>(),
+            })).collect::<Vec<_>>(),
+            "effects": effects.iter().map(|e| json!({"id": e.id, "ledger": e.ledger, "before": e.before.fmt_drcr(), "after": e.after.fmt_drcr(), "created": e.created})).collect::<Vec<_>>(),
+            "ledgers": ledgers,
+            "groups": groups,
+            "has_day_book": !books.vouchers.is_empty(),
+        }))
+    }
+
+    /// Check that the whole list still applies to the books, then save.
+    fn store_adjustments(
+        &self,
+        id: &str,
+        list: Vec<lc_core::adjust::Adjustment>,
+    ) -> Result<(), String> {
+        let p = self.store.project(id)?;
+        let mut books = p.engagement_books()?;
+        lc_core::adjust::apply(&mut books, &list)?;
+        let mut st = p.load_settings()?;
+        st.adjustments = list;
+        p.save_settings(&st)?;
+        self.invalidate(id);
+        Ok(())
+    }
+
+    fn save_adjustment(&self, id: &str, b: &Value) -> Result<Value, String> {
+        let p = self.store.project(id)?;
+        let st = p.load_settings()?;
+        let mut a: lc_core::adjust::Adjustment =
+            serde_json::from_value(b.clone()).map_err(|e| format!("adjustment: {e}"))?;
+        a.lines
+            .retain(|l| !l.amount.is_zero() || !l.ledger.trim().is_empty());
+        for l in a.lines.iter_mut() {
+            l.ledger = l.ledger.trim().to_string();
+            if l.new_group
+                .as_deref()
+                .map(|g| g.trim().is_empty())
+                .unwrap_or(false)
+            {
+                l.new_group = None;
+            }
+        }
+        let mut list = st.adjustments.clone();
+        let before = list.iter().find(|x| x.id == a.id && a.id != 0).cloned();
+        if before.is_some() {
+            a.active = before.as_ref().map(|x| x.active).unwrap_or(true);
+            for x in list.iter_mut().filter(|x| x.id == a.id) {
+                *x = a.clone();
+            }
+        } else {
+            a.id = list.iter().map(|x| x.id).max().unwrap_or(0) + 1;
+            a.active = true;
+            list.push(a.clone());
+        }
+        self.store_adjustments(id, list)?;
+        p.log(
+            "user",
+            if before.is_some() {
+                "adjustment_changed"
+            } else {
+                "adjustment_added"
+            },
+            json!({"id": a.id, "from": before, "to": a}),
+        )?;
+        Ok(json!({"ok": true, "id": a.id}))
+    }
+
+    fn adjustment_action(&self, id: &str, n: &str, what: &str, b: &Value) -> Result<Value, String> {
+        let p = self.store.project(id)?;
+        let st = p.load_settings()?;
+        let n: u32 = n.parse().map_err(|_| "bad adjustment number")?;
+        let mut list = st.adjustments.clone();
+        let pos = list
+            .iter()
+            .position(|x| x.id == n)
+            .ok_or("adjustment not found")?;
+        let old = list[pos].clone();
+        match what {
+            "active" => {
+                list[pos].active = b
+                    .get("active")
+                    .and_then(|x| x.as_bool())
+                    .unwrap_or(!old.active);
+                self.store_adjustments(id, list.clone())?;
+                p.log(
+                    "user",
+                    "adjustment_switched",
+                    json!({"id": n, "active": list[pos].active, "narration": old.narration}),
+                )?;
+            }
+            "delete" => {
+                list.remove(pos);
+                self.store_adjustments(id, list)?;
+                p.log("user", "adjustment_deleted", json!({"id": n, "was": old}))?;
+            }
+            _ => return Err("unknown action".into()),
+        }
+        Ok(json!({"ok": true}))
+    }
+
     fn preview(&self, id: &str) -> Result<String, String> {
         let p = self.store.project(id)?;
         let st = p.load_settings()?;
@@ -469,17 +669,29 @@ impl App {
         } else {
             PathBuf::from(folder)
         };
-        let ex = export(
-            &root,
-            &eng,
-            &a,
-            &st.signoff,
-            &ExportOptions {
+        let ex = export(&root, &eng, &a, &st.signoff, &{
+            let want = |k: &str| {
+                b.get("files")
+                    .and_then(|f| f.get(k))
+                    .and_then(|x| x.as_bool())
+                    .unwrap_or(true)
+            };
+            let o = ExportOptions {
                 mode,
+                pdf: want("pdf"),
+                statements_xlsx: want("xlsx"),
+                statements_html: want("html"),
+                auditor_workbook: want("auditor_workbook"),
+                json: want("json"),
                 report: st.options.clone(),
-                ..Default::default()
-            },
-        )?;
+                adjustments: st.adjustments.clone(),
+                adjustment_effects: p.engagement_adjusted().map(|x| x.1).unwrap_or_default(),
+            };
+            if !(o.pdf || o.statements_xlsx || o.statements_html || o.auditor_workbook || o.json) {
+                return Err("Choose at least one file to export.".into());
+            }
+            o
+        })?;
         let manifest: Value = std::fs::read_to_string(ex.dir.join("export-manifest.json"))
             .ok()
             .and_then(|t| serde_json::from_str(&t).ok())
@@ -653,24 +865,40 @@ pub fn serve(app: Arc<App>, port: u16, on_ready: impl FnOnce(String)) -> Result<
             );
             continue;
         }
-        let r = app.handle(&method, &url, &body);
-        let resp = tiny_http::Response::from_data(r.body)
-            .with_status_code(r.status)
-            .with_header(
-                tiny_http::Header::from_bytes(&b"Content-Type"[..], r.content_type.as_bytes())
-                    .unwrap(),
-            )
-            .with_header(
-                tiny_http::Header::from_bytes(&b"Cache-Control"[..], &b"no-store"[..]).unwrap(),
-            )
-            .with_header(
-                tiny_http::Header::from_bytes(&b"X-Content-Type-Options"[..], &b"nosniff"[..])
-                    .unwrap(),
-            );
-        let _ = req.respond(resp);
-        if *app.quit.lock().unwrap() {
+        if url.starts_with("/api/quit") {
+            let r = app.handle(&method, &url, &body);
+            respond(req, r);
             break;
         }
+        // Each request on its own thread: a slow AI answer or Tally import
+        // never freezes the other buttons.
+        let app = app.clone();
+        std::thread::spawn(move || {
+            let mutating =
+                method == "POST" && !url.contains("/ai/") && !url.starts_with("/api/open-folder");
+            let r = if mutating {
+                let _g = app.write.lock().unwrap_or_else(|e| e.into_inner());
+                app.handle(&method, &url, &body)
+            } else {
+                app.handle(&method, &url, &body)
+            };
+            respond(req, r);
+        });
     }
     Ok(())
+}
+
+fn respond(req: tiny_http::Request, r: Reply) {
+    let resp = tiny_http::Response::from_data(r.body)
+        .with_status_code(r.status)
+        .with_header(
+            tiny_http::Header::from_bytes(&b"Content-Type"[..], r.content_type.as_bytes()).unwrap(),
+        )
+        .with_header(
+            tiny_http::Header::from_bytes(&b"Cache-Control"[..], &b"no-store"[..]).unwrap(),
+        )
+        .with_header(
+            tiny_http::Header::from_bytes(&b"X-Content-Type-Options"[..], &b"nosniff"[..]).unwrap(),
+        );
+    let _ = req.respond(resp);
 }

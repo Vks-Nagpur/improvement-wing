@@ -24,3 +24,4 @@ sha2 = "0.10"
 [dev-dependencies]
 lc-testdata = { path = "../lc-testdata" }
 ureq = { version = "2", features = ["json"] }
+calamine = "0.26"

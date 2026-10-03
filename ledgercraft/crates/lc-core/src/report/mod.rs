@@ -60,6 +60,9 @@ pub struct ReportOptions {
     pub inventory_cost_formula: String,
     /// Reasons for ratio changes above 25% (ratio name → text).
     pub ratio_explanations: BTreeMap<String, String>,
+    /// Statements left out of the output by the user ("balance_sheet",
+    /// "profit_and_loss", "cash_flow", "notes", "tax_depreciation").
+    pub hidden_sections: Vec<String>,
 }
 
 impl Default for ReportOptions {
@@ -83,6 +86,7 @@ impl Default for ReportOptions {
             entity_details: Vec::new(),
             inventory_cost_formula: "first-in, first-out (FIFO)".into(),
             ratio_explanations: BTreeMap::new(),
+            hidden_sections: Vec::new(),
         }
     }
 }

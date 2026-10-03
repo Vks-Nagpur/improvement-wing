@@ -34,6 +34,9 @@ pub struct ExportOptions {
     pub auditor_workbook: bool,
     pub json: bool,
     pub report: ReportOptions,
+    /// Manual adjustments already applied to the books (listed in the workbook).
+    pub adjustments: Vec<lc_core::adjust::Adjustment>,
+    pub adjustment_effects: Vec<lc_core::adjust::Applied>,
 }
 
 impl Default for ExportOptions {
@@ -46,6 +49,8 @@ impl Default for ExportOptions {
             auditor_workbook: true,
             json: true,
             report: ReportOptions::default(),
+            adjustments: Vec::new(),
+            adjustment_effects: Vec::new(),
         }
     }
 }
@@ -151,7 +156,7 @@ pub fn export(
             .map_err(|e| e.to_string())?;
         }
         if opt.auditor_workbook {
-            write_auditor_workbook(&tmp.join("Auditor_Reference_Workbook.xlsx"), eng, a)?;
+            write_auditor_workbook(&tmp.join("Auditor_Reference_Workbook.xlsx"), eng, a, opt)?;
         }
         if opt.json {
             fs::write(
@@ -299,7 +304,12 @@ fn finding_sheet(
     Ok(())
 }
 
-fn write_auditor_workbook(path: &Path, eng: &Engagement, a: &Analysis) -> Result<(), String> {
+fn write_auditor_workbook(
+    path: &Path,
+    eng: &Engagement,
+    a: &Analysis,
+    opt: &ExportOptions,
+) -> Result<(), String> {
     let f = fmts();
     let mut wb = Workbook::new();
     {
@@ -471,6 +481,68 @@ fn write_auditor_workbook(path: &Path, eng: &Engagement, a: &Analysis) -> Result
             ws.set_column_width(c, 15).ok();
         }
         ws.set_freeze_panes(3, 1).ok();
+    }
+    if !opt.adjustments.is_empty() {
+        let ws = x(wb.add_worksheet().set_name("Adjustments"))?;
+        x(ws.write_string_with_format(0, 0, "Manual adjustments passed in LedgerCraft (not in the books; pass the same entries in the books)", &f.title))?;
+        let heads = [
+            "No.",
+            "Type",
+            "Status",
+            "Narration",
+            "Ledger",
+            "Debit",
+            "Credit",
+            "Balance before",
+            "Balance after",
+            "New ledger",
+        ];
+        for (c, h) in heads.iter().enumerate() {
+            x(ws.write_string_with_format(2, c as u16, *h, &f.head))?;
+        }
+        let mut r = 3u32;
+        for adj in &opt.adjustments {
+            for l in adj.lines.iter().filter(|l| !l.amount.is_zero()) {
+                x(ws.write_number(r, 0, adj.id as f64))?;
+                x(ws.write_string(r, 1, adj.kind.label()))?;
+                x(ws.write_string(
+                    r,
+                    2,
+                    if adj.active {
+                        "Applied"
+                    } else {
+                        "Switched off"
+                    },
+                ))?;
+                x(ws.write_string_with_format(r, 3, &adj.narration, &f.wrap))?;
+                x(ws.write_string(r, 4, &l.ledger))?;
+                let (dr, cr) = if l.amount.0 < 0 {
+                    (0.0, -l.amount.as_f64())
+                } else {
+                    (l.amount.as_f64(), 0.0)
+                };
+                x(ws.write_number_with_format(r, 5, dr, &f.num))?;
+                x(ws.write_number_with_format(r, 6, cr, &f.num))?;
+                if let Some(e) = opt.adjustment_effects.iter().find(|e| {
+                    e.id == adj.id
+                        && lc_core::model::norm_name(&e.ledger)
+                            == lc_core::model::norm_name(&l.ledger)
+                }) {
+                    x(ws.write_number_with_format(r, 7, e.before.as_f64(), &f.num))?;
+                    x(ws.write_number_with_format(r, 8, e.after.as_f64(), &f.num))?;
+                    if e.created {
+                        x(ws.write_string(r, 9, l.new_group.as_deref().unwrap_or("Yes")))?;
+                    }
+                }
+                r += 1;
+            }
+        }
+        ws.set_column_width(3, 40).ok();
+        ws.set_column_width(4, 30).ok();
+        for c in [1u16, 2, 5, 6, 7, 8, 9] {
+            ws.set_column_width(c, 15).ok();
+        }
+        ws.set_freeze_panes(3, 0).ok();
     }
     x(wb.save(path))
 }

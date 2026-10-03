@@ -5,6 +5,7 @@
 //! mapping, statements, loan register). Every money value is an exact
 //! integer number of paise.
 
+pub mod adjust;
 pub mod ageing;
 pub mod capital;
 pub mod checks;

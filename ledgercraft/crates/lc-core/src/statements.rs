@@ -42,14 +42,15 @@ pub struct FormatPack {
 
 const COMPANY_DIV1: &str = include_str!("../packs/company_div1.json");
 const NON_CORPORATE: &str = include_str!("../packs/non_corporate.json");
+const LLP: &str = include_str!("../packs/llp.json");
 
 impl FormatPack {
-    /// Format pack for the entity. LLP uses the non-corporate layout until its own pack is added.
+    /// Format pack for the entity: Schedule III Div I, ICAI LLP or non-corporate Guidance Note.
     pub fn for_entity(e: EntityType) -> FormatPack {
-        let src = if e.is_company() {
-            COMPANY_DIV1
-        } else {
-            NON_CORPORATE
+        let src = match e {
+            EntityType::Company => COMPANY_DIV1,
+            EntityType::Llp => LLP,
+            _ => NON_CORPORATE,
         };
         serde_json::from_str(src).expect("built-in format pack is valid")
     }
@@ -87,6 +88,8 @@ pub struct MappedLedger {
     pub amount: Money,
     /// Signed trial-balance closing.
     pub tb_closing: Money,
+    #[serde(default)]
+    pub tags: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

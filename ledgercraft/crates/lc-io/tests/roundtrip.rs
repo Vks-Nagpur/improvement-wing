@@ -63,19 +63,24 @@ fn export_is_versioned_and_signing_copy_needs_no_blockers() {
         mode: Mode::Signing,
         ..Default::default()
     };
-    let d1 = export(&root, &ok.engagement, &a, &signoff, &opt).unwrap();
-    let d2 = export(&root, &ok.engagement, &a, &signoff, &opt).unwrap();
+    let d1 = export(&root, &ok.engagement, &a, &signoff, &opt)
+        .unwrap()
+        .dir;
+    let d2 = export(&root, &ok.engagement, &a, &signoff, &opt)
+        .unwrap()
+        .dir;
     assert_ne!(d1, d2, "second export must not overwrite the first");
     for f in [
+        "Financial_Statements.pdf",
         "Financial_Statements.xlsx",
-        "Financial_Statements_print.html",
+        "Financial_Statements_preview.html",
         "Auditor_Reference_Workbook.xlsx",
         "export-manifest.json",
     ] {
         assert!(d1.join(f).exists(), "{f} missing");
     }
-    let html = std::fs::read_to_string(d1.join("Financial_Statements_print.html")).unwrap();
-    assert!(html.contains("UDIN: 26123456ABCDEF1234") && !html.contains("class=\"draft\""));
+    let html = std::fs::read_to_string(d1.join("Financial_Statements_preview.html")).unwrap();
+    assert!(html.contains("UDIN: 26123456ABCDEF1234") && !html.contains("class=\"boxed draft\""));
 
     let bad = lc_testdata::scenarios::excel_import_errors();
     let ab = analyse(&bad.engagement, &RulesPack::builtin());
@@ -90,11 +95,12 @@ fn export_is_versioned_and_signing_copy_needs_no_blockers() {
         &signoff,
         &ExportOptions::default(),
     )
-    .unwrap();
+    .unwrap()
+    .dir;
     assert!(
-        std::fs::read_to_string(draft.join("Financial_Statements_print.html"))
+        std::fs::read_to_string(draft.join("Financial_Statements_preview.html"))
             .unwrap()
-            .contains("DRAFT")
+            .contains("boxed draft")
     );
     let _ = std::fs::remove_dir_all(&root);
 }

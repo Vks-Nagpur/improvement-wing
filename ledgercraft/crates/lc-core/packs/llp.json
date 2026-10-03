@@ -1,11 +1,11 @@
 {
-  "id": "company_div1",
-  "name": "Schedule III, Division I (Companies not following Ind AS)",
-  "status": "draft – line items to be verified against Schedule III (as amended 24-03-2021) and ICAI Guidance Note on Division I",
+  "id": "llp",
+  "name": "ICAI Guidance Note on Financial Statements of Limited Liability Partnerships",
+  "status": "draft – line items to be verified against the ICAI Guidance Note on Financial Statements of LLPs",
   "bs_title": "Balance Sheet as at {end}",
   "pl_title": "Statement of Profit and Loss for the year ended {end}",
-  "profit_to": "RESERVES_SURPLUS",
-  "profit_note_label": "Surplus / (deficit) in Statement of Profit and Loss for the year",
+  "profit_to": "CAPITAL",
+  "profit_note_label": "Add: Share of profit / (loss) for the year",
   "balance_sheet": [
     {
       "t": "h",
@@ -13,12 +13,12 @@
     },
     {
       "t": "s",
-      "label": "(1) Shareholders' funds"
+      "label": "(1) Partners' funds"
     },
     {
       "t": "i",
       "head": "CAPITAL",
-      "label": "(a) Share capital"
+      "label": "(a) {capital_label}"
     },
     {
       "t": "i",
@@ -137,7 +137,7 @@
     {
       "t": "i",
       "head": "CASH_BANK",
-      "label": "(d) Cash and cash equivalents"
+      "label": "(d) Cash and bank balances"
     },
     {
       "t": "i",
@@ -203,12 +203,7 @@
     {
       "t": "i",
       "head": "DEPRECIATION",
-      "label": "Depreciation and amortization expense"
-    },
-    {
-      "t": "i",
-      "head": "PARTNERS_REMUNERATION",
-      "label": "Managerial remuneration"
+      "label": "Depreciation and amortisation expense"
     },
     {
       "t": "i",
@@ -223,26 +218,36 @@
         "EMPLOYEE_BENEFITS",
         "FINANCE_COSTS",
         "DEPRECIATION",
-        "PARTNERS_REMUNERATION",
         "OTHER_EXPENSES"
       ],
       "label": "Total expenses"
     },
     {
       "t": "calc",
+      "calc": "pbr",
+      "label": "V. Profit before {remuneration_label} and tax (III - IV)"
+    },
+    {
+      "t": "i",
+      "head": "PARTNERS_REMUNERATION",
+      "label": "VI. {remuneration_label}",
+      "keep": true
+    },
+    {
+      "t": "calc",
       "calc": "pbt",
-      "label": "V. Profit before tax (III - IV)"
+      "label": "VII. Profit before tax (V - VI)"
     },
     {
       "t": "i",
       "head": "TAX_EXPENSE",
-      "label": "VI. Tax expense",
+      "label": "VIII. Tax expense",
       "keep": true
     },
     {
       "t": "calc",
       "calc": "profit",
-      "label": "VII. Profit / (Loss) for the period (V - VI)"
+      "label": "IX. Profit / (Loss) for the year transferred to partners' accounts (VII - VIII)"
     }
   ]
 }

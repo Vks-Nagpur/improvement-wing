@@ -5,6 +5,9 @@ Commands:
      --name "ABC & Co"   --entity company|llp|firm|proprietor|huf|aop|boi   --fy 2025-26
      --tb trial_balance.xlsx   [--py-tb last_year.xlsx]   [--vouchers daybook.csv|.xlsx]
      [--signoff signoff.json] [--mapping saved_mapping.json] [--out folder] [--final] [--expert]
+     [--far fixed_assets.xlsx --depreciation wdv|slm|it] [--profit-sharing "Name=3,Name=2"]
+     [--unit rupees|thousands|lakhs|millions|crores] [--decimals 0|2] [--layout boxed|ruled]
+     [--cash-flow on|off] [--ratios on|off] [--no-cover] [--party-wise] [--details "Address|PAN ..."]
   practice-data  Write sample books with planted mistakes and the expected answers
      [--out folder]
   bench          Speed test on a large generated book

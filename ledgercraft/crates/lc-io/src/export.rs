@@ -1,41 +1,23 @@
 //! One-click export: writes the selected outputs into a new, never-overwritten
 //! version folder, atomically (temp folder renamed when complete), with a
 //! manifest of SHA-256 hashes.
+//!
+//! Pipeline: analysis → `lc_core::report::build` (content, rounding) →
+//! renderers (PDF / Excel / HTML share one design system).
 
 use chrono::Local;
 use lc_core::checks::Finding;
 use lc_core::model::Engagement;
+use lc_core::report::{Report, ReportOptions};
 use lc_core::rules::Severity;
-use lc_core::statements::{Row, RowKind, Statements};
 use lc_core::{Analysis, Money};
 use rust_xlsxwriter::{Format, FormatBorder, Workbook, Worksheet};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-/// Sign-off details printed on the statements (UDIN is paste-only).
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct SignOff {
-    #[serde(default)]
-    pub signatories: Vec<String>,
-    #[serde(default)]
-    pub signatory_title: String,
-    #[serde(default)]
-    pub auditor_firm: String,
-    #[serde(default)]
-    pub frn: String,
-    #[serde(default)]
-    pub auditor_partner: String,
-    #[serde(default)]
-    pub membership_no: String,
-    #[serde(default)]
-    pub udin: String,
-    #[serde(default)]
-    pub place: String,
-    #[serde(default)]
-    pub date: String,
-}
+pub use lc_core::report::{SignOff, Signatory};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Mode {
@@ -46,22 +28,33 @@ pub enum Mode {
 #[derive(Debug, Clone)]
 pub struct ExportOptions {
     pub mode: Mode,
+    pub pdf: bool,
     pub statements_xlsx: bool,
     pub statements_html: bool,
     pub auditor_workbook: bool,
     pub json: bool,
+    pub report: ReportOptions,
 }
 
 impl Default for ExportOptions {
     fn default() -> Self {
         ExportOptions {
             mode: Mode::Draft,
+            pdf: true,
             statements_xlsx: true,
             statements_html: true,
             auditor_workbook: true,
             json: true,
+            report: ReportOptions::default(),
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct Exported {
+    pub dir: PathBuf,
+    /// Items the preparer still has to attend to (not printed).
+    pub warnings: Vec<String>,
 }
 
 #[derive(Serialize)]
@@ -91,18 +84,26 @@ fn safe(s: &str) -> String {
         .to_string()
 }
 
-/// Export to `<root>/<entity>/FY <yyyy-yy>/<Draft|Final>-<date>_v<n>/`. Returns the folder.
+/// Build the printable report for these options.
+pub fn report(eng: &Engagement, a: &Analysis, signoff: &SignOff, opt: &ExportOptions) -> Report {
+    let mut ro = opt.report.clone();
+    ro.draft = opt.mode == Mode::Draft;
+    lc_core::report::build(eng, a, &ro, signoff)
+}
+
+/// Export to `<root>/<entity>/FY <yyyy-yy>/<Draft|Final>-<date>_v<n>/`.
 pub fn export(
     root: &Path,
     eng: &Engagement,
     a: &Analysis,
     signoff: &SignOff,
     opt: &ExportOptions,
-) -> Result<PathBuf, String> {
+) -> Result<Exported, String> {
     if opt.mode == Mode::Signing && !a.printable {
         let n = a.count(Severity::Blocker);
         return Err(format!("Signing copy refused: {n} item(s) marked 'Must fix' are still open. Export as draft or fix them first."));
     }
+    let rep = report(eng, a, signoff, opt);
     let fy = lc_core::date::fy_label(eng.fy_start);
     let base = root.join(safe(&eng.entity_name)).join(format!("FY {fy}"));
     fs::create_dir_all(&base).map_err(|e| e.to_string())?;
@@ -128,19 +129,24 @@ pub fn export(
 
     let result = (|| -> Result<(), String> {
         let draft = opt.mode == Mode::Draft;
+        if opt.pdf {
+            fs::write(
+                tmp.join("Financial_Statements.pdf"),
+                crate::render::pdf::render(&rep)?,
+            )
+            .map_err(|e| e.to_string())?;
+        }
         if opt.statements_xlsx {
-            write_statements_xlsx(
-                &tmp.join("Financial_Statements.xlsx"),
-                eng,
-                a,
-                signoff,
-                draft,
-            )?;
+            fs::write(
+                tmp.join("Financial_Statements.xlsx"),
+                crate::render::xlsx::render(&rep)?,
+            )
+            .map_err(|e| e.to_string())?;
         }
         if opt.statements_html {
             fs::write(
-                tmp.join("Financial_Statements_print.html"),
-                statements_html(eng, a, signoff, draft),
+                tmp.join("Financial_Statements_preview.html"),
+                crate::render::html::render(&rep),
             )
             .map_err(|e| e.to_string())?;
         }
@@ -163,8 +169,10 @@ pub fn export(
         names.sort();
         for name in names {
             let bytes = fs::read(tmp.join(&name)).map_err(|e| e.to_string())?;
-            let hash = format!("{:x}", Sha256::digest(&bytes));
-            files.push((name.to_string_lossy().to_string(), hash));
+            files.push((
+                name.to_string_lossy().to_string(),
+                format!("{:x}", Sha256::digest(&bytes)),
+            ));
         }
         let m = Manifest {
             app: "LedgerCraft",
@@ -189,31 +197,17 @@ pub fn export(
         return Err(e);
     }
     fs::rename(&tmp, &final_dir).map_err(|e| e.to_string())?;
-    Ok(final_dir)
-}
-
-/// Column headings: "As at" for the Balance Sheet, "For the year ended" for P&L and notes.
-fn period_heads(eng: &Engagement, as_at: bool) -> (String, String) {
-    let lead = if as_at { "As at" } else { "For the year ended" };
-    let py_end = eng.fy_start - chrono::Duration::days(1);
-    (
-        format!("{lead} {}", eng.fy_end.format("%d-%m-%Y")),
-        format!("{lead} {}", py_end.format("%d-%m-%Y")),
-    )
-}
-
-fn note_heads(eng: &Engagement) -> (String, String) {
-    let py_end = eng.fy_start - chrono::Duration::days(1);
-    (
-        eng.fy_end.format("%d-%m-%Y").to_string(),
-        py_end.format("%d-%m-%Y").to_string(),
-    )
+    Ok(Exported {
+        dir: final_dir,
+        warnings: rep.warnings,
+    })
 }
 
 fn x<T>(r: Result<T, rust_xlsxwriter::XlsxError>) -> Result<T, String> {
     r.map_err(|e| e.to_string())
 }
 
+#[allow(dead_code)]
 struct Fmts {
     title: Format,
     bold: Format,
@@ -242,234 +236,6 @@ fn fmts() -> Fmts {
             .set_border_bottom(FormatBorder::Double),
         wrap: Format::new().set_text_wrap(),
     }
-}
-
-#[allow(clippy::too_many_arguments)]
-fn write_statement(
-    ws: &mut Worksheet,
-    f: &Fmts,
-    eng: &Engagement,
-    title: &str,
-    rows: &[Row],
-    has_py: bool,
-    signoff: &SignOff,
-    draft: bool,
-    as_at: bool,
-) -> Result<(), String> {
-    let (cyh, pyh) = period_heads(eng, as_at);
-    x(ws.write_string_with_format(0, 0, &eng.entity_name, &f.title))?;
-    x(ws.write_string_with_format(1, 0, title, &f.bold))?;
-    x(ws.write_string(2, 0, "(All amounts in ₹)"))?;
-    if draft {
-        x(ws.write_string_with_format(2, 3, "DRAFT", &f.bold))?;
-    }
-    x(ws.write_string_with_format(4, 0, "Particulars", &f.head))?;
-    x(ws.write_string_with_format(4, 1, "Note No.", &f.head))?;
-    x(ws.write_string_with_format(4, 2, &cyh, &f.head))?;
-    if has_py {
-        x(ws.write_string_with_format(4, 3, &pyh, &f.head))?;
-    }
-    let mut r = 5u32;
-    for row in rows {
-        let (lf, nf) = match row.kind {
-            RowKind::Heading | RowKind::SubHeading => (&f.bold, &f.num),
-            RowKind::Item => (&f.wrap, &f.num),
-            RowKind::Subtotal => (&f.bold, &f.num_bold),
-            RowKind::Total => (&f.bold, &f.num_total),
-        };
-        x(ws.write_string_with_format(r, 0, &row.label, lf))?;
-        if let Some(n) = row.note {
-            x(ws.write_number(r, 1, n as f64))?;
-        }
-        if let Some(v) = row.cy {
-            x(ws.write_number_with_format(r, 2, v.as_f64(), nf))?;
-        }
-        if has_py {
-            if let Some(v) = row.py {
-                x(ws.write_number_with_format(r, 3, v.as_f64(), nf))?;
-            }
-        }
-        r += 1;
-    }
-    r += 1;
-    x(ws.write_string(
-        r,
-        0,
-        "The accompanying notes form an integral part of the financial statements.",
-    ))?;
-    r += 2;
-    for line in signature_lines(eng, signoff) {
-        x(ws.write_string(r, 0, &line))?;
-        r += 1;
-    }
-    ws.set_column_width(0, 62).ok();
-    ws.set_column_width(1, 9).ok();
-    ws.set_column_width(2, 22).ok();
-    ws.set_column_width(3, 22).ok();
-    Ok(())
-}
-
-fn signature_lines(eng: &Engagement, s: &SignOff) -> Vec<String> {
-    let blank = |v: &str| {
-        if v.trim().is_empty() {
-            "____________".to_string()
-        } else {
-            v.to_string()
-        }
-    };
-    let title = if s.signatory_title.is_empty() {
-        match eng.entity_type {
-            lc_core::EntityType::Company => "Director",
-            lc_core::EntityType::Llp => "Designated Partner",
-            lc_core::EntityType::Firm => "Partner",
-            lc_core::EntityType::Proprietor => "Proprietor",
-            lc_core::EntityType::Huf => "Karta",
-            lc_core::EntityType::Aop | lc_core::EntityType::Boi => "Authorised Member",
-        }
-        .to_string()
-    } else {
-        s.signatory_title.clone()
-    };
-    let mut v = vec![
-        "As per our report of even date".to_string(),
-        format!("For {}", blank(&s.auditor_firm)),
-        "Chartered Accountants".to_string(),
-        format!("Firm Registration No.: {}", blank(&s.frn)),
-        String::new(),
-        format!("{} (Partner)", blank(&s.auditor_partner)),
-        format!("Membership No.: {}", blank(&s.membership_no)),
-        format!("UDIN: {}", blank(&s.udin)),
-        String::new(),
-        format!("For and on behalf of {}", eng.entity_name),
-    ];
-    if s.signatories.is_empty() {
-        v.push(format!("____________ ({title})"));
-        if !matches!(
-            eng.entity_type,
-            lc_core::EntityType::Proprietor | lc_core::EntityType::Huf
-        ) {
-            v.push(format!("____________ ({title})"));
-        }
-    } else {
-        for n in &s.signatories {
-            v.push(format!("{n} ({title})"));
-        }
-    }
-    v.push(String::new());
-    v.push(format!("Place: {}", blank(&s.place)));
-    v.push(format!("Date: {}", blank(&s.date)));
-    v
-}
-
-fn write_statements_xlsx(
-    path: &Path,
-    eng: &Engagement,
-    a: &Analysis,
-    signoff: &SignOff,
-    draft: bool,
-) -> Result<(), String> {
-    let st: &Statements = &a.statements;
-    let has_py = eng.py.is_some();
-    let f = fmts();
-    let mut wb = Workbook::new();
-    {
-        let ws = x(wb.add_worksheet().set_name("Balance Sheet"))?;
-        write_statement(
-            ws,
-            &f,
-            eng,
-            &st.bs_title,
-            &st.balance_sheet,
-            has_py,
-            signoff,
-            draft,
-            true,
-        )?;
-    }
-    {
-        let ws = x(wb.add_worksheet().set_name("Profit and Loss"))?;
-        write_statement(
-            ws,
-            &f,
-            eng,
-            &st.pl_title,
-            &st.profit_loss,
-            has_py,
-            signoff,
-            draft,
-            false,
-        )?;
-    }
-    {
-        let ws = x(wb.add_worksheet().set_name("Notes"))?;
-        let (cyh, pyh) = note_heads(eng);
-        x(ws.write_string_with_format(0, 0, &eng.entity_name, &f.title))?;
-        x(ws.write_string_with_format(1, 0, "Notes to the financial statements", &f.bold))?;
-        x(ws.write_string(2, 0, "(All amounts in ₹)"))?;
-        let mut r = 4u32;
-        for n in &st.notes {
-            x(ws.write_string_with_format(r, 0, format!("Note {}: {}", n.no, n.title), &f.head))?;
-            x(ws.write_string_with_format(r, 2, &cyh, &f.head))?;
-            if has_py {
-                x(ws.write_string_with_format(r, 3, &pyh, &f.head))?;
-            }
-            r += 1;
-            for l in &n.lines {
-                x(ws.write_string(r, 0, &l.label))?;
-                x(ws.write_number_with_format(r, 2, l.cy.as_f64(), &f.num))?;
-                if let (true, Some(p)) = (has_py, l.py) {
-                    x(ws.write_number_with_format(r, 3, p.as_f64(), &f.num))?;
-                }
-                r += 1;
-            }
-            x(ws.write_string_with_format(r, 0, "Total", &f.bold))?;
-            x(ws.write_number_with_format(r, 2, n.total_cy.as_f64(), &f.num_total))?;
-            if let (true, Some(p)) = (has_py, n.total_py) {
-                x(ws.write_number_with_format(r, 3, p.as_f64(), &f.num_total))?;
-            }
-            r += 2;
-        }
-        ws.set_column_width(0, 62).ok();
-        ws.set_column_width(2, 22).ok();
-        ws.set_column_width(3, 22).ok();
-    }
-    {
-        let ws = x(wb.add_worksheet().set_name("Mapping"))?;
-        for (c, h) in [
-            "Ledger",
-            "Group",
-            "Standard group",
-            "Shown under",
-            "How mapped",
-            "Reclassified by balance side",
-            "Amount (Dr+ / Cr-)",
-        ]
-        .iter()
-        .enumerate()
-        {
-            x(ws.write_string_with_format(0, c as u16, *h, &f.head))?;
-        }
-        for (i, m) in a.mapping.iter().enumerate() {
-            let r = i as u32 + 1;
-            x(ws.write_string(r, 0, &m.name))?;
-            x(ws.write_string(r, 1, &m.group))?;
-            x(ws.write_string(r, 2, m.class.map(|c| c.label()).unwrap_or("NOT RECOGNISED")))?;
-            x(ws.write_string(
-                r,
-                3,
-                m.head.map(|h| h.id()).unwrap_or_else(|| "UNMAPPED".into()),
-            ))?;
-            x(ws.write_string(r, 4, m.source.map(|s| format!("{s:?}")).unwrap_or_default()))?;
-            x(ws.write_string(r, 5, if m.reclassified { "Yes" } else { "" }))?;
-            x(ws.write_number_with_format(r, 6, m.amount.as_f64(), &f.num))?;
-        }
-        ws.set_column_width(0, 40).ok();
-        ws.set_column_width(1, 26).ok();
-        ws.set_column_width(2, 24).ok();
-        ws.set_column_width(3, 28).ok();
-        ws.set_column_width(6, 18).ok();
-    }
-    x(wb.save(path))
 }
 
 fn finding_sheet(
@@ -707,119 +473,4 @@ fn write_auditor_workbook(path: &Path, eng: &Engagement, a: &Analysis) -> Result
         ws.set_freeze_panes(3, 1).ok();
     }
     x(wb.save(path))
-}
-
-fn esc(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-}
-
-fn money_cell(v: Option<Money>) -> String {
-    match v {
-        Some(m) if m.is_zero() => "-".into(),
-        Some(m) => m.fmt_indian(),
-        None => String::new(),
-    }
-}
-
-/// Plain, print-ready HTML (A4). Opens in any browser; Print → Save as PDF.
-pub fn statements_html(eng: &Engagement, a: &Analysis, signoff: &SignOff, draft: bool) -> String {
-    let st = &a.statements;
-    let has_py = eng.py.is_some();
-    let (ncy, npy) = note_heads(eng);
-    let mut h = String::new();
-    h.push_str("<!doctype html><html><head><meta charset=\"utf-8\"><title>");
-    h.push_str(&esc(&eng.entity_name));
-    h.push_str(" – Financial Statements</title><style>\n@page{size:A4;margin:18mm 15mm}\nbody{font-family:'Times New Roman',serif;font-size:11pt;color:#000;background:#fff}\nh1{font-size:13pt;text-align:center;margin:0}\nh2{font-size:11.5pt;text-align:center;margin:2px 0 8px}\n.unit{text-align:right;font-size:9.5pt}\ntable{width:100%;border-collapse:collapse}\nth{border-bottom:1px solid #000;text-align:right;padding:3px 4px;font-size:10pt}\nth:first-child{text-align:left}\ntd{padding:2px 4px;vertical-align:top}\ntd.n{text-align:right;white-space:nowrap}\ntd.c{text-align:center}\ntr.h td{font-weight:bold;padding-top:6px}\ntr.s td{font-weight:bold}\ntr.t td{font-weight:bold;border-top:1px solid #000;border-bottom:3px double #000}\n.page{page-break-after:always}\n.sig{margin-top:28px;display:flex;justify-content:space-between;font-size:10.5pt}\n.draft{position:fixed;top:40%;left:20%;font-size:80pt;color:rgba(0,0,0,.08);transform:rotate(-30deg)}\n</style></head><body>\n");
-    if draft {
-        h.push_str("<div class=\"draft\">DRAFT</div>\n");
-    }
-    let table = |rows: &[Row], title: &str, as_at: bool, h: &mut String| {
-        let (cyh, pyh) = period_heads(eng, as_at);
-        h.push_str("<div class=\"page\">");
-        h.push_str(&format!(
-            "<h1>{}</h1><h2>{}</h2><div class=\"unit\">(All amounts in ₹)</div>",
-            esc(&eng.entity_name),
-            esc(title)
-        ));
-        h.push_str(&format!(
-            "<table><tr><th>Particulars</th><th>Note</th><th>{}</th>{}</tr>",
-            esc(&cyh),
-            if has_py {
-                format!("<th>{}</th>", esc(&pyh))
-            } else {
-                String::new()
-            }
-        ));
-        for r in rows {
-            let cls = match r.kind {
-                RowKind::Heading | RowKind::SubHeading => "h",
-                RowKind::Subtotal => "s",
-                RowKind::Total => "t",
-                RowKind::Item => "",
-            };
-            h.push_str(&format!(
-                "<tr class=\"{cls}\"><td>{}</td><td class=\"c\">{}</td><td class=\"n\">{}</td>{}</tr>",
-                esc(&r.label),
-                r.note.map(|n| n.to_string()).unwrap_or_default(),
-                money_cell(r.cy),
-                if has_py { format!("<td class=\"n\">{}</td>", money_cell(r.py)) } else { String::new() }
-            ));
-        }
-        h.push_str("</table><p>The accompanying notes form an integral part of the financial statements.</p>");
-        let lines = signature_lines(eng, signoff);
-        let split = lines
-            .iter()
-            .position(|l| l.starts_with("For and on behalf"))
-            .unwrap_or(lines.len());
-        h.push_str("<div class=\"sig\"><div>");
-        for l in &lines[..split] {
-            h.push_str(&format!("{}<br>", esc(l)));
-        }
-        h.push_str("</div><div>");
-        for l in &lines[split..] {
-            h.push_str(&format!("{}<br>", esc(l)));
-        }
-        h.push_str("</div></div></div>\n");
-    };
-    table(&st.balance_sheet, &st.bs_title, true, &mut h);
-    table(&st.profit_loss, &st.pl_title, false, &mut h);
-    h.push_str(&format!("<h1>{}</h1><h2>Notes to the financial statements</h2><div class=\"unit\">(All amounts in ₹)</div>", esc(&eng.entity_name)));
-    for n in &st.notes {
-        h.push_str(&format!(
-            "<table style=\"margin-bottom:12px\"><tr><th>Note {}: {}</th><th>{}</th>{}</tr>",
-            n.no,
-            esc(&n.title),
-            esc(&ncy),
-            if has_py {
-                format!("<th>{}</th>", esc(&npy))
-            } else {
-                String::new()
-            }
-        ));
-        for l in &n.lines {
-            h.push_str(&format!(
-                "<tr><td>{}</td><td class=\"n\">{}</td>{}</tr>",
-                esc(&l.label),
-                money_cell(Some(l.cy)),
-                if has_py {
-                    format!("<td class=\"n\">{}</td>", money_cell(l.py))
-                } else {
-                    String::new()
-                }
-            ));
-        }
-        h.push_str(&format!(
-            "<tr class=\"t\"><td>Total</td><td class=\"n\">{}</td>{}</tr></table>",
-            money_cell(Some(n.total_cy)),
-            if has_py {
-                format!("<td class=\"n\">{}</td>", money_cell(n.total_py))
-            } else {
-                String::new()
-            }
-        ));
-    }
-    h.push_str("</body></html>\n");
-    h
 }

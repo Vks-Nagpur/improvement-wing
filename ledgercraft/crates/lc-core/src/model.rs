@@ -130,6 +130,12 @@ pub struct Engagement {
     /// Remembered mapping: normalised ledger name -> head id.
     #[serde(default)]
     pub mapping_memory: HashMap<String, String>,
+    /// Fixed asset register (optional).
+    #[serde(default)]
+    pub far: Option<crate::far::Register>,
+    /// Profit-sharing ratio: (owner or capital ledger name, share). Empty = equal.
+    #[serde(default)]
+    pub profit_sharing: Vec<(String, u32)>,
 }
 
 /// Normalise a ledger or group name for matching: lowercase, collapse spaces,

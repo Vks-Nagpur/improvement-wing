@@ -181,6 +181,54 @@ fn base_ledgers(b: &mut Builder, rng: &mut Rng, kind: Kind, n_cust: usize, n_sup
     }
 }
 
+/// Register that ties to the base ledgers (books on Income-tax rates, WDV).
+fn base_far(b: &Builder, extra: Vec<lc_core::far::Asset>) -> lc_core::far::Register {
+    use lc_core::far::{Asset, BookBasis, Register};
+    let d = |y, m, dd| NaiveDate::from_ymd_opt(y, m, dd).unwrap();
+    let mut assets = vec![
+        Asset {
+            name: "CNC Lathe".into(),
+            ledger: "Plant & Machinery".into(),
+            book_class: "plant_general".into(),
+            it_block: "plant_general".into(),
+            put_to_use: d(2021, 6, 1),
+            cost: r(1_000_000),
+            opening_acc_dep: r(200_000),
+            sold_on: None,
+            sale_value: Money::ZERO,
+            useful_life_years: None,
+        },
+        Asset {
+            name: "Office furniture".into(),
+            ledger: "Furniture & Fixtures".into(),
+            book_class: "furniture".into(),
+            it_block: "furniture".into(),
+            put_to_use: d(2022, 4, 10),
+            cost: r(200_000),
+            opening_acc_dep: r(50_000),
+            sold_on: None,
+            sale_value: Money::ZERO,
+            useful_life_years: None,
+        },
+    ];
+    assets.extend(extra);
+    assert_eq!(
+        b.bal("Plant & Machinery"),
+        r(800_000),
+        "register assumes the standard opening block"
+    );
+    Register {
+        assets,
+        it_opening: [
+            ("plant_general".to_string(), r(800_000)),
+            ("furniture".to_string(), r(150_000)),
+        ]
+        .into_iter()
+        .collect(),
+        basis: BookBasis::IncomeTaxRates,
+    }
+}
+
 fn balance_capital(b: &mut Builder, kind: Kind) {
     let name = match kind {
         Kind::Firm => "Partner B - Capital",
@@ -457,6 +505,9 @@ pub fn clean(kind: Kind, seed: u64, n_cust: usize, n_sup: usize, ops_per_day: us
     let mut rng = Rng::new(seed);
     let mut sim = base_ledgers(&mut b, &mut rng, kind, n_cust, n_sup);
     sim.ops_per_day = ops_per_day;
+    if kind == Kind::Firm {
+        b.far = Some(base_far(&b, vec![]));
+    }
     balance_capital(&mut b, kind);
     simulate(&mut b, &mut rng, &mut sim, &mut |_, _, _| {});
     top_up_bank(&mut b, kind);
@@ -523,6 +574,23 @@ pub fn firm_with_glitches() -> Scenario {
     b.ledger("Old Debtor - Renamed", "Sundry Debtors", r(7_000));
     b.not_in_py("Old Debtor - Renamed");
     b.py_only("Old Debtor", "Sundry Debtors", r(7_000));
+    // Furniture bought on day 190 (8 October 2025) is used for less than 180 days:
+    // the register gives half rate (₹900); the books charge full rate on it.
+    let added = lc_core::far::Asset {
+        name: "Workstations".into(),
+        ledger: "Furniture & Fixtures".into(),
+        book_class: "furniture".into(),
+        it_block: "furniture".into(),
+        put_to_use: b.day(190),
+        cost: r(18_000),
+        opening_acc_dep: Money::ZERO,
+        sold_on: None,
+        sale_value: Money::ZERO,
+        useful_life_years: None,
+    };
+    b.far = Some(base_far(&b, vec![added]));
+    b.expect("FAR_DEP_MISMATCH:depreciation");
+    b.expect("FAR_TB_MISMATCH:Furniture & Fixtures");
     balance_capital(&mut b, Kind::Firm);
 
     // Opening-balance edits after last year was closed.

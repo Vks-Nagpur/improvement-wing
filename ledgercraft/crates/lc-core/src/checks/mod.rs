@@ -50,6 +50,10 @@ pub const ALL_CODES: &[&str] = &[
     "LOAN_ACCEPTED_JOURNAL",
     "LOAN_REPAID_CASH",
     "STATEMENT_NOT_BALANCED",
+    "FAR_TB_MISMATCH",
+    "FAR_DEP_MISMATCH",
+    "FAR_MISSING_LEDGER",
+    "FAR_ERROR",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

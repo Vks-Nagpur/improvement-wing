@@ -16,6 +16,15 @@ pub struct Analysis {
     pub py_mapping: Option<Vec<MappedLedger>>,
     pub statements: Statements,
     pub loans: Vec<LoanRow>,
+    /// Exact figures by head (current / previous year).
+    pub facts_cy: crate::facts::YearFacts,
+    pub facts_py: Option<crate::facts::YearFacts>,
+    /// Owner-wise capital movement (non-corporate entities).
+    pub capital: Vec<crate::capital::CapitalRow>,
+    pub ageing_receivables: Option<crate::ageing::Ageing>,
+    pub ageing_payables: Option<crate::ageing::Ageing>,
+    pub ratios: Vec<crate::ratios::Ratio>,
+    pub far: Option<crate::far::FarResult>,
     /// True when there is no blocker: statements may be exported as a signing copy.
     pub printable: bool,
     pub rules_version: String,
@@ -78,6 +87,30 @@ pub fn analyse(eng: &Engagement, rules: &RulesPack) -> Analysis {
         &pack,
     );
 
+    let facts_cy = crate::facts::YearFacts::build(&mapping, pack.profit_to);
+    let facts_py = py_mapping
+        .as_ref()
+        .map(|m| crate::facts::YearFacts::build(m, pack.profit_to));
+    let capital = if eng.entity_type.is_company() {
+        Vec::new()
+    } else {
+        crate::capital::movements(
+            &ctx,
+            facts_cy.profit() + plac_balance(&facts_cy),
+            &eng.profit_sharing,
+        )
+    };
+    let ageing_receivables =
+        crate::ageing::compute(&ctx, &mapping, crate::ageing::AgeingKind::Receivables);
+    let ageing_payables =
+        crate::ageing::compute(&ctx, &mapping, crate::ageing::AgeingKind::Payables);
+    let repaid: crate::money::Money = loans.iter().map(|l| l.repaid()).sum();
+    let ratios = crate::ratios::compute(&facts_cy, facts_py.as_ref(), repaid);
+    let far = eng
+        .far
+        .as_ref()
+        .map(|reg| far_checks(&ctx, reg, &mapping, &facts_cy, &mut f));
+
     let structural = f.list.iter().any(|x| {
         matches!(
             x.code.as_str(),
@@ -110,6 +143,13 @@ pub fn analyse(eng: &Engagement, rules: &RulesPack) -> Analysis {
         py_mapping,
         statements: st,
         loans,
+        facts_cy,
+        facts_py,
+        capital,
+        ageing_receivables,
+        ageing_payables,
+        ratios,
+        far,
         printable,
         rules_version: rules.version.clone(),
     }
@@ -186,6 +226,7 @@ fn map_tb(
             reclassified,
             amount,
             tb_closing: l.closing,
+            tags: l.tags.clone(),
         });
     }
     out
@@ -199,4 +240,87 @@ pub fn at_least(findings: &[Finding], s: Severity) -> impl Iterator<Item = &Find
 #[allow(dead_code)]
 fn _assert_severity_order() {
     debug_assert!(Severity::Blocker < Severity::Warning && Severity::Warning < Severity::Info);
+}
+
+fn far_checks(
+    ctx: &Ctx,
+    reg: &crate::far::Register,
+    mapping: &[MappedLedger],
+    facts: &crate::facts::YearFacts,
+    f: &mut Findings,
+) -> crate::far::FarResult {
+    let eng = ctx.eng;
+    let res = crate::far::compute(
+        reg,
+        &crate::far::DepPack::builtin(),
+        eng.fy_start,
+        eng.fy_end,
+    );
+    for e in &res.errors {
+        f.add("FAR_ERROR", e, e, Detail::default());
+    }
+    for row in &res.ppe {
+        let tb = ctx.lookup(&row.ledger).map(|i| ctx.ledger(i).closing);
+        match tb {
+            Some(c) if c != row.net_closing => f.add(
+                "FAR_TB_MISMATCH",
+                &row.ledger,
+                &format!("'{}': register net block {} vs trial balance {}.", row.ledger, row.net_closing, c.fmt_drcr()),
+                Detail { ledger: Some(row.ledger.clone()), amount: Some(c - row.net_closing), suggestion: Some("If accumulated depreciation is kept in a separate ledger, map it to this asset; otherwise correct the register or the books.".into()), ..Default::default() },
+            ),
+            None => f.add(
+                "FAR_TB_MISMATCH",
+                &row.ledger,
+                &format!("'{}' is in the register but not in the trial balance.", row.ledger),
+                Detail { ledger: Some(row.ledger.clone()), ..Default::default() },
+            ),
+            _ => {}
+        }
+    }
+    for m in mapping {
+        if matches!(m.head, Some(Head::Ppe) | Some(Head::Intangibles))
+            && !m.amount.is_zero()
+            && !res
+                .ppe
+                .iter()
+                .any(|r| norm_name(&r.ledger) == norm_name(&m.name))
+        {
+            f.add(
+                "FAR_MISSING_LEDGER",
+                &m.name,
+                &format!("'{}' shows {}.", m.name, m.amount.fmt_drcr()),
+                Detail {
+                    ledger: Some(m.name.clone()),
+                    amount: Some(m.amount),
+                    ..Default::default()
+                },
+            );
+        }
+    }
+    let booked = facts.lines_total(Head::Depreciation);
+    if booked != res.book_dep_total {
+        f.add(
+            "FAR_DEP_MISMATCH",
+            "depreciation",
+            &format!("Books {} vs register {}.", booked, res.book_dep_total),
+            Detail {
+                amount: Some(booked - res.book_dep_total),
+                suggestion: Some(
+                    "Pass an adjustment entry for the difference or correct the register.".into(),
+                ),
+                ..Default::default()
+            },
+        );
+    }
+    res
+}
+
+/// Balance of the Profit & Loss A/c ledger(s) in display sign (Cr positive).
+pub fn plac_balance(f: &crate::facts::YearFacts) -> crate::money::Money {
+    f.lines
+        .values()
+        .flatten()
+        .filter(|l| l.class == Some(Class::ProfitLossAc))
+        .map(|l| l.amount)
+        .sum()
 }

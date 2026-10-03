@@ -2,5 +2,6 @@
 
 pub mod export;
 pub mod read;
+pub mod render;
 pub mod table;
 pub mod write_inputs;

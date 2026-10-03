@@ -5,15 +5,23 @@
 //! mapping, statements, loan register). Every money value is an exact
 //! integer number of paise.
 
+pub mod ageing;
+pub mod capital;
 pub mod checks;
 pub mod date;
 pub mod engine;
+pub mod facts;
+pub mod far;
 pub mod groups;
 pub mod mapping;
 pub mod model;
 pub mod money;
+pub mod ratios;
+pub mod report;
+pub mod rounding;
 pub mod rules;
 pub mod statements;
+pub mod units;
 
 pub use engine::{analyse, Analysis};
 pub use model::*;

@@ -1,0 +1,34 @@
+{
+  "version": "2026.10-draft",
+  "status": "Useful lives (Companies Act 2013, Schedule II) and block rates (Income-tax Rules, Appendix I; carried forward under Income-tax Act 2025 s.33 per secondary sources) – verify against official text before final use.",
+  "residual_pct": 5.0,
+  "book_classes": [
+    {"key": "building_rcc", "label": "Buildings (other than factory buildings) – RCC frame structure", "life": 60},
+    {"key": "building_non_rcc", "label": "Buildings (other than factory buildings) – other than RCC frame", "life": 30},
+    {"key": "factory_building", "label": "Factory buildings", "life": 30},
+    {"key": "fences_wells", "label": "Fences, wells, tube wells", "life": 5},
+    {"key": "plant_general", "label": "Plant and machinery – general", "life": 15},
+    {"key": "furniture", "label": "Furniture and fittings – general", "life": 10},
+    {"key": "electrical", "label": "Electrical installations and equipment", "life": 10},
+    {"key": "office_equipment", "label": "Office equipment", "life": 5},
+    {"key": "computers_end_user", "label": "Computers – end user devices (desktops, laptops)", "life": 3},
+    {"key": "servers_networks", "label": "Computers – servers and networks", "life": 6},
+    {"key": "motor_car", "label": "Motor cars, buses, lorries (not used in hire business)", "life": 8},
+    {"key": "motorcycle", "label": "Motor cycles, scooters and mopeds", "life": 10},
+    {"key": "motor_hire", "label": "Motor buses, lorries, cars used in hire business", "life": 6}
+  ],
+  "it_blocks": [
+    {"key": "building_res", "label": "Buildings – residential (other than hotels and boarding houses)", "rate": 5},
+    {"key": "building_other", "label": "Buildings – other than residential", "rate": 10},
+    {"key": "building_temp", "label": "Buildings – purely temporary erections", "rate": 40},
+    {"key": "furniture", "label": "Furniture and fittings", "rate": 10},
+    {"key": "plant_general", "label": "Plant and machinery – general", "rate": 15},
+    {"key": "motor_car", "label": "Motor cars (other than used in hire business)", "rate": 15},
+    {"key": "motor_hire", "label": "Motor buses, lorries, taxis used in hire business", "rate": 30},
+    {"key": "computers", "label": "Computers including computer software", "rate": 40},
+    {"key": "books_annual", "label": "Books – annual publications / professional books", "rate": 40},
+    {"key": "pollution_energy", "label": "Pollution control / energy saving devices", "rate": 40},
+    {"key": "ships", "label": "Ships and vessels", "rate": 20},
+    {"key": "intangibles", "label": "Intangible assets (know-how, patents, copyrights, trademarks, licences, franchises)", "rate": 25}
+  ]
+}

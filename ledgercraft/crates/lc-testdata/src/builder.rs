@@ -48,6 +48,7 @@ pub struct Builder {
     ghost_lines: Vec<(usize, String)>,
     pub expected: Expected,
     pub with_py: bool,
+    pub far: Option<lc_core::far::Register>,
 }
 
 impl Builder {
@@ -71,6 +72,7 @@ impl Builder {
             ghost_lines: Vec::new(),
             expected: Expected::default(),
             with_py: true,
+            far: None,
         }
     }
 
@@ -394,6 +396,8 @@ impl Builder {
             py,
             vouchers: self.vouchers,
             mapping_memory: HashMap::new(),
+            far: self.far.clone(),
+            profit_sharing: Vec::new(),
         };
         (eng, self.expected)
     }

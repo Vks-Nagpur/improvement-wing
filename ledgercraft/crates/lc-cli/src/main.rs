@@ -59,12 +59,12 @@ fn need<'a>(a: &'a HashMap<String, String>, k: &str) -> Result<&'a str, String> 
         .ok_or_else(|| format!("missing --{k}"))
 }
 
-fn cmd_analyse(a: &HashMap<String, String>) -> Result<(), String> {
+/// Build the engagement from command-line arguments (shared with the app).
+fn engagement_from_args(a: &HashMap<String, String>) -> Result<lc_core::Engagement, String> {
     let entity = EntityType::parse(need(a, "entity")?)
         .ok_or("--entity must be one of: company, llp, firm, proprietor, huf, aop, boi")?;
     let (fy_start, fy_end) =
         lc_core::date::parse_fy(need(a, "fy")?).ok_or("--fy must look like 2025-26")?;
-    let t0 = Instant::now();
     let cy = lc_io::read::read_trial_balance(&PathBuf::from(need(a, "tb")?))?;
     let py = a
         .get("py-tb")
@@ -80,7 +80,30 @@ fn cmd_analyse(a: &HashMap<String, String>) -> Result<(), String> {
             .map_err(|e| format!("mapping file: {e}"))?,
         None => HashMap::new(),
     };
-    let eng = lc_core::Engagement {
+    let far = match a.get("far") {
+        Some(p) => {
+            let basis = match a.get("depreciation").map(|s| s.as_str()).unwrap_or("wdv") {
+                "slm" => lc_core::far::BookBasis::ScheduleIiSlm,
+                "it" | "income-tax" => lc_core::far::BookBasis::IncomeTaxRates,
+                _ => lc_core::far::BookBasis::ScheduleIiWdv,
+            };
+            Some(lc_io::read::read_far(&PathBuf::from(p), basis)?)
+        }
+        None => None,
+    };
+    // e.g. "Partner A - Capital=3,Partner B - Capital=2"
+    let profit_sharing = a
+        .get("profit-sharing")
+        .map(|s| {
+            s.split(',')
+                .filter_map(|p| {
+                    p.split_once('=')
+                        .map(|(n, r)| (n.trim().to_string(), r.trim().parse::<u32>().unwrap_or(0)))
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    Ok(lc_core::Engagement {
         entity_name: a.get("name").cloned().unwrap_or_else(|| "Entity".into()),
         entity_type: entity,
         fy_start,
@@ -89,7 +112,45 @@ fn cmd_analyse(a: &HashMap<String, String>) -> Result<(), String> {
         py,
         vouchers,
         mapping_memory,
+        far,
+        profit_sharing,
+    })
+}
+
+fn report_options(a: &HashMap<String, String>) -> Result<lc_core::report::ReportOptions, String> {
+    let mut ro = lc_core::report::ReportOptions::default();
+    if let Some(u) = a.get("unit") {
+        ro.unit = lc_core::units::Unit::parse(u)
+            .ok_or("--unit must be rupees, hundreds, thousands, lakhs, millions or crores")?;
+    }
+    if let Some(d) = a.get("decimals") {
+        ro.decimals = d.parse().map_err(|_| "--decimals must be 0, 1 or 2")?;
+    }
+    if a.get("layout").map(|s| s == "ruled").unwrap_or(false) {
+        ro.layout = lc_core::report::Layout::Ruled;
+    }
+    let toggle = |k: &str| match a.get(k).map(|s| s.as_str()) {
+        Some("on") => lc_core::report::Toggle::On,
+        Some("off") => lc_core::report::Toggle::Off,
+        _ => lc_core::report::Toggle::Auto,
     };
+    ro.cash_flow = toggle("cash-flow");
+    ro.ratios = toggle("ratios");
+    ro.cover_page = !a.contains_key("no-cover");
+    ro.party_wise_details = a.contains_key("party-wise");
+    if let Some(d) = a.get("details") {
+        ro.entity_details = d
+            .split('|')
+            .map(|x| x.trim().to_string())
+            .filter(|x| !x.is_empty())
+            .collect();
+    }
+    Ok(ro)
+}
+
+fn cmd_analyse(a: &HashMap<String, String>) -> Result<(), String> {
+    let t0 = Instant::now();
+    let eng = engagement_from_args(a)?;
     let t_read = t0.elapsed();
     let rules = match a.get("rules") {
         Some(p) => RulesPack::from_json(&std::fs::read_to_string(p).map_err(|e| e.to_string())?)?,
@@ -114,23 +175,30 @@ fn cmd_analyse(a: &HashMap<String, String>) -> Result<(), String> {
     } else {
         Mode::Draft
     };
-    let dir = export(
+    let ex = export(
         &out,
         &eng,
         &res,
         &signoff,
         &ExportOptions {
             mode,
+            report: report_options(a)?,
             ..Default::default()
         },
     )?;
+    if !ex.warnings.is_empty() {
+        println!("\nBefore signing, please attend to:");
+        for w in &ex.warnings {
+            println!("  - {w}");
+        }
+    }
     println!(
         "\nRead {} vouchers in {:.2?}; checked in {:.2?}.",
         eng.vouchers.len(),
         t_read,
         t_an
     );
-    println!("Files saved in: {}", dir.display());
+    println!("Files saved in: {}", ex.dir.display());
     Ok(())
 }
 

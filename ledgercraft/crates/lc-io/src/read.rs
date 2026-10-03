@@ -188,3 +188,104 @@ pub fn read_vouchers(path: &Path) -> Result<Vec<Voucher>, String> {
     }
     Ok(out)
 }
+
+/// Fixed asset register: sheet "Fixed Assets" (one row per asset) and optional
+/// sheet "IT Opening" (block, opening written down value).
+pub fn read_far(
+    path: &Path,
+    basis: lc_core::far::BookBasis,
+) -> Result<lc_core::far::Register, String> {
+    use lc_core::far::{Asset, Register};
+    let t = read_table(
+        path,
+        &["Fixed Assets", "FAR", "Assets"],
+        &["asset", "asset name", "description"],
+    )?;
+    let name_c = t
+        .col(&["asset", "asset name", "description"])
+        .ok_or("Fixed Assets: no Asset column")?;
+    let ledger_c = t
+        .col(&["ledger", "ledger name", "account"])
+        .ok_or("Fixed Assets: no Ledger column")?;
+    let class_c = t.col(&["schedule ii class", "book class", "class"]);
+    let block_c = t
+        .col(&["it block", "block", "income tax block"])
+        .ok_or("Fixed Assets: no IT Block column")?;
+    let date_c = t
+        .col(&["put to use", "date put to use", "date of use", "date"])
+        .ok_or("Fixed Assets: no 'Put to use' date column")?;
+    let cost_c = t
+        .col(&["cost", "original cost", "gross cost"])
+        .ok_or("Fixed Assets: no Cost column")?;
+    let acc_c = t.col(&[
+        "opening accumulated depreciation",
+        "accumulated depreciation",
+        "acc dep",
+    ]);
+    let sold_c = t.col(&["sold on", "date of sale", "sale date"]);
+    let sale_c = t.col(&["sale value", "sale proceeds"]);
+    let life_c = t.col(&["useful life", "useful life years", "life"]);
+    let mut assets = Vec::new();
+    for (row, &line) in t.rows.iter().zip(&t.source_rows) {
+        let name = t.get(row, Some(name_c)).to_string();
+        if name.is_empty() {
+            continue;
+        }
+        let money = |c: Option<usize>, what: &str| -> Result<Money, String> {
+            let s = t.get(row, c);
+            if s.is_empty() {
+                Ok(Money::ZERO)
+            } else {
+                Money::parse(s).map_err(|e| format!("Fixed Assets row {line}: {what}: {e}"))
+            }
+        };
+        let put = parse_date(t.get(row, Some(date_c)))
+            .ok_or_else(|| format!("Fixed Assets row {line}: cannot read 'put to use' date"))?;
+        let sold =
+            match t.get(row, sold_c) {
+                "" => None,
+                s => Some(parse_date(s).ok_or_else(|| {
+                    format!("Fixed Assets row {line}: cannot read sale date '{s}'")
+                })?),
+            };
+        let life = match t.get(row, life_c) {
+            "" => None,
+            s => Some(s.parse::<f64>().map_err(|_| {
+                format!("Fixed Assets row {line}: useful life '{s}' is not a number")
+            })?),
+        };
+        assets.push(Asset {
+            name,
+            ledger: t.get(row, Some(ledger_c)).to_string(),
+            book_class: t.get(row, class_c).to_string(),
+            it_block: t.get(row, Some(block_c)).to_string(),
+            put_to_use: put,
+            cost: money(Some(cost_c), "cost")?,
+            opening_acc_dep: money(acc_c, "accumulated depreciation")?,
+            sold_on: sold,
+            sale_value: money(sale_c, "sale value")?,
+            useful_life_years: life,
+        });
+    }
+    let mut it_opening = std::collections::BTreeMap::new();
+    if let Some(o) = read_optional_sheet(path, "IT Opening", &["block", "it block"])? {
+        let b = o
+            .col(&["block", "it block"])
+            .ok_or("IT Opening: no Block column")?;
+        let w = o
+            .col(&["opening wdv", "opening written down value", "wdv"])
+            .ok_or("IT Opening: no Opening WDV column")?;
+        for row in &o.rows {
+            let k = o.get(row, Some(b));
+            if !k.is_empty() {
+                *it_opening.entry(k.to_string()).or_insert(Money::ZERO) +=
+                    Money::parse(o.get(row, Some(w))).map_err(|e| format!("IT Opening: {e}"))?;
+            }
+        }
+    }
+    Ok(Register {
+        assets,
+        it_opening,
+        basis,
+    })
+}

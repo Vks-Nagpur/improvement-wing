@@ -4,7 +4,7 @@ use lc_core::rules::RulesPack;
 use lc_core::{analyse, Engagement};
 use lc_io::export::{export, ExportOptions, Mode, SignOff};
 use lc_io::read::{read_trial_balance, read_vouchers};
-use lc_io::write_inputs::{write_trial_balance, write_vouchers_csv};
+use lc_io::write_inputs::{write_far, write_trial_balance, write_vouchers_csv};
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
@@ -36,6 +36,15 @@ fn every_scenario_survives_excel_and_csv() {
             "{}: vouchers changed in round trip",
             s.name
         );
+        if let Some(far) = &e.far {
+            write_far(far, &d.join("far.xlsx")).unwrap();
+            let r = lc_io::read::read_far(&d.join("far.xlsx"), far.basis).unwrap();
+            assert_eq!(
+                &r, far,
+                "{}: fixed asset register changed in round trip",
+                s.name
+            );
+        }
 
         let a = analyse(&back, &RulesPack::builtin());
         let got: BTreeSet<String> = a.findings.iter().map(|f| f.key.clone()).collect();

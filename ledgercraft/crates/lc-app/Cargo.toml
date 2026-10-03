@@ -1,0 +1,26 @@
+[package]
+name = "lc-app"
+version.workspace = true
+edition.workspace = true
+description = "LedgerCraft desktop app: offline local web UI, project storage and audit trail"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "LedgerCraft"
+path = "src/main.rs"
+
+[dependencies]
+lc-core = { path = "../lc-core" }
+lc-io = { path = "../lc-io" }
+lc-ai = { path = "../lc-ai" }
+serde.workspace = true
+serde_json.workspace = true
+chrono = { version = "0.4", default-features = false, features = ["std", "clock", "serde"] }
+tiny_http = "0.12"
+sha2 = "0.10"
+
+[dev-dependencies]
+lc-testdata = { path = "../lc-testdata" }
+ureq = { version = "2", features = ["json"] }

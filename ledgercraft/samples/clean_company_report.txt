@@ -1,0 +1,21 @@
+LedgerCraft – Clean Industries Private Limited (Company) – FY 2025-26
+Must fix: 0   Check: 0   Notes: 0
+
+Profit / (Loss) for the year: 5,24,26,107.18
+Balance Sheet total: 5,84,02,840.94
+Ready for a signing copy.
+
+Before signing, please attend to:
+  - Format pack 'Schedule III, Division I (Companies not following Ind AS)' is marked draft: draft – line items to be verified against Schedule III (as amended 24-03-2021) and ICAI Guidance Note on Division I
+  - Accounting policies are standard wording: review and edit them for this entity.
+  - Explain the change of more than 25% in 'Current ratio'.
+  - Explain the change of more than 25% in 'Debt-equity ratio'.
+  - Explain the change of more than 25% in 'Return on equity'.
+  - Explain the change of more than 25% in 'Inventory turnover ratio'.
+  - Explain the change of more than 25% in 'Trade receivables turnover ratio'.
+  - Explain the change of more than 25% in 'Trade payables turnover ratio'.
+  - Explain the change of more than 25% in 'Net profit ratio'.
+  - Explain the change of more than 25% in 'Return on capital employed'.
+
+Read 4404 vouchers in 14.21ms; checked in 3.48ms.
+Files saved in: samples/exports/Clean Industries Private Limited/FY 2025-26/Draft-2026-10-03_v1

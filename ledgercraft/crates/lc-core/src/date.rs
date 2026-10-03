@@ -5,6 +5,12 @@ use chrono::{Datelike, Duration, NaiveDate};
 /// Parse `2025-04-01`, `01-04-2025`, `01/04/2025`, `01.04.2025`, `1-Apr-2025`, `1-Apr-25`, `01 Apr 2025`.
 pub fn parse_date(s: &str) -> Option<NaiveDate> {
     let s = s.trim();
+    // Tally XML dates: YYYYMMDD.
+    if s.len() == 8 && s.bytes().all(|b| b.is_ascii_digit()) {
+        if let Ok(d) = NaiveDate::parse_from_str(s, "%Y%m%d") {
+            return Some(d);
+        }
+    }
     const FORMATS: &[&str] = &[
         "%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%d.%m.%Y", "%d-%b-%Y", "%d-%b-%y", "%d %b %Y",
         "%d/%b/%Y", "%Y/%m/%d",

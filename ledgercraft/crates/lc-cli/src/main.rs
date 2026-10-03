@@ -39,6 +39,24 @@ fn main() -> ExitCode {
         "analyse" | "analyze" => cmd_analyse(&a),
         "practice-data" => cmd_practice(&a),
         "bench" => cmd_bench(&a),
+        "tally-companies" => {
+            let port: u16 = a
+                .get("tally-port")
+                .map(|p| p.parse().unwrap_or(9000))
+                .unwrap_or(9000);
+            lc_io::tally::TallyClient::new(
+                a.get("tally-host")
+                    .map(|s| s.as_str())
+                    .unwrap_or("localhost"),
+                port,
+            )
+            .companies()
+            .map(|v| {
+                for c in v {
+                    println!("{c}");
+                }
+            })
+        }
         _ => {
             eprintln!("{}", include_str!("help.txt"));
             return ExitCode::from(2);
@@ -65,16 +83,42 @@ fn engagement_from_args(a: &HashMap<String, String>) -> Result<lc_core::Engageme
         .ok_or("--entity must be one of: company, llp, firm, proprietor, huf, aop, boi")?;
     let (fy_start, fy_end) =
         lc_core::date::parse_fy(need(a, "fy")?).ok_or("--fy must look like 2025-26")?;
-    let cy = lc_io::read::read_trial_balance(&PathBuf::from(need(a, "tb")?))?;
-    let py = a
-        .get("py-tb")
-        .map(|p| lc_io::read::read_trial_balance(&PathBuf::from(p)))
-        .transpose()?;
-    let vouchers = a
-        .get("vouchers")
-        .map(|p| lc_io::read::read_vouchers(&PathBuf::from(p)))
-        .transpose()?
-        .unwrap_or_default();
+    let master = a.get("accounts-master").map(PathBuf::from);
+    let (cy, py, vouchers) = if let Some(company) = a.get("tally") {
+        // One-click Tally import (TallyPrime must be open with the XML server on).
+        let port: u16 = a
+            .get("tally-port")
+            .map(|p| p.parse().unwrap_or(9000))
+            .unwrap_or(9000);
+        let client = lc_io::tally::TallyClient::new(
+            a.get("tally-host")
+                .map(|s| s.as_str())
+                .unwrap_or("localhost"),
+            port,
+        );
+        let with_v = !a.contains_key("no-vouchers");
+        lc_io::tally::import_year(&client, company, fy_start, fy_end, with_v, |m, n| {
+            eprintln!(
+                "  Tally: imported up to {} ({n} vouchers)",
+                m.format("%b %Y")
+            )
+        })?
+    } else {
+        let cy = lc_io::read::read_trial_balance_with(
+            &PathBuf::from(need(a, "tb")?),
+            master.as_deref(),
+        )?;
+        let py = a
+            .get("py-tb")
+            .map(|p| lc_io::read::read_trial_balance_with(&PathBuf::from(p), master.as_deref()))
+            .transpose()?;
+        let vouchers = a
+            .get("vouchers")
+            .map(|p| lc_io::read::read_vouchers(&PathBuf::from(p)))
+            .transpose()?
+            .unwrap_or_default();
+        (cy, py, vouchers)
+    };
     let mapping_memory = match a.get("mapping") {
         Some(p) => serde_json::from_str(&std::fs::read_to_string(p).map_err(|e| e.to_string())?)
             .map_err(|e| format!("mapping file: {e}"))?,
@@ -258,6 +302,9 @@ fn cmd_practice(a: &HashMap<String, String>) -> Result<(), String> {
             )?;
         }
         lc_io::write_inputs::write_vouchers_csv(&s.engagement.vouchers, &dir.join("vouchers.csv"))?;
+        if let Some(far) = &s.engagement.far {
+            lc_io::write_inputs::write_far(far, &dir.join("fixed_assets.xlsx"))?;
+        }
         let mut exp: Vec<&String> = s.expected.keys.iter().collect();
         exp.sort();
         let info = serde_json::json!({

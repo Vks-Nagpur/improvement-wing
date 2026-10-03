@@ -1,0 +1,14 @@
+[package]
+name = "lc-ai"
+version.workspace = true
+edition.workspace = true
+description = "Optional local AI for LedgerCraft through Ollama (offline, free). Suggests and explains; never changes figures."
+
+[dependencies]
+lc-core = { path = "../lc-core" }
+serde.workspace = true
+serde_json.workspace = true
+ureq = { version = "2", features = ["json"] }
+
+[dev-dependencies]
+tiny_http = "0.12"

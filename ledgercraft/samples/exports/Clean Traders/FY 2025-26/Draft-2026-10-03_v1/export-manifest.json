@@ -1,0 +1,32 @@
+{
+  "app": "LedgerCraft",
+  "app_version": "0.1.0",
+  "rules_version": "2026.10-draft",
+  "format_pack": "non_corporate",
+  "entity": "Clean Traders",
+  "financial_year": "2025-26",
+  "mode": "draft",
+  "created": "2026-10-03T18:11:42.768113347+00:00",
+  "files": [
+    [
+      "Auditor_Reference_Workbook.xlsx",
+      "5c9e7ca079de3c92741b98fe6898252c536a2e7c18592e44e1dfda683bc68feb"
+    ],
+    [
+      "Financial_Statements.pdf",
+      "bce48e3e6abdfaadb2b3a165af9a9d48b5ae17ce387cca9ff542fcdb1d9d503b"
+    ],
+    [
+      "Financial_Statements.xlsx",
+      "7e44411c71c43fd4e8dc888f3e361435c24b5b95f50c15d3761e9e3cb9bbc3ca"
+    ],
+    [
+      "Financial_Statements_preview.html",
+      "f9e10157eda1c5de0c66368fc5bea8f493474c65a1f2fd3b3c177898d4ff9bb9"
+    ],
+    [
+      "analysis.json",
+      "4833c6949924be5b1aa7b149c961a27dfb7324c2d63544e3d359342ff4fda81c"
+    ]
+  ]
+}

@@ -35,7 +35,7 @@ pub enum Toggle {
     Off,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(default)]
 pub struct ReportOptions {
     pub unit: Unit,

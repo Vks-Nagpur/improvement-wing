@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="lc-token" content="__LC_TOKEN__">
+<title>LedgerCraft</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 18 18%27%3E%3Crect width=%2718%27 height=%2718%27 rx=%274%27 fill=%27%23fff%27/%3E%3Cg fill=%27%231f6b4f%27%3E%3Crect y=%270%27 width=%2718%27 height=%274%27/%3E%3Crect y=%277%27 width=%2713%27 height=%274%27/%3E%3Crect y=%2714%27 width=%2718%27 height=%274%27/%3E%3C/g%3E%3C/svg%3E">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="mark" aria-hidden="true"></span>LedgerCraft</div>
+  <div class="project-name" id="projectName">No project open</div>
+  <div class="top-actions">
+    <label class="mode" title="Expert mode shows legal references and every option">
+      <input type="checkbox" id="expert"> <span>Expert mode</span>
+    </label>
+    <button class="pill" id="aiPill" type="button" aria-controls="aiPanel">Local AI: checking</button>
+    <button class="ghost" id="quitBtn" type="button">Quit</button>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="steps" aria-label="Steps">
+    <button data-view="projects" class="active"><b>1</b> Clients and years</button>
+    <button data-view="import" disabled><b>2</b> Import books</button>
+    <button data-view="check" disabled><b>3</b> Check</button>
+    <button data-view="map" disabled><b>4</b> Map ledgers</button>
+    <button data-view="present" disabled><b>5</b> Presentation</button>
+    <button data-view="export" disabled><b>6</b> Sign and export</button>
+    <button data-view="audit" disabled><b>7</b> Audit trail</button>
+  </nav>
+
+  <main id="main">
+    <!-- 1. Projects -->
+    <section data-panel="projects">
+      <h1>Clients and years</h1>
+      <p class="lead">Each client has one folder per financial year. Mapping you do once is reused every year.</p>
+      <form id="newProject" class="row-form">
+        <div class="field grow"><label for="npName">Entity name</label><input id="npName" required autocomplete="off" placeholder="e.g. Sharma Traders"></div>
+        <div class="field"><label for="npType">Type</label>
+          <select id="npType">
+            <option value="firm">Partnership firm</option><option value="llp">LLP</option><option value="company">Company</option>
+            <option value="proprietor">Proprietorship / Individual</option><option value="huf">HUF</option><option value="aop">AOP</option><option value="boi">BOI</option>
+          </select></div>
+        <div class="field"><label for="npFy">Financial year</label><input id="npFy" required pattern="\d{4}-\d{2}" size="8"></div>
+        <button class="primary" type="submit">Create</button>
+      </form>
+      <p class="error" id="npError" role="alert"></p>
+      <table class="grid" id="projectList"><thead><tr><th>Entity</th><th>Type</th><th>Year</th><th>Last changed</th><th></th></tr></thead><tbody></tbody></table>
+      <p class="muted small" id="dataDir"></p>
+    </section>
+
+    <!-- 2. Import -->
+    <section data-panel="import" hidden>
+      <h1>Import books</h1>
+      <div class="two">
+        <div class="box">
+          <h2>From Tally</h2>
+          <p class="muted">Open TallyPrime with the company loaded. Enable the XML server: F1 Help, Settings, Connectivity, set port 9000.</p>
+          <div class="row-form">
+            <div class="field grow"><label for="tHost">Computer</label><input id="tHost" value="localhost"></div>
+            <div class="field"><label for="tPort">Port</label><input id="tPort" value="9000" size="5"></div>
+            <button type="button" id="tFind">Find companies</button>
+          </div>
+          <div class="row-form">
+            <div class="field grow"><label for="tCompany">Company</label><select id="tCompany"><option value="">Find companies first</option></select></div>
+            <label class="check"><input type="checkbox" id="tVouchers" checked> Day book too</label>
+            <button class="primary" type="button" id="tImport">Import</button>
+          </div>
+          <p class="status" id="tStatus" role="status"></p>
+        </div>
+        <div class="box">
+          <h2>From files</h2>
+          <p class="muted">Excel or CSV from Tally, Zoho Books, BUSY or the LedgerCraft template.</p>
+          <div id="fileRows"></div>
+          <div class="field"><label for="depBasis">Depreciation in books</label>
+            <select id="depBasis"><option value="income_tax_rates">Income-tax rates (WDV, 180-day rule)</option><option value="schedule_ii_wdv">Companies Act Schedule II, WDV</option><option value="schedule_ii_slm">Companies Act Schedule II, SLM</option></select></div>
+          <p class="status" id="fStatus" role="status"></p>
+        </div>
+      </div>
+      <div class="next"><button class="primary" type="button" data-go="check">Next: run the checks</button></div>
+    </section>
+
+    <!-- 3. Check -->
+    <section data-panel="check" hidden>
+      <div class="title-row"><h1>Check</h1><button class="primary" type="button" id="runChecks">Run checks</button></div>
+      <div class="tiles" id="tiles"></div>
+      <div class="filters" role="group" aria-label="Filter findings">
+        <button data-f="all" class="on">All</button><button data-f="blocker">Must fix</button><button data-f="warning">Check</button><button data-f="info">Note</button>
+        <span class="spacer"></span>
+        <label class="small">Explain in <select id="lang"><option value="english">English</option><option value="hindi">Hindi</option><option value="marathi">Marathi</option></select></label>
+      </div>
+      <ul class="findings" id="findings"></ul>
+      <div class="box" id="warnBox" hidden><h2>Before signing</h2><ul id="warnings"></ul></div>
+    </section>
+
+    <!-- 4. Map -->
+    <section data-panel="map" hidden>
+      <h1>Map ledgers</h1>
+      <p class="lead">LedgerCraft places most ledgers itself. Change any line once; it is remembered for this client every year.</p>
+      <div class="filters">
+        <input id="mapSearch" type="search" placeholder="Search ledger or group" aria-label="Search ledgers">
+        <label class="check"><input type="checkbox" id="mapAttention" checked> Only lines that need attention</label>
+      </div>
+      <table class="grid dense" id="mapTable"><thead><tr><th>Ledger</th><th>Group in books</th><th class="num">Balance</th><th>Shown under</th><th>Tags</th><th></th></tr></thead><tbody></tbody></table>
+    </section>
+
+    <!-- 5. Presentation -->
+    <section data-panel="present" hidden>
+      <div class="title-row"><h1>Presentation</h1><button type="button" id="refreshPreview">Refresh preview</button></div>
+      <div class="present">
+        <form id="opts" class="opts">
+          <fieldset><legend>Figures</legend>
+            <div class="field"><label for="oUnit">Amounts in</label><select id="oUnit"><option value="rupees">Rupees</option><option value="hundreds">Hundreds</option><option value="thousands">Thousands</option><option value="lakhs">Lakhs</option><option value="millions">Millions</option><option value="crores">Crores</option></select></div>
+            <div class="field"><label for="oDec">Decimals</label><select id="oDec"><option value="0">0</option><option value="2">2</option></select></div>
+          </fieldset>
+          <fieldset><legend>Layout</legend>
+            <label class="radio"><input type="radio" name="layout" value="boxed"> Boxed (full grid)</label>
+            <label class="radio"><input type="radio" name="layout" value="ruled"> Ruled (open, lines at totals)</label>
+          </fieldset>
+          <fieldset><legend>Show</legend>
+            <label class="check"><input type="checkbox" id="oPy"> Previous year column</label>
+            <label class="check"><input type="checkbox" id="oNil"> Hide nil lines</label>
+            <label class="check"><input type="checkbox" id="oRel"> Re-letter (a), (b), (c)</label>
+            <label class="check"><input type="checkbox" id="oCover"> Cover and contents page</label>
+            <label class="check"><input type="checkbox" id="oPol"> Accounting policies</label>
+            <label class="check"><input type="checkbox" id="oAge"> Ageing schedules</label>
+            <label class="check"><input type="checkbox" id="oParty"> Each debtor and creditor in notes</label>
+            <div class="field"><label for="oCf">Cash flow statement</label><select id="oCf"><option value="auto">Automatic</option><option value="on">Include</option><option value="off">Leave out</option></select></div>
+            <div class="field"><label for="oRatios">Ratios note</label><select id="oRatios"><option value="auto">Automatic</option><option value="on">Include</option><option value="off">Leave out</option></select></div>
+          </fieldset>
+          <fieldset><legend>Entity details on every page</legend>
+            <textarea id="oDetails" rows="2" placeholder="Address&#10;PAN or CIN"></textarea>
+          </fieldset>
+          <fieldset id="psBox"><legend>Profit-sharing ratio</legend><div id="psRows"></div></fieldset>
+          <fieldset id="ratioBox"><legend>Reasons for ratio changes above 25%</legend><div id="ratioRows"></div></fieldset>
+          <button class="primary" type="submit">Save and preview</button>
+          <p class="status" id="oStatus" role="status"></p>
+        </form>
+        <iframe id="preview" title="Preview of the financial statements"></iframe>
+      </div>
+    </section>
+
+    <!-- 6. Sign & Export -->
+    <section data-panel="export" hidden>
+      <h1>Sign and export</h1>
+      <form id="signForm" class="opts wide">
+        <fieldset><legend>Auditor</legend>
+          <div class="cols">
+            <div class="field"><label for="sFirm">Firm name</label><input id="sFirm"></div>
+            <div class="field"><label for="sFrn">FRN</label><input id="sFrn"></div>
+            <div class="field"><label for="sPartner">Partner</label><input id="sPartner"></div>
+            <div class="field"><label for="sMno">Membership No.</label><input id="sMno"></div>
+            <div class="field"><label for="sUdin">UDIN (paste)</label><input id="sUdin" autocomplete="off" spellcheck="false"></div>
+            <div class="field"><label for="sPlace">Place</label><input id="sPlace"></div>
+            <div class="field"><label for="sDate">Date</label><input id="sDate" placeholder="dd-mm-yyyy"></div>
+          </div>
+        </fieldset>
+        <fieldset><legend>Signing for the entity</legend><div id="sigRows"></div><button type="button" id="addSig">Add signatory</button></fieldset>
+        <fieldset><legend>Export</legend>
+          <label class="radio"><input type="radio" name="mode" value="draft" checked> Draft (watermarked)</label>
+          <label class="radio"><input type="radio" name="mode" value="final" id="modeFinal"> Final signing copy</label>
+          <div class="field"><label for="eFolder">Folder (leave empty for the LedgerCraft Exports folder)</label><input id="eFolder"></div>
+        </fieldset>
+        <button class="primary" type="submit">Save and export</button>
+        <p class="status" id="eStatus" role="status"></p>
+      </form>
+      <div class="box" id="eResult" hidden></div>
+    </section>
+
+    <!-- 7. Audit -->
+    <section data-panel="audit" hidden>
+      <div class="title-row"><h1>Audit trail</h1><button type="button" id="reloadAudit">Reload</button></div>
+      <p id="chain" class="chain"></p>
+      <table class="grid dense" id="auditTable"><thead><tr><th>#</th><th>When</th><th>By</th><th>What</th><th>Details</th></tr></thead><tbody></tbody></table>
+    </section>
+  </main>
+
+  <aside id="aiPanel" class="ai" hidden aria-label="Local AI">
+    <div class="title-row"><h2>Local AI</h2><button class="ghost" type="button" id="aiClose" aria-label="Close">Close</button></div>
+    <p class="muted small">Runs on this computer through Ollama. It only suggests and explains; it never changes figures. Every answer is recorded in the audit trail.</p>
+    <p id="aiState"></p>
+    <div class="field"><label for="aiModel">Model</label><select id="aiModel"></select></div>
+    <button type="button" id="aiSetup">Download model</button>
+    <div class="bar" hidden id="aiBar"><span></span></div>
+    <p class="status" id="aiSetupStatus" role="status"></p>
+    <hr>
+    <div class="field"><label for="aiQ">Ask about this engagement</label><textarea id="aiQ" rows="3"></textarea></div>
+    <button type="button" class="primary" id="aiAsk">Ask</button>
+    <div id="aiAnswer" class="answer"></div>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/app.js"></script>
+</body>
+</html>

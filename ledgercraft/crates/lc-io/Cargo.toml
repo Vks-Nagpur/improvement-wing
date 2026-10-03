@@ -16,6 +16,9 @@ sha2 = "0.10"
 typst = "0.15"
 typst-as-lib = "0.16"
 typst-pdf = "0.15"
+quick-xml = "0.37"
+ureq = "2"
 
 [dev-dependencies]
 lc-testdata = { path = "../lc-testdata" }
+tiny_http = "0.12"

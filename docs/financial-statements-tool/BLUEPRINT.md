@@ -654,3 +654,17 @@ Working code is in [`ledgercraft/`](../../ledgercraft/README.md):
 - Excel/CSV import, versioned export folder (Excel statements, print-ready HTML, Auditor Reference Workbook, manifest with SHA-256).
 - Practice-book generator with planted mistakes and known answers. Tests prove every planted mistake is found, no false alarms on 60 random clean books, identical results after the Excel/CSV round trip, and ~1 million vouchers checked in about 5 seconds.
 - Automated test run on every change (GitHub Actions, Linux + Windows).
+
+## 19. Build status (v0.2 – design architecture and pending modules)
+
+Done and tested (see `ledgercraft/README.md` and `ledgercraft/DESIGN.md`):
+- **Output design architecture**: content → neutral report model → renderers. Real PDF (embedded Typst engine, offline) with boxed or ruled tables, cover, contents with page numbers, running headers, page x of y, landscape schedules, signature blocks; Excel and HTML preview with the same rules.
+- **Exact casting** in ₹ / hundreds / thousands / lakhs / millions / crores (largest-remainder rounding); Schedule III rounding-unit rule checked.
+- **Notes with Schedule III sub-classification**, MSME split, ageing schedules (FIFO from the day book), partner-wise capital movement, Cash Flow Statement (AS 3, self-reconciling), 11 ratios with variance reasons, LLP format pack.
+- **Fixed asset register and depreciation**: Schedule II (SLM/WDV), Income-tax block method with 180-day rule and STCG, Income-tax rates in books; PPE schedule; tie-out checks.
+- **Importers**: Tally one-click (XML over HTTP, month-by-month day book), Zoho Books (export + API chart of accounts), BUSY (export + account master).
+- **Local AI** (Ollama): explain findings (English/Hindi/Marathi), guarded mapping suggestions, ratio-reason drafts, Q&A; logged; never changes figures.
+- **Windows desktop app**: `LedgerCraft.exe` (local server bound to 127.0.0.1 with session token), clients/years storage, map-once memory, tags, hash-chained tamper-evident audit trail; built by GitHub Actions and verified under Wine.
+- New-Act references: ss.185 / 186 / 188 (for 269SS / 269ST / 269T) and s.33 (depreciation).
+
+Open items: verify format packs line-by-line against official texts; new-Act equivalent of s.40A(3); Word (.docx) export; real-world testing on client books; code signing for the installer.

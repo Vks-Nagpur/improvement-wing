@@ -1,0 +1,3626 @@
+{
+  "findings": [],
+  "mapping": [
+    {
+      "name": "Equity Share Capital",
+      "group": "Capital Account",
+      "class": "CapitalAccount",
+      "head": "CAPITAL",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -100000000,
+      "tb_closing": -100000000,
+      "tags": []
+    },
+    {
+      "name": "Securities Premium",
+      "group": "Reserves & Surplus",
+      "class": "ReservesSurplus",
+      "head": "RESERVES_SURPLUS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0,
+      "tags": []
+    },
+    {
+      "name": "Directors' Remuneration",
+      "group": "Administrative Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 36000000,
+      "tb_closing": 36000000,
+      "tags": []
+    },
+    {
+      "name": "Income Tax Expense",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "TAX_EXPENSE",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 18000000,
+      "tb_closing": 18000000,
+      "tags": []
+    },
+    {
+      "name": "Provision for Income Tax",
+      "group": "Provisions",
+      "class": "Provisions",
+      "head": "ST_PROVISIONS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -18000000,
+      "tb_closing": -18000000,
+      "tags": []
+    },
+    {
+      "name": "Advance Tax",
+      "group": "Loans & Advances (Asset)",
+      "class": "LoansAdvancesAsset",
+      "head": "ST_LOANS_ADVANCES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 15000000,
+      "tb_closing": 15000000,
+      "tags": []
+    },
+    {
+      "name": "HDFC Bank Term Loan",
+      "group": "Secured Loans",
+      "class": "SecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -32000000,
+      "tb_closing": -32000000,
+      "tags": []
+    },
+    {
+      "name": "Interest on Term Loan",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "FINANCE_COSTS",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 7776224,
+      "tb_closing": 7776224,
+      "tags": []
+    },
+    {
+      "name": "Investment in Mutual Funds",
+      "group": "Investments",
+      "class": "Investments",
+      "head": "NC_INVESTMENTS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 30000000,
+      "tb_closing": 30000000,
+      "tags": []
+    },
+    {
+      "name": "Security Deposit - Office",
+      "group": "Deposits (Asset)",
+      "class": "DepositsAsset",
+      "head": "LT_LOANS_ADVANCES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 15000000,
+      "tb_closing": 15000000,
+      "tags": []
+    },
+    {
+      "name": "Accounting Software",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "INTANGIBLES",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 6000000,
+      "tb_closing": 6000000,
+      "tags": []
+    },
+    {
+      "name": "Capital Work-in-Progress - Factory",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "CWIP",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 40000000,
+      "tb_closing": 40000000,
+      "tags": []
+    },
+    {
+      "name": "Travelling Expenses",
+      "group": "Travel & Conveyance",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 2709145,
+      "tb_closing": 2709145,
+      "tags": []
+    },
+    {
+      "name": "Stock-in-Trade - Warehouse B",
+      "group": "Stock-in-Hand",
+      "class": "StockInHand",
+      "head": "INVENTORIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 5000000,
+      "tb_closing": 5000000,
+      "tags": []
+    },
+    {
+      "name": "Profit & Loss A/c",
+      "group": "Profit & Loss A/c",
+      "class": "ProfitLossAc",
+      "head": "RESERVES_SURPLUS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -152816700,
+      "tb_closing": -152816700,
+      "tags": []
+    },
+    {
+      "name": "Cash",
+      "group": "Cash-in-Hand",
+      "class": "CashInHand",
+      "head": "CASH_BANK",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 1348711819,
+      "tb_closing": 1348711819,
+      "tags": []
+    },
+    {
+      "name": "HDFC Bank Current A/c",
+      "group": "Bank Accounts",
+      "class": "BankAccounts",
+      "head": "CASH_BANK",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 3720663587,
+      "tb_closing": 3720663587,
+      "tags": []
+    },
+    {
+      "name": "Sales - Local",
+      "group": "Sales Accounts",
+      "class": "SalesAccounts",
+      "head": "REVENUE_OPS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -10452755520,
+      "tb_closing": -10452755520,
+      "tags": []
+    },
+    {
+      "name": "Purchases - Local",
+      "group": "Purchase Accounts",
+      "class": "PurchaseAccounts",
+      "head": "PURCHASES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 4833889046,
+      "tb_closing": 4833889046,
+      "tags": []
+    },
+    {
+      "name": "Freight Inward",
+      "group": "Direct Expenses",
+      "class": "DirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0,
+      "tags": []
+    },
+    {
+      "name": "Office Expenses",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 41060031,
+      "tb_closing": 41060031,
+      "tags": []
+    },
+    {
+      "name": "Printing & Stationery",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 40190966,
+      "tb_closing": 40190966,
+      "tags": []
+    },
+    {
+      "name": "Telephone Expenses",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 45574435,
+      "tb_closing": 45574435,
+      "tags": []
+    },
+    {
+      "name": "Staff Welfare",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "EMPLOYEE_BENEFITS",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 49255106,
+      "tb_closing": 49255106,
+      "tags": []
+    },
+    {
+      "name": "Conveyance",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 40933542,
+      "tb_closing": 40933542,
+      "tags": []
+    },
+    {
+      "name": "Rent",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 30000000,
+      "tb_closing": 30000000,
+      "tags": []
+    },
+    {
+      "name": "Electricity Charges",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 7347060,
+      "tb_closing": 7347060,
+      "tags": []
+    },
+    {
+      "name": "Salary",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "EMPLOYEE_BENEFITS",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 56892633,
+      "tb_closing": 56892633,
+      "tags": []
+    },
+    {
+      "name": "Bank Charges",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 2510281,
+      "tb_closing": 2510281,
+      "tags": []
+    },
+    {
+      "name": "Depreciation",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "DEPRECIATION",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 13500000,
+      "tb_closing": 13500000,
+      "tags": []
+    },
+    {
+      "name": "Interest on Unsecured Loans",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "FINANCE_COSTS",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 3600000,
+      "tb_closing": 3600000,
+      "tags": []
+    },
+    {
+      "name": "Interest Received",
+      "group": "Indirect Incomes",
+      "class": "IndirectIncomes",
+      "head": "OTHER_INCOME",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -22254921,
+      "tb_closing": -22254921,
+      "tags": []
+    },
+    {
+      "name": "Plant & Machinery",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "PPE",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 68000000,
+      "tb_closing": 68000000,
+      "tags": []
+    },
+    {
+      "name": "Furniture & Fixtures",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "PPE",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 13500000,
+      "tb_closing": 13500000,
+      "tags": []
+    },
+    {
+      "name": "TDS Payable",
+      "group": "Duties & Taxes",
+      "class": "DutiesTaxes",
+      "head": "OTHER_CURRENT_LIABILITIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0,
+      "tags": []
+    },
+    {
+      "name": "Unsecured Loan - Rajesh Kumar",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -33240000,
+      "tb_closing": -33240000,
+      "tags": []
+    },
+    {
+      "name": "Stock-in-Trade",
+      "group": "Stock-in-Hand",
+      "class": "StockInHand",
+      "head": "INVENTORIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 36627587,
+      "tb_closing": 39788841,
+      "tags": []
+    },
+    {
+      "name": "Customer 01",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 7518468,
+      "tb_closing": 7518468,
+      "tags": []
+    },
+    {
+      "name": "Customer 02",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 44794370,
+      "tb_closing": 44794370,
+      "tags": []
+    },
+    {
+      "name": "Customer 03",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 8062741,
+      "tb_closing": 8062741,
+      "tags": []
+    },
+    {
+      "name": "Customer 04",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 92333371,
+      "tb_closing": 92333371,
+      "tags": []
+    },
+    {
+      "name": "Customer 05",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 18279520,
+      "tb_closing": 18279520,
+      "tags": []
+    },
+    {
+      "name": "Customer 06",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 6443265,
+      "tb_closing": 6443265,
+      "tags": []
+    },
+    {
+      "name": "Customer 07",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 27833387,
+      "tb_closing": 27833387,
+      "tags": []
+    },
+    {
+      "name": "Customer 08",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 53433749,
+      "tb_closing": 53433749,
+      "tags": []
+    },
+    {
+      "name": "Customer 09",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 1299739,
+      "tb_closing": 1299739,
+      "tags": []
+    },
+    {
+      "name": "Customer 10",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 720225,
+      "tb_closing": 720225,
+      "tags": []
+    },
+    {
+      "name": "Customer 11",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 27135080,
+      "tb_closing": 27135080,
+      "tags": []
+    },
+    {
+      "name": "Customer 12",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 39483301,
+      "tb_closing": 39483301,
+      "tags": []
+    },
+    {
+      "name": "Customer 13",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 9253172,
+      "tb_closing": 9253172,
+      "tags": []
+    },
+    {
+      "name": "Customer 14",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 11706336,
+      "tb_closing": 11706336,
+      "tags": []
+    },
+    {
+      "name": "Customer 15",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 21067954,
+      "tb_closing": 21067954,
+      "tags": []
+    },
+    {
+      "name": "Customer 16",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 476511,
+      "tb_closing": 476511,
+      "tags": []
+    },
+    {
+      "name": "Customer 17",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 6805619,
+      "tb_closing": 6805619,
+      "tags": []
+    },
+    {
+      "name": "Customer 18",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 5780,
+      "tb_closing": 5780,
+      "tags": []
+    },
+    {
+      "name": "Customer 19",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 38096919,
+      "tb_closing": 38096919,
+      "tags": []
+    },
+    {
+      "name": "Customer 20",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 25170260,
+      "tb_closing": 25170260,
+      "tags": []
+    },
+    {
+      "name": "Customer 21",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 29623670,
+      "tb_closing": 29623670,
+      "tags": []
+    },
+    {
+      "name": "Customer 22",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 20572508,
+      "tb_closing": 20572508,
+      "tags": []
+    },
+    {
+      "name": "Customer 23",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 17385081,
+      "tb_closing": 17385081,
+      "tags": []
+    },
+    {
+      "name": "Customer 24",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 16337,
+      "tb_closing": 16337,
+      "tags": []
+    },
+    {
+      "name": "Customer 25",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 34263738,
+      "tb_closing": 34263738,
+      "tags": []
+    },
+    {
+      "name": "Supplier 01",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -26638497,
+      "tb_closing": -26638497,
+      "tags": []
+    },
+    {
+      "name": "Supplier 02",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -2679056,
+      "tb_closing": -2679056,
+      "tags": []
+    },
+    {
+      "name": "Supplier 03",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -37334264,
+      "tb_closing": -37334264,
+      "tags": []
+    },
+    {
+      "name": "Supplier 04",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -23714143,
+      "tb_closing": -23714143,
+      "tags": []
+    },
+    {
+      "name": "Supplier 05",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -11030680,
+      "tb_closing": -11030680,
+      "tags": []
+    },
+    {
+      "name": "Supplier 06",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -14809130,
+      "tb_closing": -14809130,
+      "tags": []
+    },
+    {
+      "name": "Supplier 07",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -22465831,
+      "tb_closing": -22465831,
+      "tags": []
+    },
+    {
+      "name": "Supplier 08",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -17848465,
+      "tb_closing": -17848465,
+      "tags": []
+    },
+    {
+      "name": "Supplier 09",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -10791805,
+      "tb_closing": -10791805,
+      "tags": []
+    },
+    {
+      "name": "Supplier 10",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -18499996,
+      "tb_closing": -18499996,
+      "tags": []
+    },
+    {
+      "name": "Supplier 11",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -3194475,
+      "tb_closing": -3194475,
+      "tags": []
+    },
+    {
+      "name": "Supplier 12",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -25061556,
+      "tb_closing": -25061556,
+      "tags": []
+    },
+    {
+      "name": "Supplier 13",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -24865472,
+      "tb_closing": -24865472,
+      "tags": []
+    },
+    {
+      "name": "Supplier 14",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -17640311,
+      "tb_closing": -17640311,
+      "tags": []
+    },
+    {
+      "name": "Supplier 15",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -5042995,
+      "tb_closing": -5042995,
+      "tags": []
+    }
+  ],
+  "py_mapping": [
+    {
+      "name": "Sales - Local",
+      "group": "Sales Accounts",
+      "class": "SalesAccounts",
+      "head": "REVENUE_OPS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -408208674,
+      "tb_closing": -408208674,
+      "tags": []
+    },
+    {
+      "name": "Purchases - Local",
+      "group": "Purchase Accounts",
+      "class": "PurchaseAccounts",
+      "head": "PURCHASES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 266432799,
+      "tb_closing": 266432799,
+      "tags": []
+    },
+    {
+      "name": "Rent",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 30000000,
+      "tb_closing": 30000000,
+      "tags": []
+    },
+    {
+      "name": "Salary",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "EMPLOYEE_BENEFITS",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 58636440,
+      "tb_closing": 58636440,
+      "tags": []
+    },
+    {
+      "name": "Electricity Charges",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 7316647,
+      "tb_closing": 7316647,
+      "tags": []
+    },
+    {
+      "name": "Office Expenses",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "OTHER_EXPENSES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 5167977,
+      "tb_closing": 5167977,
+      "tags": []
+    },
+    {
+      "name": "Depreciation",
+      "group": "Indirect Expenses",
+      "class": "IndirectExpenses",
+      "head": "DEPRECIATION",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 10556660,
+      "tb_closing": 10556660,
+      "tags": []
+    },
+    {
+      "name": "Equity Share Capital",
+      "group": "Capital Account",
+      "class": "CapitalAccount",
+      "head": "CAPITAL",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -100000000,
+      "tb_closing": -100000000,
+      "tags": []
+    },
+    {
+      "name": "Securities Premium",
+      "group": "Reserves & Surplus",
+      "class": "ReservesSurplus",
+      "head": "RESERVES_SURPLUS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0,
+      "tags": []
+    },
+    {
+      "name": "Provision for Income Tax",
+      "group": "Provisions",
+      "class": "Provisions",
+      "head": "ST_PROVISIONS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0,
+      "tags": []
+    },
+    {
+      "name": "Advance Tax",
+      "group": "Loans & Advances (Asset)",
+      "class": "LoansAdvancesAsset",
+      "head": "ST_LOANS_ADVANCES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0,
+      "tags": []
+    },
+    {
+      "name": "HDFC Bank Term Loan",
+      "group": "Secured Loans",
+      "class": "SecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -80000000,
+      "tb_closing": -80000000,
+      "tags": []
+    },
+    {
+      "name": "Investment in Mutual Funds",
+      "group": "Investments",
+      "class": "Investments",
+      "head": "NC_INVESTMENTS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 20000000,
+      "tb_closing": 20000000,
+      "tags": []
+    },
+    {
+      "name": "Security Deposit - Office",
+      "group": "Deposits (Asset)",
+      "class": "DepositsAsset",
+      "head": "LT_LOANS_ADVANCES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 15000000,
+      "tb_closing": 15000000,
+      "tags": []
+    },
+    {
+      "name": "Accounting Software",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "INTANGIBLES",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 6000000,
+      "tb_closing": 6000000,
+      "tags": []
+    },
+    {
+      "name": "Capital Work-in-Progress - Factory",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "CWIP",
+      "source": "name_rule",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0,
+      "tags": []
+    },
+    {
+      "name": "Stock-in-Trade - Warehouse B",
+      "group": "Stock-in-Hand",
+      "class": "StockInHand",
+      "head": "INVENTORIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 5000000,
+      "tb_closing": 5000000,
+      "tags": []
+    },
+    {
+      "name": "Profit & Loss A/c",
+      "group": "Profit & Loss A/c",
+      "class": "ProfitLossAc",
+      "head": "RESERVES_SURPLUS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -112750959,
+      "tb_closing": -112750959,
+      "tags": []
+    },
+    {
+      "name": "Cash",
+      "group": "Cash-in-Hand",
+      "class": "CashInHand",
+      "head": "CASH_BANK",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 6000000,
+      "tb_closing": 6000000,
+      "tags": []
+    },
+    {
+      "name": "HDFC Bank Current A/c",
+      "group": "Bank Accounts",
+      "class": "BankAccounts",
+      "head": "CASH_BANK",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 90000000,
+      "tb_closing": 90000000,
+      "tags": []
+    },
+    {
+      "name": "Plant & Machinery",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "PPE",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 80000000,
+      "tb_closing": 80000000,
+      "tags": []
+    },
+    {
+      "name": "Furniture & Fixtures",
+      "group": "Fixed Assets",
+      "class": "FixedAssets",
+      "head": "PPE",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 15000000,
+      "tb_closing": 15000000,
+      "tags": []
+    },
+    {
+      "name": "TDS Payable",
+      "group": "Duties & Taxes",
+      "class": "DutiesTaxes",
+      "head": "OTHER_CURRENT_LIABILITIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 0,
+      "tb_closing": 0,
+      "tags": []
+    },
+    {
+      "name": "Unsecured Loan - Rajesh Kumar",
+      "group": "Unsecured Loans",
+      "class": "UnsecuredLoans",
+      "head": "LT_BORROWINGS",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -30000000,
+      "tb_closing": -30000000,
+      "tags": []
+    },
+    {
+      "name": "Stock-in-Trade",
+      "group": "Stock-in-Hand",
+      "class": "StockInHand",
+      "head": "INVENTORIES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 39788841,
+      "tb_closing": 29821251,
+      "tags": []
+    },
+    {
+      "name": "Customer 01",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 3865900,
+      "tb_closing": 3865900,
+      "tags": []
+    },
+    {
+      "name": "Customer 02",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 8491312,
+      "tb_closing": 8491312,
+      "tags": []
+    },
+    {
+      "name": "Customer 03",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 8799442,
+      "tb_closing": 8799442,
+      "tags": []
+    },
+    {
+      "name": "Customer 04",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 10902105,
+      "tb_closing": 10902105,
+      "tags": []
+    },
+    {
+      "name": "Customer 05",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 1048202,
+      "tb_closing": 1048202,
+      "tags": []
+    },
+    {
+      "name": "Customer 06",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 12123780,
+      "tb_closing": 12123780,
+      "tags": []
+    },
+    {
+      "name": "Customer 07",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 12755755,
+      "tb_closing": 12755755,
+      "tags": []
+    },
+    {
+      "name": "Customer 08",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 817940,
+      "tb_closing": 817940,
+      "tags": []
+    },
+    {
+      "name": "Customer 09",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 3154000,
+      "tb_closing": 3154000,
+      "tags": []
+    },
+    {
+      "name": "Customer 10",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 9468703,
+      "tb_closing": 9468703,
+      "tags": []
+    },
+    {
+      "name": "Customer 11",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 3396996,
+      "tb_closing": 3396996,
+      "tags": []
+    },
+    {
+      "name": "Customer 12",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 9896655,
+      "tb_closing": 9896655,
+      "tags": []
+    },
+    {
+      "name": "Customer 13",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 9019859,
+      "tb_closing": 9019859,
+      "tags": []
+    },
+    {
+      "name": "Customer 14",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 7285469,
+      "tb_closing": 7285469,
+      "tags": []
+    },
+    {
+      "name": "Customer 15",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 11933432,
+      "tb_closing": 11933432,
+      "tags": []
+    },
+    {
+      "name": "Customer 16",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 4368290,
+      "tb_closing": 4368290,
+      "tags": []
+    },
+    {
+      "name": "Customer 17",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 6229835,
+      "tb_closing": 6229835,
+      "tags": []
+    },
+    {
+      "name": "Customer 18",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 3831971,
+      "tb_closing": 3831971,
+      "tags": []
+    },
+    {
+      "name": "Customer 19",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 1459194,
+      "tb_closing": 1459194,
+      "tags": []
+    },
+    {
+      "name": "Customer 20",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 11633095,
+      "tb_closing": 11633095,
+      "tags": []
+    },
+    {
+      "name": "Customer 21",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 506275,
+      "tb_closing": 506275,
+      "tags": []
+    },
+    {
+      "name": "Customer 22",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 11201777,
+      "tb_closing": 11201777,
+      "tags": []
+    },
+    {
+      "name": "Customer 23",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 5453379,
+      "tb_closing": 5453379,
+      "tags": []
+    },
+    {
+      "name": "Customer 24",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 14883099,
+      "tb_closing": 14883099,
+      "tags": []
+    },
+    {
+      "name": "Customer 25",
+      "group": "Debtors - Export",
+      "class": "SundryDebtors",
+      "head": "TRADE_RECEIVABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": 4638986,
+      "tb_closing": 4638986,
+      "tags": []
+    },
+    {
+      "name": "Supplier 01",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -3017616,
+      "tb_closing": -3017616,
+      "tags": []
+    },
+    {
+      "name": "Supplier 02",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -1717477,
+      "tb_closing": -1717477,
+      "tags": []
+    },
+    {
+      "name": "Supplier 03",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -10299626,
+      "tb_closing": -10299626,
+      "tags": []
+    },
+    {
+      "name": "Supplier 04",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -9511755,
+      "tb_closing": -9511755,
+      "tags": []
+    },
+    {
+      "name": "Supplier 05",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -3337757,
+      "tb_closing": -3337757,
+      "tags": []
+    },
+    {
+      "name": "Supplier 06",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -1195121,
+      "tb_closing": -1195121,
+      "tags": []
+    },
+    {
+      "name": "Supplier 07",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -4597257,
+      "tb_closing": -4597257,
+      "tags": []
+    },
+    {
+      "name": "Supplier 08",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -7481715,
+      "tb_closing": -7481715,
+      "tags": []
+    },
+    {
+      "name": "Supplier 09",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -11373721,
+      "tb_closing": -11373721,
+      "tags": []
+    },
+    {
+      "name": "Supplier 10",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -5099023,
+      "tb_closing": -5099023,
+      "tags": []
+    },
+    {
+      "name": "Supplier 11",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -8644649,
+      "tb_closing": -8644649,
+      "tags": []
+    },
+    {
+      "name": "Supplier 12",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -604304,
+      "tb_closing": -604304,
+      "tags": []
+    },
+    {
+      "name": "Supplier 13",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -5667885,
+      "tb_closing": -5667885,
+      "tags": []
+    },
+    {
+      "name": "Supplier 14",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -6644021,
+      "tb_closing": -6644021,
+      "tags": []
+    },
+    {
+      "name": "Supplier 15",
+      "group": "Sundry Creditors",
+      "class": "SundryCreditors",
+      "head": "TRADE_PAYABLES",
+      "source": "group_default",
+      "reclassified": false,
+      "amount": -11945665,
+      "tb_closing": -11945665,
+      "tags": []
+    }
+  ],
+  "statements": {
+    "pack_id": "company_div1",
+    "pack_status": "draft – line items to be verified against Schedule III (as amended 24-03-2021) and ICAI Guidance Note on Division I",
+    "bs_title": "Balance Sheet as at 31 March 2026",
+    "pl_title": "Statement of Profit and Loss for the year ended 31 March 2026",
+    "balance_sheet": [
+      {
+        "kind": "heading",
+        "label": "I. EQUITY AND LIABILITIES",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "sub_heading",
+        "label": "(1) Shareholders' funds",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "(a) Share capital",
+        "note": 1,
+        "cy": 100000000,
+        "py": 100000000
+      },
+      {
+        "kind": "item",
+        "label": "(b) Reserves and surplus",
+        "note": 2,
+        "cy": 5395427418,
+        "py": 152816700
+      },
+      {
+        "kind": "sub_heading",
+        "label": "(2) Non-current liabilities",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "(a) Long-term borrowings",
+        "note": 3,
+        "cy": 65240000,
+        "py": 110000000
+      },
+      {
+        "kind": "sub_heading",
+        "label": "(3) Current liabilities",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "(b) Trade payables",
+        "note": 4,
+        "cy": 261616676,
+        "py": 91137592
+      },
+      {
+        "kind": "item",
+        "label": "(d) Short-term provisions",
+        "note": 5,
+        "cy": 18000000,
+        "py": 0
+      },
+      {
+        "kind": "total",
+        "label": "TOTAL",
+        "note": null,
+        "cy": 5840284094,
+        "py": 453954292
+      },
+      {
+        "kind": "heading",
+        "label": "II. ASSETS",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "sub_heading",
+        "label": "(a) Property, Plant and Equipment and Intangible assets",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "(i) Property, Plant and Equipment",
+        "note": 6,
+        "cy": 81500000,
+        "py": 95000000
+      },
+      {
+        "kind": "item",
+        "label": "(ii) Intangible assets",
+        "note": 7,
+        "cy": 6000000,
+        "py": 6000000
+      },
+      {
+        "kind": "item",
+        "label": "(iii) Capital work-in-progress",
+        "note": 8,
+        "cy": 40000000,
+        "py": 0
+      },
+      {
+        "kind": "item",
+        "label": "(b) Non-current investments",
+        "note": 9,
+        "cy": 30000000,
+        "py": 20000000
+      },
+      {
+        "kind": "item",
+        "label": "(c) Long-term loans and advances",
+        "note": 10,
+        "cy": 15000000,
+        "py": 15000000
+      },
+      {
+        "kind": "sub_heading",
+        "label": "(2) Current assets",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "(b) Inventories",
+        "note": 11,
+        "cy": 41627587,
+        "py": 44788841
+      },
+      {
+        "kind": "item",
+        "label": "(c) Trade receivables",
+        "note": 12,
+        "cy": 541781101,
+        "py": 177165451
+      },
+      {
+        "kind": "item",
+        "label": "(d) Cash and cash equivalents",
+        "note": 13,
+        "cy": 5069375406,
+        "py": 96000000
+      },
+      {
+        "kind": "item",
+        "label": "(e) Short-term loans and advances",
+        "note": 14,
+        "cy": 15000000,
+        "py": 0
+      },
+      {
+        "kind": "total",
+        "label": "TOTAL",
+        "note": null,
+        "cy": 5840284094,
+        "py": 453954292
+      }
+    ],
+    "profit_loss": [
+      {
+        "kind": "item",
+        "label": "I. Revenue from operations",
+        "note": 15,
+        "cy": 10452755520,
+        "py": 408208674
+      },
+      {
+        "kind": "item",
+        "label": "II. Other income",
+        "note": 16,
+        "cy": 22254921,
+        "py": 0
+      },
+      {
+        "kind": "subtotal",
+        "label": "III. Total Income (I + II)",
+        "note": null,
+        "cy": 10475010441,
+        "py": 408208674
+      },
+      {
+        "kind": "heading",
+        "label": "IV. Expenses:",
+        "note": null,
+        "cy": null,
+        "py": null
+      },
+      {
+        "kind": "item",
+        "label": "Purchases of Stock-in-Trade",
+        "note": 17,
+        "cy": 4833889046,
+        "py": 266432799
+      },
+      {
+        "kind": "item",
+        "label": "Changes in inventories of finished goods, work-in-progress and Stock-in-Trade",
+        "note": 18,
+        "cy": 3161254,
+        "py": -9967590
+      },
+      {
+        "kind": "item",
+        "label": "Employee benefits expense",
+        "note": 19,
+        "cy": 106147739,
+        "py": 58636440
+      },
+      {
+        "kind": "item",
+        "label": "Finance costs",
+        "note": 20,
+        "cy": 11376224,
+        "py": 0
+      },
+      {
+        "kind": "item",
+        "label": "Depreciation and amortization expense",
+        "note": 21,
+        "cy": 13500000,
+        "py": 10556660
+      },
+      {
+        "kind": "item",
+        "label": "Other expenses",
+        "note": 22,
+        "cy": 246325460,
+        "py": 42484624
+      },
+      {
+        "kind": "subtotal",
+        "label": "Total expenses",
+        "note": null,
+        "cy": 5214399723,
+        "py": 368142933
+      },
+      {
+        "kind": "subtotal",
+        "label": "V. Profit before tax (III - IV)",
+        "note": null,
+        "cy": 5260610718,
+        "py": 40065741
+      },
+      {
+        "kind": "item",
+        "label": "VI. Tax expense",
+        "note": 23,
+        "cy": 18000000,
+        "py": 0
+      },
+      {
+        "kind": "subtotal",
+        "label": "VII. Profit / (Loss) for the period (V - VI)",
+        "note": null,
+        "cy": 5242610718,
+        "py": 40065741
+      }
+    ],
+    "notes": [
+      {
+        "no": 1,
+        "title": "Share capital",
+        "lines": [
+          {
+            "label": "Equity Share Capital",
+            "cy": 100000000,
+            "py": 100000000
+          }
+        ],
+        "total_cy": 100000000,
+        "total_py": 100000000
+      },
+      {
+        "no": 2,
+        "title": "Reserves and surplus",
+        "lines": [
+          {
+            "label": "Profit & Loss A/c",
+            "cy": 152816700,
+            "py": 112750959
+          },
+          {
+            "label": "Surplus / (deficit) in Statement of Profit and Loss for the year",
+            "cy": 5242610718,
+            "py": 40065741
+          }
+        ],
+        "total_cy": 5395427418,
+        "total_py": 152816700
+      },
+      {
+        "no": 3,
+        "title": "Long-term borrowings",
+        "lines": [
+          {
+            "label": "HDFC Bank Term Loan",
+            "cy": 32000000,
+            "py": 80000000
+          },
+          {
+            "label": "Unsecured Loan - Rajesh Kumar",
+            "cy": 33240000,
+            "py": 30000000
+          }
+        ],
+        "total_cy": 65240000,
+        "total_py": 110000000
+      },
+      {
+        "no": 4,
+        "title": "Trade payables",
+        "lines": [
+          {
+            "label": "Supplier 01",
+            "cy": 26638497,
+            "py": 3017616
+          },
+          {
+            "label": "Supplier 02",
+            "cy": 2679056,
+            "py": 1717477
+          },
+          {
+            "label": "Supplier 03",
+            "cy": 37334264,
+            "py": 10299626
+          },
+          {
+            "label": "Supplier 04",
+            "cy": 23714143,
+            "py": 9511755
+          },
+          {
+            "label": "Supplier 05",
+            "cy": 11030680,
+            "py": 3337757
+          },
+          {
+            "label": "Supplier 06",
+            "cy": 14809130,
+            "py": 1195121
+          },
+          {
+            "label": "Supplier 07",
+            "cy": 22465831,
+            "py": 4597257
+          },
+          {
+            "label": "Supplier 08",
+            "cy": 17848465,
+            "py": 7481715
+          },
+          {
+            "label": "Supplier 09",
+            "cy": 10791805,
+            "py": 11373721
+          },
+          {
+            "label": "Supplier 10",
+            "cy": 18499996,
+            "py": 5099023
+          },
+          {
+            "label": "Supplier 11",
+            "cy": 3194475,
+            "py": 8644649
+          },
+          {
+            "label": "Supplier 12",
+            "cy": 25061556,
+            "py": 604304
+          },
+          {
+            "label": "Supplier 13",
+            "cy": 24865472,
+            "py": 5667885
+          },
+          {
+            "label": "Supplier 14",
+            "cy": 17640311,
+            "py": 6644021
+          },
+          {
+            "label": "Supplier 15",
+            "cy": 5042995,
+            "py": 11945665
+          }
+        ],
+        "total_cy": 261616676,
+        "total_py": 91137592
+      },
+      {
+        "no": 5,
+        "title": "Short-term provisions",
+        "lines": [
+          {
+            "label": "Provision for Income Tax",
+            "cy": 18000000,
+            "py": 0
+          }
+        ],
+        "total_cy": 18000000,
+        "total_py": 0
+      },
+      {
+        "no": 6,
+        "title": "Property, Plant and Equipment",
+        "lines": [
+          {
+            "label": "Plant & Machinery",
+            "cy": 68000000,
+            "py": 80000000
+          },
+          {
+            "label": "Furniture & Fixtures",
+            "cy": 13500000,
+            "py": 15000000
+          }
+        ],
+        "total_cy": 81500000,
+        "total_py": 95000000
+      },
+      {
+        "no": 7,
+        "title": "Intangible assets",
+        "lines": [
+          {
+            "label": "Accounting Software",
+            "cy": 6000000,
+            "py": 6000000
+          }
+        ],
+        "total_cy": 6000000,
+        "total_py": 6000000
+      },
+      {
+        "no": 8,
+        "title": "Capital work-in-progress",
+        "lines": [
+          {
+            "label": "Capital Work-in-Progress - Factory",
+            "cy": 40000000,
+            "py": 0
+          }
+        ],
+        "total_cy": 40000000,
+        "total_py": 0
+      },
+      {
+        "no": 9,
+        "title": "Non-current investments",
+        "lines": [
+          {
+            "label": "Investment in Mutual Funds",
+            "cy": 30000000,
+            "py": 20000000
+          }
+        ],
+        "total_cy": 30000000,
+        "total_py": 20000000
+      },
+      {
+        "no": 10,
+        "title": "Long-term loans and advances",
+        "lines": [
+          {
+            "label": "Security Deposit - Office",
+            "cy": 15000000,
+            "py": 15000000
+          }
+        ],
+        "total_cy": 15000000,
+        "total_py": 15000000
+      },
+      {
+        "no": 11,
+        "title": "Inventories",
+        "lines": [
+          {
+            "label": "Stock-in-Trade - Warehouse B",
+            "cy": 5000000,
+            "py": 5000000
+          },
+          {
+            "label": "Stock-in-Trade",
+            "cy": 36627587,
+            "py": 39788841
+          }
+        ],
+        "total_cy": 41627587,
+        "total_py": 44788841
+      },
+      {
+        "no": 12,
+        "title": "Trade receivables",
+        "lines": [
+          {
+            "label": "Customer 01",
+            "cy": 7518468,
+            "py": 3865900
+          },
+          {
+            "label": "Customer 02",
+            "cy": 44794370,
+            "py": 8491312
+          },
+          {
+            "label": "Customer 03",
+            "cy": 8062741,
+            "py": 8799442
+          },
+          {
+            "label": "Customer 04",
+            "cy": 92333371,
+            "py": 10902105
+          },
+          {
+            "label": "Customer 05",
+            "cy": 18279520,
+            "py": 1048202
+          },
+          {
+            "label": "Customer 06",
+            "cy": 6443265,
+            "py": 12123780
+          },
+          {
+            "label": "Customer 07",
+            "cy": 27833387,
+            "py": 12755755
+          },
+          {
+            "label": "Customer 08",
+            "cy": 53433749,
+            "py": 817940
+          },
+          {
+            "label": "Customer 09",
+            "cy": 1299739,
+            "py": 3154000
+          },
+          {
+            "label": "Customer 10",
+            "cy": 720225,
+            "py": 9468703
+          },
+          {
+            "label": "Customer 11",
+            "cy": 27135080,
+            "py": 3396996
+          },
+          {
+            "label": "Customer 12",
+            "cy": 39483301,
+            "py": 9896655
+          },
+          {
+            "label": "Customer 13",
+            "cy": 9253172,
+            "py": 9019859
+          },
+          {
+            "label": "Customer 14",
+            "cy": 11706336,
+            "py": 7285469
+          },
+          {
+            "label": "Customer 15",
+            "cy": 21067954,
+            "py": 11933432
+          },
+          {
+            "label": "Customer 16",
+            "cy": 476511,
+            "py": 4368290
+          },
+          {
+            "label": "Customer 17",
+            "cy": 6805619,
+            "py": 6229835
+          },
+          {
+            "label": "Customer 18",
+            "cy": 5780,
+            "py": 3831971
+          },
+          {
+            "label": "Customer 19",
+            "cy": 38096919,
+            "py": 1459194
+          },
+          {
+            "label": "Customer 20",
+            "cy": 25170260,
+            "py": 11633095
+          },
+          {
+            "label": "Customer 21",
+            "cy": 29623670,
+            "py": 506275
+          },
+          {
+            "label": "Customer 22",
+            "cy": 20572508,
+            "py": 11201777
+          },
+          {
+            "label": "Customer 23",
+            "cy": 17385081,
+            "py": 5453379
+          },
+          {
+            "label": "Customer 24",
+            "cy": 16337,
+            "py": 14883099
+          },
+          {
+            "label": "Customer 25",
+            "cy": 34263738,
+            "py": 4638986
+          }
+        ],
+        "total_cy": 541781101,
+        "total_py": 177165451
+      },
+      {
+        "no": 13,
+        "title": "Cash and cash equivalents",
+        "lines": [
+          {
+            "label": "Cash",
+            "cy": 1348711819,
+            "py": 6000000
+          },
+          {
+            "label": "HDFC Bank Current A/c",
+            "cy": 3720663587,
+            "py": 90000000
+          }
+        ],
+        "total_cy": 5069375406,
+        "total_py": 96000000
+      },
+      {
+        "no": 14,
+        "title": "Short-term loans and advances",
+        "lines": [
+          {
+            "label": "Advance Tax",
+            "cy": 15000000,
+            "py": 0
+          }
+        ],
+        "total_cy": 15000000,
+        "total_py": 0
+      },
+      {
+        "no": 15,
+        "title": "Revenue from operations",
+        "lines": [
+          {
+            "label": "Sales - Local",
+            "cy": 10452755520,
+            "py": 408208674
+          }
+        ],
+        "total_cy": 10452755520,
+        "total_py": 408208674
+      },
+      {
+        "no": 16,
+        "title": "Other income",
+        "lines": [
+          {
+            "label": "Interest Received",
+            "cy": 22254921,
+            "py": 0
+          }
+        ],
+        "total_cy": 22254921,
+        "total_py": 0
+      },
+      {
+        "no": 17,
+        "title": "Purchases of Stock-in-Trade",
+        "lines": [
+          {
+            "label": "Purchases - Local",
+            "cy": 4833889046,
+            "py": 266432799
+          }
+        ],
+        "total_cy": 4833889046,
+        "total_py": 266432799
+      },
+      {
+        "no": 18,
+        "title": "Changes in inventories of finished goods, work-in-progress and Stock-in-Trade",
+        "lines": [
+          {
+            "label": "Inventories at the beginning of the year",
+            "cy": 44788841,
+            "py": 34821251
+          },
+          {
+            "label": "Less: Inventories at the end of the year",
+            "cy": -41627587,
+            "py": -44788841
+          }
+        ],
+        "total_cy": 3161254,
+        "total_py": -9967590
+      },
+      {
+        "no": 19,
+        "title": "Employee benefits expense",
+        "lines": [
+          {
+            "label": "Staff Welfare",
+            "cy": 49255106,
+            "py": 0
+          },
+          {
+            "label": "Salary",
+            "cy": 56892633,
+            "py": 58636440
+          }
+        ],
+        "total_cy": 106147739,
+        "total_py": 58636440
+      },
+      {
+        "no": 20,
+        "title": "Finance costs",
+        "lines": [
+          {
+            "label": "Interest on Term Loan",
+            "cy": 7776224,
+            "py": 0
+          },
+          {
+            "label": "Interest on Unsecured Loans",
+            "cy": 3600000,
+            "py": 0
+          }
+        ],
+        "total_cy": 11376224,
+        "total_py": 0
+      },
+      {
+        "no": 21,
+        "title": "Depreciation and amortization expense",
+        "lines": [
+          {
+            "label": "Depreciation",
+            "cy": 13500000,
+            "py": 10556660
+          }
+        ],
+        "total_cy": 13500000,
+        "total_py": 10556660
+      },
+      {
+        "no": 22,
+        "title": "Other expenses",
+        "lines": [
+          {
+            "label": "Directors' Remuneration",
+            "cy": 36000000,
+            "py": 0
+          },
+          {
+            "label": "Travelling Expenses",
+            "cy": 2709145,
+            "py": 0
+          },
+          {
+            "label": "Office Expenses",
+            "cy": 41060031,
+            "py": 5167977
+          },
+          {
+            "label": "Printing & Stationery",
+            "cy": 40190966,
+            "py": 0
+          },
+          {
+            "label": "Telephone Expenses",
+            "cy": 45574435,
+            "py": 0
+          },
+          {
+            "label": "Conveyance",
+            "cy": 40933542,
+            "py": 0
+          },
+          {
+            "label": "Rent",
+            "cy": 30000000,
+            "py": 30000000
+          },
+          {
+            "label": "Electricity Charges",
+            "cy": 7347060,
+            "py": 7316647
+          },
+          {
+            "label": "Bank Charges",
+            "cy": 2510281,
+            "py": 0
+          }
+        ],
+        "total_cy": 246325460,
+        "total_py": 42484624
+      },
+      {
+        "no": 23,
+        "title": "Tax expense",
+        "lines": [
+          {
+            "label": "Income Tax Expense",
+            "cy": 18000000,
+            "py": 0
+          }
+        ],
+        "total_cy": 18000000,
+        "total_py": 0
+      }
+    ],
+    "total_assets": [
+      5840284094,
+      453954292
+    ],
+    "total_liabilities": [
+      5840284094,
+      453954292
+    ],
+    "profit": [
+      5242610718,
+      40065741
+    ]
+  },
+  "loans": [
+    {
+      "ledger": "HDFC Bank Term Loan",
+      "group": "Secured Loans",
+      "exempt": true,
+      "opening": 80000000,
+      "accepted_bank": 0,
+      "accepted_cash": 0,
+      "accepted_journal": 0,
+      "interest_credited": 0,
+      "tds_on_interest": 0,
+      "repaid_bank": 48000000,
+      "repaid_cash": 0,
+      "repaid_journal": 0,
+      "closing": 32000000,
+      "max_outstanding": 80000000,
+      "squared_up": false
+    },
+    {
+      "ledger": "Unsecured Loan - Rajesh Kumar",
+      "group": "Unsecured Loans",
+      "exempt": false,
+      "opening": 30000000,
+      "accepted_bank": 0,
+      "accepted_cash": 0,
+      "accepted_journal": 0,
+      "interest_credited": 3240000,
+      "tds_on_interest": 0,
+      "repaid_bank": 0,
+      "repaid_cash": 0,
+      "repaid_journal": 0,
+      "closing": 33240000,
+      "max_outstanding": 33240000,
+      "squared_up": false
+    }
+  ],
+  "facts_cy": {
+    "lines": {
+      "CAPITAL": [
+        {
+          "name": "Equity Share Capital",
+          "class": "CapitalAccount",
+          "tags": [],
+          "amount": 100000000
+        }
+      ],
+      "RESERVES_SURPLUS": [
+        {
+          "name": "Securities Premium",
+          "class": "ReservesSurplus",
+          "tags": [],
+          "amount": 0
+        },
+        {
+          "name": "Profit & Loss A/c",
+          "class": "ProfitLossAc",
+          "tags": [],
+          "amount": 152816700
+        }
+      ],
+      "LT_BORROWINGS": [
+        {
+          "name": "HDFC Bank Term Loan",
+          "class": "SecuredLoans",
+          "tags": [],
+          "amount": 32000000
+        },
+        {
+          "name": "Unsecured Loan - Rajesh Kumar",
+          "class": "UnsecuredLoans",
+          "tags": [],
+          "amount": 33240000
+        }
+      ],
+      "TRADE_PAYABLES": [
+        {
+          "name": "Supplier 01",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 26638497
+        },
+        {
+          "name": "Supplier 02",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 2679056
+        },
+        {
+          "name": "Supplier 03",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 37334264
+        },
+        {
+          "name": "Supplier 04",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 23714143
+        },
+        {
+          "name": "Supplier 05",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 11030680
+        },
+        {
+          "name": "Supplier 06",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 14809130
+        },
+        {
+          "name": "Supplier 07",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 22465831
+        },
+        {
+          "name": "Supplier 08",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 17848465
+        },
+        {
+          "name": "Supplier 09",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 10791805
+        },
+        {
+          "name": "Supplier 10",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 18499996
+        },
+        {
+          "name": "Supplier 11",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 3194475
+        },
+        {
+          "name": "Supplier 12",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 25061556
+        },
+        {
+          "name": "Supplier 13",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 24865472
+        },
+        {
+          "name": "Supplier 14",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 17640311
+        },
+        {
+          "name": "Supplier 15",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 5042995
+        }
+      ],
+      "OTHER_CURRENT_LIABILITIES": [
+        {
+          "name": "TDS Payable",
+          "class": "DutiesTaxes",
+          "tags": [],
+          "amount": 0
+        }
+      ],
+      "ST_PROVISIONS": [
+        {
+          "name": "Provision for Income Tax",
+          "class": "Provisions",
+          "tags": [],
+          "amount": 18000000
+        }
+      ],
+      "PPE": [
+        {
+          "name": "Plant & Machinery",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 68000000
+        },
+        {
+          "name": "Furniture & Fixtures",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 13500000
+        }
+      ],
+      "INTANGIBLES": [
+        {
+          "name": "Accounting Software",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 6000000
+        }
+      ],
+      "CWIP": [
+        {
+          "name": "Capital Work-in-Progress - Factory",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 40000000
+        }
+      ],
+      "NC_INVESTMENTS": [
+        {
+          "name": "Investment in Mutual Funds",
+          "class": "Investments",
+          "tags": [],
+          "amount": 30000000
+        }
+      ],
+      "LT_LOANS_ADVANCES": [
+        {
+          "name": "Security Deposit - Office",
+          "class": "DepositsAsset",
+          "tags": [],
+          "amount": 15000000
+        }
+      ],
+      "INVENTORIES": [
+        {
+          "name": "Stock-in-Trade - Warehouse B",
+          "class": "StockInHand",
+          "tags": [],
+          "amount": 5000000
+        },
+        {
+          "name": "Stock-in-Trade",
+          "class": "StockInHand",
+          "tags": [],
+          "amount": 36627587
+        }
+      ],
+      "TRADE_RECEIVABLES": [
+        {
+          "name": "Customer 01",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 7518468
+        },
+        {
+          "name": "Customer 02",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 44794370
+        },
+        {
+          "name": "Customer 03",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 8062741
+        },
+        {
+          "name": "Customer 04",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 92333371
+        },
+        {
+          "name": "Customer 05",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 18279520
+        },
+        {
+          "name": "Customer 06",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 6443265
+        },
+        {
+          "name": "Customer 07",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 27833387
+        },
+        {
+          "name": "Customer 08",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 53433749
+        },
+        {
+          "name": "Customer 09",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 1299739
+        },
+        {
+          "name": "Customer 10",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 720225
+        },
+        {
+          "name": "Customer 11",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 27135080
+        },
+        {
+          "name": "Customer 12",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 39483301
+        },
+        {
+          "name": "Customer 13",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 9253172
+        },
+        {
+          "name": "Customer 14",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 11706336
+        },
+        {
+          "name": "Customer 15",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 21067954
+        },
+        {
+          "name": "Customer 16",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 476511
+        },
+        {
+          "name": "Customer 17",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 6805619
+        },
+        {
+          "name": "Customer 18",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 5780
+        },
+        {
+          "name": "Customer 19",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 38096919
+        },
+        {
+          "name": "Customer 20",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 25170260
+        },
+        {
+          "name": "Customer 21",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 29623670
+        },
+        {
+          "name": "Customer 22",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 20572508
+        },
+        {
+          "name": "Customer 23",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 17385081
+        },
+        {
+          "name": "Customer 24",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 16337
+        },
+        {
+          "name": "Customer 25",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 34263738
+        }
+      ],
+      "CASH_BANK": [
+        {
+          "name": "Cash",
+          "class": "CashInHand",
+          "tags": [],
+          "amount": 1348711819
+        },
+        {
+          "name": "HDFC Bank Current A/c",
+          "class": "BankAccounts",
+          "tags": [],
+          "amount": 3720663587
+        }
+      ],
+      "ST_LOANS_ADVANCES": [
+        {
+          "name": "Advance Tax",
+          "class": "LoansAdvancesAsset",
+          "tags": [],
+          "amount": 15000000
+        }
+      ],
+      "REVENUE_OPS": [
+        {
+          "name": "Sales - Local",
+          "class": "SalesAccounts",
+          "tags": [],
+          "amount": 10452755520
+        }
+      ],
+      "OTHER_INCOME": [
+        {
+          "name": "Interest Received",
+          "class": "IndirectIncomes",
+          "tags": [],
+          "amount": 22254921
+        }
+      ],
+      "PURCHASES": [
+        {
+          "name": "Purchases - Local",
+          "class": "PurchaseAccounts",
+          "tags": [],
+          "amount": 4833889046
+        }
+      ],
+      "EMPLOYEE_BENEFITS": [
+        {
+          "name": "Staff Welfare",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 49255106
+        },
+        {
+          "name": "Salary",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 56892633
+        }
+      ],
+      "FINANCE_COSTS": [
+        {
+          "name": "Interest on Term Loan",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 7776224
+        },
+        {
+          "name": "Interest on Unsecured Loans",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 3600000
+        }
+      ],
+      "DEPRECIATION": [
+        {
+          "name": "Depreciation",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 13500000
+        }
+      ],
+      "OTHER_EXPENSES": [
+        {
+          "name": "Directors' Remuneration",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 36000000
+        },
+        {
+          "name": "Travelling Expenses",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 2709145
+        },
+        {
+          "name": "Freight Inward",
+          "class": "DirectExpenses",
+          "tags": [],
+          "amount": 0
+        },
+        {
+          "name": "Office Expenses",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 41060031
+        },
+        {
+          "name": "Printing & Stationery",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 40190966
+        },
+        {
+          "name": "Telephone Expenses",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 45574435
+        },
+        {
+          "name": "Conveyance",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 40933542
+        },
+        {
+          "name": "Rent",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 30000000
+        },
+        {
+          "name": "Electricity Charges",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 7347060
+        },
+        {
+          "name": "Bank Charges",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 2510281
+        }
+      ],
+      "TAX_EXPENSE": [
+        {
+          "name": "Income Tax Expense",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 18000000
+        }
+      ]
+    },
+    "opening_stock": 44788841,
+    "closing_stock": 41627587,
+    "change_in_inventories": 3161254,
+    "profit_to": "RESERVES_SURPLUS"
+  },
+  "facts_py": {
+    "lines": {
+      "CAPITAL": [
+        {
+          "name": "Equity Share Capital",
+          "class": "CapitalAccount",
+          "tags": [],
+          "amount": 100000000
+        }
+      ],
+      "RESERVES_SURPLUS": [
+        {
+          "name": "Securities Premium",
+          "class": "ReservesSurplus",
+          "tags": [],
+          "amount": 0
+        },
+        {
+          "name": "Profit & Loss A/c",
+          "class": "ProfitLossAc",
+          "tags": [],
+          "amount": 112750959
+        }
+      ],
+      "LT_BORROWINGS": [
+        {
+          "name": "HDFC Bank Term Loan",
+          "class": "SecuredLoans",
+          "tags": [],
+          "amount": 80000000
+        },
+        {
+          "name": "Unsecured Loan - Rajesh Kumar",
+          "class": "UnsecuredLoans",
+          "tags": [],
+          "amount": 30000000
+        }
+      ],
+      "TRADE_PAYABLES": [
+        {
+          "name": "Supplier 01",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 3017616
+        },
+        {
+          "name": "Supplier 02",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 1717477
+        },
+        {
+          "name": "Supplier 03",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 10299626
+        },
+        {
+          "name": "Supplier 04",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 9511755
+        },
+        {
+          "name": "Supplier 05",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 3337757
+        },
+        {
+          "name": "Supplier 06",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 1195121
+        },
+        {
+          "name": "Supplier 07",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 4597257
+        },
+        {
+          "name": "Supplier 08",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 7481715
+        },
+        {
+          "name": "Supplier 09",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 11373721
+        },
+        {
+          "name": "Supplier 10",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 5099023
+        },
+        {
+          "name": "Supplier 11",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 8644649
+        },
+        {
+          "name": "Supplier 12",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 604304
+        },
+        {
+          "name": "Supplier 13",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 5667885
+        },
+        {
+          "name": "Supplier 14",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 6644021
+        },
+        {
+          "name": "Supplier 15",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 11945665
+        }
+      ],
+      "OTHER_CURRENT_LIABILITIES": [
+        {
+          "name": "TDS Payable",
+          "class": "DutiesTaxes",
+          "tags": [],
+          "amount": 0
+        }
+      ],
+      "ST_PROVISIONS": [
+        {
+          "name": "Provision for Income Tax",
+          "class": "Provisions",
+          "tags": [],
+          "amount": 0
+        }
+      ],
+      "PPE": [
+        {
+          "name": "Plant & Machinery",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 80000000
+        },
+        {
+          "name": "Furniture & Fixtures",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 15000000
+        }
+      ],
+      "INTANGIBLES": [
+        {
+          "name": "Accounting Software",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 6000000
+        }
+      ],
+      "CWIP": [
+        {
+          "name": "Capital Work-in-Progress - Factory",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 0
+        }
+      ],
+      "NC_INVESTMENTS": [
+        {
+          "name": "Investment in Mutual Funds",
+          "class": "Investments",
+          "tags": [],
+          "amount": 20000000
+        }
+      ],
+      "LT_LOANS_ADVANCES": [
+        {
+          "name": "Security Deposit - Office",
+          "class": "DepositsAsset",
+          "tags": [],
+          "amount": 15000000
+        }
+      ],
+      "INVENTORIES": [
+        {
+          "name": "Stock-in-Trade - Warehouse B",
+          "class": "StockInHand",
+          "tags": [],
+          "amount": 5000000
+        },
+        {
+          "name": "Stock-in-Trade",
+          "class": "StockInHand",
+          "tags": [],
+          "amount": 39788841
+        }
+      ],
+      "TRADE_RECEIVABLES": [
+        {
+          "name": "Customer 01",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 3865900
+        },
+        {
+          "name": "Customer 02",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 8491312
+        },
+        {
+          "name": "Customer 03",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 8799442
+        },
+        {
+          "name": "Customer 04",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 10902105
+        },
+        {
+          "name": "Customer 05",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 1048202
+        },
+        {
+          "name": "Customer 06",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 12123780
+        },
+        {
+          "name": "Customer 07",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 12755755
+        },
+        {
+          "name": "Customer 08",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 817940
+        },
+        {
+          "name": "Customer 09",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 3154000
+        },
+        {
+          "name": "Customer 10",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 9468703
+        },
+        {
+          "name": "Customer 11",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 3396996
+        },
+        {
+          "name": "Customer 12",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 9896655
+        },
+        {
+          "name": "Customer 13",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 9019859
+        },
+        {
+          "name": "Customer 14",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 7285469
+        },
+        {
+          "name": "Customer 15",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 11933432
+        },
+        {
+          "name": "Customer 16",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 4368290
+        },
+        {
+          "name": "Customer 17",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 6229835
+        },
+        {
+          "name": "Customer 18",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 3831971
+        },
+        {
+          "name": "Customer 19",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 1459194
+        },
+        {
+          "name": "Customer 20",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 11633095
+        },
+        {
+          "name": "Customer 21",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 506275
+        },
+        {
+          "name": "Customer 22",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 11201777
+        },
+        {
+          "name": "Customer 23",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 5453379
+        },
+        {
+          "name": "Customer 24",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 14883099
+        },
+        {
+          "name": "Customer 25",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 4638986
+        }
+      ],
+      "CASH_BANK": [
+        {
+          "name": "Cash",
+          "class": "CashInHand",
+          "tags": [],
+          "amount": 6000000
+        },
+        {
+          "name": "HDFC Bank Current A/c",
+          "class": "BankAccounts",
+          "tags": [],
+          "amount": 90000000
+        }
+      ],
+      "ST_LOANS_ADVANCES": [
+        {
+          "name": "Advance Tax",
+          "class": "LoansAdvancesAsset",
+          "tags": [],
+          "amount": 0
+        }
+      ],
+      "REVENUE_OPS": [
+        {
+          "name": "Sales - Local",
+          "class": "SalesAccounts",
+          "tags": [],
+          "amount": 408208674
+        }
+      ],
+      "PURCHASES": [
+        {
+          "name": "Purchases - Local",
+          "class": "PurchaseAccounts",
+          "tags": [],
+          "amount": 266432799
+        }
+      ],
+      "EMPLOYEE_BENEFITS": [
+        {
+          "name": "Salary",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 58636440
+        }
+      ],
+      "DEPRECIATION": [
+        {
+          "name": "Depreciation",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 10556660
+        }
+      ],
+      "OTHER_EXPENSES": [
+        {
+          "name": "Rent",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 30000000
+        },
+        {
+          "name": "Electricity Charges",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 7316647
+        },
+        {
+          "name": "Office Expenses",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 5167977
+        }
+      ]
+    },
+    "opening_stock": 34821251,
+    "closing_stock": 44788841,
+    "change_in_inventories": -9967590,
+    "profit_to": "RESERVES_SURPLUS"
+  },
+  "capital": [],
+  "ageing_receivables": {
+    "kind": "receivables",
+    "bucket_labels": [
+      "Less than 6 months",
+      "6 months - 1 year",
+      "1-2 years",
+      "2-3 years",
+      "More than 3 years"
+    ],
+    "rows": [
+      {
+        "category": "Undisputed trade receivables - considered good",
+        "buckets": [
+          541781101,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Undisputed trade receivables - considered doubtful",
+        "buckets": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Disputed trade receivables - considered good",
+        "buckets": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Disputed trade receivables - considered doubtful",
+        "buckets": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "ageing_payables": {
+    "kind": "payables",
+    "bucket_labels": [
+      "Less than 1 year",
+      "1-2 years",
+      "2-3 years",
+      "More than 3 years"
+    ],
+    "rows": [
+      {
+        "category": "MSME",
+        "buckets": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Others",
+        "buckets": [
+          261616676,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Disputed dues - MSME",
+        "buckets": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Disputed dues - Others",
+        "buckets": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "ratios": [
+    {
+      "name": "Current ratio",
+      "numerator": "Current assets",
+      "denominator": "Current liabilities",
+      "unit": "times",
+      "cy": 20.269835744703585,
+      "py": 3.4887282516746763,
+      "variance_pct": 481.00930432095305,
+      "needs_explanation": true
+    },
+    {
+      "name": "Debt-equity ratio",
+      "numerator": "Total borrowings",
+      "denominator": "Owners' funds / shareholders' equity",
+      "unit": "times",
+      "cy": 0.011871688048560083,
+      "py": 0.4350978396601174,
+      "variance_pct": -97.27149000375782,
+      "needs_explanation": true
+    },
+    {
+      "name": "Debt service coverage ratio",
+      "numerator": "Profit after tax + depreciation + finance costs",
+      "denominator": "Finance costs + principal repaid",
+      "unit": "times",
+      "cy": 88.71374073905407,
+      "py": null,
+      "variance_pct": null,
+      "needs_explanation": false
+    },
+    {
+      "name": "Return on equity",
+      "numerator": "Profit after tax",
+      "denominator": "Average owners' funds",
+      "unit": "%",
+      "cy": 182.40737903191467,
+      "py": 15.847743048619808,
+      "variance_pct": 1050.9990947752065,
+      "needs_explanation": true
+    },
+    {
+      "name": "Inventory turnover ratio",
+      "numerator": "Cost of goods sold",
+      "denominator": "Average inventory",
+      "unit": "times",
+      "cy": 111.94747137662297,
+      "py": 5.726096127381373,
+      "variance_pct": 1855.0400287781788,
+      "needs_explanation": true
+    },
+    {
+      "name": "Trade receivables turnover ratio",
+      "numerator": "Revenue from operations",
+      "denominator": "Average trade receivables",
+      "unit": "times",
+      "cy": 29.07797663379016,
+      "py": 2.3041099249085537,
+      "variance_pct": 1162.0047472320234,
+      "needs_explanation": true
+    },
+    {
+      "name": "Trade payables turnover ratio",
+      "numerator": "Purchases",
+      "denominator": "Average trade payables",
+      "unit": "times",
+      "cy": 27.406551724556316,
+      "py": 2.9234127559569494,
+      "variance_pct": 837.4848511798691,
+      "needs_explanation": true
+    },
+    {
+      "name": "Net capital turnover ratio",
+      "numerator": "Revenue from operations",
+      "denominator": "Working capital (current assets - current liabilities)",
+      "unit": "times",
+      "cy": 1.9399463136726163,
+      "py": 1.799729358552523,
+      "variance_pct": 7.791002266744503,
+      "needs_explanation": false
+    },
+    {
+      "name": "Net profit ratio",
+      "numerator": "Profit after tax",
+      "denominator": "Revenue from operations",
+      "unit": "%",
+      "cy": 50.155298360981845,
+      "py": 9.81501461186491,
+      "variance_pct": 411.0058450687527,
+      "needs_explanation": true
+    },
+    {
+      "name": "Return on capital employed",
+      "numerator": "Profit before interest and tax",
+      "denominator": "Capital employed (owners' funds + borrowings)",
+      "unit": "%",
+      "cy": 94.80852828806961,
+      "py": 11.04297045863655,
+      "variance_pct": 758.5418990587013,
+      "needs_explanation": true
+    },
+    {
+      "name": "Return on investment",
+      "numerator": "Income from investments",
+      "denominator": "Average investments",
+      "unit": "%",
+      "cy": -0.0,
+      "py": 0.0,
+      "variance_pct": null,
+      "needs_explanation": false
+    }
+  ],
+  "far": null,
+  "printable": true,
+  "rules_version": "2026.10-draft"
+}

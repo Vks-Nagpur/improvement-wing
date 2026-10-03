@@ -44,31 +44,126 @@ fn amount(
 }
 
 pub fn read_trial_balance(path: &Path) -> Result<TrialBalance, String> {
+    read_trial_balance_with(path, None)
+}
+
+const CLOSING_SIGNED: &[&str] = &[
+    "closing",
+    "closing balance",
+    "balance",
+    "closing balance (dr/cr)",
+];
+const CLOSING_DR: &[&str] = &[
+    "closing dr",
+    "closing debit",
+    "debit",
+    "dr",
+    "dr. amount",
+    "dr amount",
+    "net debit",
+    "debit amount",
+];
+const CLOSING_CR: &[&str] = &[
+    "closing cr",
+    "closing credit",
+    "credit",
+    "cr",
+    "cr. amount",
+    "cr amount",
+    "net credit",
+    "credit amount",
+];
+const TYPE_COL: &[&str] = &["account type", "account group", "type", "category"];
+
+/// Zoho Books account types (API values or display names) → equivalent standard group.
+pub fn zoho_type_group(t: &str) -> Option<&'static str> {
+    let k = t.trim().to_ascii_lowercase().replace([' ', '-'], "_");
+    Some(match k.as_str() {
+        "cash" => "Cash-in-Hand",
+        "bank" => "Bank Accounts",
+        "accounts_receivable" => "Sundry Debtors",
+        "accounts_payable" => "Sundry Creditors",
+        "fixed_asset" => "Fixed Assets",
+        "stock" | "inventory" => "Stock-in-Hand",
+        "other_current_asset"
+        | "other_asset"
+        | "payment_clearing"
+        | "prepaid_card"
+        | "input_tax" => "Current Assets",
+        "other_current_liability" | "credit_card" | "other_liability" => "Current Liabilities",
+        "output_tax" | "overseas_tax_payable" | "tax_payable" => "Duties & Taxes",
+        "long_term_liability" => "Loans (Liability)",
+        "equity" => "Capital Account",
+        "income" | "operating_income" => "Sales Accounts",
+        "other_income" => "Indirect Incomes",
+        "cost_of_goods_sold" => "Purchase Accounts",
+        "expense" | "other_expense" | "operating_expense" => "Indirect Expenses",
+        _ => return None,
+    })
+}
+
+/// Trial balance from the LedgerCraft template, Tally/BUSY/Zoho Excel exports.
+/// The group of each ledger comes from (in order): a Group column, an account
+/// type column (Zoho), the separate account master (`master`, e.g. BUSY "List
+/// of Accounts" with Account Name + Group), or the section heading row above it.
+pub fn read_trial_balance_with(path: &Path, master: Option<&Path>) -> Result<TrialBalance, String> {
     let t = read_table(path, &["Trial Balance", "TB"], LEDGER)?;
-    let lc = t.col(LEDGER).ok_or("no Ledger column")?;
-    let gc = t
-        .col(GROUP)
-        .ok_or("no Group column (needed to place each ledger)")?;
-    let has_closing = t
-        .col(&[
-            "closing",
-            "closing balance",
-            "balance",
-            "closing dr",
-            "closing debit",
-        ])
-        .is_some();
+    let lc = t.col(LEDGER).ok_or("no Ledger / Account column")?;
+    let gc = t.col(GROUP);
+    let type_c = t.col(TYPE_COL);
+    let has_closing = t.col(CLOSING_SIGNED).is_some()
+        || t.col(CLOSING_DR).is_some()
+        || t.col(CLOSING_CR).is_some();
     if !has_closing {
-        return Err(format!("{}: no Closing column", path.display()));
+        return Err(format!(
+            "{}: no Closing / Debit / Credit column",
+            path.display()
+        ));
+    }
+    if t.col(&["date", "voucher date"]).is_some()
+        && t.col(&[
+            "voucher no",
+            "voucher no.",
+            "vch no",
+            "vch no.",
+            "voucher number",
+            "voucher type",
+            "vch type",
+        ])
+        .is_some()
+    {
+        return Err(
+            "this looks like a day book (it has Date and Voucher columns), not a trial balance"
+                .into(),
+        );
+    }
+    let mut master_map: std::collections::HashMap<String, String> =
+        std::collections::HashMap::new();
+    if let Some(m) = master {
+        let mt = read_table(m, &["List of Accounts", "Accounts", "Masters"], LEDGER)?;
+        let ml = mt
+            .col(LEDGER)
+            .ok_or("account master: no Account Name column")?;
+        let mg = mt.col(GROUP).ok_or("account master: no Group column")?;
+        for row in &mt.rows {
+            master_map.insert(
+                lc_core::model::norm_name(mt.get(row, Some(ml))),
+                mt.get(row, Some(mg)).to_string(),
+            );
+        }
     }
     let stock_c = t.col(&["closing stock", "closing stock value"]);
     let tags_c = t.col(&["tags", "tag"]);
     let mut ledgers = Vec::new();
+    let mut section = String::new();
     for (row, &line) in t.rows.iter().zip(&t.source_rows) {
         let name = t.get(row, Some(lc)).to_string();
+        let lower = name.to_ascii_lowercase();
         if name.is_empty()
-            || name.eq_ignore_ascii_case("total")
-            || name.eq_ignore_ascii_case("grand total")
+            || lower == "total"
+            || lower == "grand total"
+            || lower.starts_with("total for")
+            || lower.starts_with("total ")
         {
             continue;
         }
@@ -84,12 +179,42 @@ pub fn read_trial_balance(path: &Path) -> Result<TrialBalance, String> {
         let closing = amount(
             &t,
             row,
-            &["closing", "closing balance", "balance"],
-            &["closing dr", "closing debit"],
-            &["closing cr", "closing credit"],
+            CLOSING_SIGNED,
+            CLOSING_DR,
+            CLOSING_CR,
             "closing",
             line,
         )?;
+        let row_has_amount = row.iter().enumerate().any(|(i, c)| {
+            i != lc
+                && !c.is_empty()
+                && Money::parse(c).is_ok()
+                && Some(i) != gc
+                && Some(i) != type_c
+        });
+        let explicit_group = gc
+            .map(|c| t.get(row, Some(c)).to_string())
+            .filter(|g| !g.is_empty());
+        let typed_group = type_c
+            .map(|c| t.get(row, Some(c)))
+            .and_then(zoho_type_group)
+            .map(String::from);
+        let master_group = master_map.get(&lc_core::model::norm_name(&name)).cloned();
+        if explicit_group.is_none()
+            && typed_group.is_none()
+            && master_group.is_none()
+            && !row_has_amount
+        {
+            // A section heading such as "Accounts Receivable" in an exported report.
+            section = zoho_type_group(&name)
+                .map(String::from)
+                .unwrap_or_else(|| name.clone());
+            continue;
+        }
+        let group = explicit_group
+            .or(typed_group)
+            .or(master_group)
+            .unwrap_or_else(|| section.clone());
         let closing_stock = match stock_c {
             Some(c) if !t.get(row, Some(c)).is_empty() => Some(
                 Money::parse(t.get(row, Some(c)))
@@ -105,12 +230,25 @@ pub fn read_trial_balance(path: &Path) -> Result<TrialBalance, String> {
             .collect();
         ledgers.push(Ledger {
             name,
-            group: t.get(row, Some(gc)).to_string(),
+            group,
             opening,
             closing,
             closing_stock,
             tags,
         });
+    }
+    if !ledgers.is_empty() {
+        let mut seen = std::collections::HashSet::new();
+        let dups = ledgers
+            .iter()
+            .filter(|l| !seen.insert(lc_core::model::norm_name(&l.name)))
+            .count();
+        if dups * 20 > ledgers.len() {
+            return Err(format!("{dups} ledger names repeat; a trial balance lists each ledger once (is this a day book or ledger report?)"));
+        }
+        if ledgers.iter().all(|l| l.group.trim().is_empty()) {
+            return Err("no group for any ledger: add a Group column, or supply the account master (e.g. BUSY List of Accounts)".into());
+        }
     }
     let mut groups = Vec::new();
     if let Some(g) = read_optional_sheet(path, "Groups", &["group", "group name"])? {

@@ -1,14 +1,16 @@
-name: LedgerCraft tests
+name: LedgerCraft
 
 on:
   push:
     paths: ["ledgercraft/**", ".github/workflows/ledgercraft.yml"]
+    tags: ["ledgercraft-v*"]
   pull_request:
     paths: ["ledgercraft/**", ".github/workflows/ledgercraft.yml"]
 
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -24,3 +26,31 @@ jobs:
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test --all
       - run: cargo run --release -p lc-cli -- bench --vouchers 200000
+
+  windows-app:
+    needs: test
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ledgercraft
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release -p lc-app -p lc-cli
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item target/release/LedgerCraft.exe dist/
+          Copy-Item target/release/ledgercraft.exe dist/ledgercraft-cli.exe
+          Copy-Item README.md dist/
+          Copy-Item crates/lc-io/fonts/LICENSE-*.txt dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LedgerCraft-windows
+          path: ledgercraft/dist
+      - name: Attach to release (tags only)
+        if: startsWith(github.ref, 'refs/tags/ledgercraft-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ledgercraft/dist/*

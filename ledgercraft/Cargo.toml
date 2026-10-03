@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/lc-core", "crates/lc-testdata", "crates/lc-io", "crates/lc-cli"]
+members = ["crates/lc-core", "crates/lc-testdata", "crates/lc-io", "crates/lc-cli", "crates/lc-ai", "crates/lc-app"]
 
 [workspace.package]
 version = "0.1.0"
@@ -13,3 +13,8 @@ chrono = { version = "0.4", default-features = false, features = ["std", "serde"
 
 [profile.test]
 opt-level = 2
+
+[profile.release]
+strip = true
+lto = "thin"
+codegen-units = 4

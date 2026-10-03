@@ -58,6 +58,44 @@ impl Head {
     pub fn from_id(s: &str) -> Option<Head> {
         serde_json::from_value(serde_json::Value::String(s.to_string())).ok()
     }
+    /// Plain label used in the app.
+    pub fn label(self) -> &'static str {
+        use Head::*;
+        match self {
+            Capital => "Capital / Share capital",
+            ReservesSurplus => "Reserves and surplus",
+            LtBorrowings => "Long-term borrowings",
+            OtherLtLiabilities => "Other long-term liabilities",
+            LtProvisions => "Long-term provisions",
+            StBorrowings => "Short-term borrowings",
+            TradePayables => "Trade payables",
+            OtherCurrentLiabilities => "Other current liabilities",
+            StProvisions => "Short-term provisions",
+            Ppe => "Property, plant and equipment",
+            Intangibles => "Intangible assets",
+            Cwip => "Capital work-in-progress",
+            NcInvestments => "Non-current investments",
+            LtLoansAdvances => "Long-term loans and advances",
+            OtherNcAssets => "Other non-current assets",
+            CurrentInvestments => "Current investments",
+            Inventories => "Inventories",
+            TradeReceivables => "Trade receivables",
+            CashBank => "Cash and bank balances",
+            StLoansAdvances => "Short-term loans and advances",
+            OtherCurrentAssets => "Other current assets",
+            RevenueOps => "Revenue from operations",
+            OtherIncome => "Other income",
+            Purchases => "Purchases of stock-in-trade",
+            ChangeInInventories => "Changes in inventories",
+            EmployeeBenefits => "Employee benefits expense",
+            FinanceCosts => "Finance costs",
+            Depreciation => "Depreciation and amortisation",
+            PartnersRemuneration => "Partners' / managerial remuneration",
+            OtherExpenses => "Other expenses",
+            TaxExpense => "Tax expense",
+        }
+    }
+
     pub fn nature(self) -> Nature {
         use Head::*;
         match self {

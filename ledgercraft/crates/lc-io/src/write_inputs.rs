@@ -113,3 +113,84 @@ impl Plain for lc_core::Money {
         )
     }
 }
+
+/// Fixed asset register in the LedgerCraft template (sheets "Fixed Assets" and "IT Opening").
+pub fn write_far(reg: &lc_core::far::Register, path: &Path) -> Result<(), String> {
+    let mut wb = Workbook::new();
+    let bold = Format::new().set_bold();
+    let num = Format::new().set_num_format("#,##0.00");
+    let ws = wb
+        .add_worksheet()
+        .set_name("Fixed Assets")
+        .map_err(|e| e.to_string())?;
+    let heads = [
+        "Asset",
+        "Ledger",
+        "Schedule II Class",
+        "IT Block",
+        "Put to use",
+        "Cost",
+        "Opening Accumulated Depreciation",
+        "Sold on",
+        "Sale value",
+        "Useful life",
+    ];
+    for (c, h) in heads.iter().enumerate() {
+        ws.write_string_with_format(0, c as u16, *h, &bold)
+            .map_err(|e| e.to_string())?;
+    }
+    for (i, a) in reg.assets.iter().enumerate() {
+        let r = i as u32 + 1;
+        ws.write_string(r, 0, &a.name).map_err(|e| e.to_string())?;
+        ws.write_string(r, 1, &a.ledger)
+            .map_err(|e| e.to_string())?;
+        ws.write_string(r, 2, &a.book_class)
+            .map_err(|e| e.to_string())?;
+        ws.write_string(r, 3, &a.it_block)
+            .map_err(|e| e.to_string())?;
+        ws.write_string(r, 4, a.put_to_use.format("%d-%m-%Y").to_string())
+            .map_err(|e| e.to_string())?;
+        ws.write_number_with_format(r, 5, a.cost.as_f64(), &num)
+            .map_err(|e| e.to_string())?;
+        ws.write_number_with_format(r, 6, a.opening_acc_dep.as_f64(), &num)
+            .map_err(|e| e.to_string())?;
+        if let Some(d) = a.sold_on {
+            ws.write_string(r, 7, d.format("%d-%m-%Y").to_string())
+                .map_err(|e| e.to_string())?;
+            ws.write_number_with_format(r, 8, a.sale_value.as_f64(), &num)
+                .map_err(|e| e.to_string())?;
+        }
+        if let Some(l) = a.useful_life_years {
+            ws.write_number(r, 9, l).map_err(|e| e.to_string())?;
+        }
+    }
+    for (c, w) in [
+        (0, 26),
+        (1, 24),
+        (2, 20),
+        (3, 16),
+        (4, 12),
+        (5, 14),
+        (6, 18),
+        (7, 12),
+        (8, 12),
+        (9, 10),
+    ] {
+        ws.set_column_width(c, w).ok();
+    }
+    let o = wb
+        .add_worksheet()
+        .set_name("IT Opening")
+        .map_err(|e| e.to_string())?;
+    o.write_string_with_format(0, 0, "Block", &bold)
+        .map_err(|e| e.to_string())?;
+    o.write_string_with_format(0, 1, "Opening WDV", &bold)
+        .map_err(|e| e.to_string())?;
+    for (i, (k, v)) in reg.it_opening.iter().enumerate() {
+        o.write_string(i as u32 + 1, 0, k)
+            .map_err(|e| e.to_string())?;
+        o.write_number_with_format(i as u32 + 1, 1, v.as_f64(), &num)
+            .map_err(|e| e.to_string())?;
+    }
+    wb.save(path).map_err(|e| e.to_string())
+}

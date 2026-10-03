@@ -1,0 +1,9 @@
+{
+  "description": "Clean company books, 12 vouchers/day, no planted errors",
+  "entity": "company",
+  "entity_name": "Clean Industries Private Limited",
+  "expected_findings": [],
+  "expected_profit": "5,24,26,107.18",
+  "fy": "2025-26",
+  "scenario": "clean_company_2"
+}

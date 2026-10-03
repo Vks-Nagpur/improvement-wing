@@ -11,6 +11,8 @@
     "CASH_RECEIPT_LIMIT:03-09-2025 Om Sai Enterprises",
     "CASH_RECEIPT_LIMIT:Sales 333 dt 08-09-2025 Sales - Local",
     "DUPLICATE_VOUCHER:Sales 413 dt 18-10-2025",
+    "FAR_DEP_MISMATCH:depreciation",
+    "FAR_TB_MISMATCH:Furniture & Fixtures",
     "LOAN_ACCEPTED_CASH:Receipt 121 dt 30-06-2025 Loan from Anil Joshi",
     "LOAN_ACCEPTED_CASH:Receipt 97 dt 10-06-2025 Loan from Mahesh Patil",
     "LOAN_ACCEPTED_JOURNAL:Journal 7 dt 19-08-2025 Loan from Prakash Jain",

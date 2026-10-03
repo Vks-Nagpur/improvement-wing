@@ -1,5 +1,5 @@
 LedgerCraft – Glitchy Traders (Partnership Firm) – FY 2025-26
-Must fix: 0   Check: 24   Notes: 3
+Must fix: 0   Check: 26   Notes: 3
 
 [Check] Asset bought in cash above limit
   Asset bought in cash above the limit; that amount is not counted in tax depreciation. ₹18,000.00 paid in cash for 'Furniture & Fixtures' on 08-10-2025. Vouchers: Payment 322 dt 08-10-2025.
@@ -34,6 +34,16 @@ Must fix: 0   Check: 24   Notes: 3
 [Check] Possible duplicate voucher
   Two vouchers have the same date, ledgers and amounts. Sales 413 dt 18-10-2025 looks the same as Sales 412 dt 18-10-2025.
   What to do: Delete one if it was entered twice.
+
+[Check] Depreciation in books differs from register
+  Depreciation charged in the books is not equal to depreciation worked out in the fixed asset register. Books 1,36,800.00 vs register 1,35,900.00.
+  What to do: Pass an adjustment entry for the difference or correct the register.
+  Reference: Schedule II, Companies Act 2013 / AS 10
+
+[Check] Fixed asset register does not match books
+  Net block of this ledger as per the fixed asset register differs from the trial balance. 'Furniture & Fixtures': register net block 1,52,100.00 vs trial balance 1,51,200.00 Dr.
+  What to do: If accumulated depreciation is kept in a separate ledger, map it to this asset; otherwise correct the register or the books.
+  Reference: AS 10; Schedule III
 
 [Check] Loan accepted in cash (limit test)
   Loan taken in cash where the loan (with earlier unpaid principal) is ₹20,000 or more. Receipt 121 dt 30-06-2025: ₹10,000.00 accepted from 'Loan from Anil Joshi' (cash); unpaid principal before this ₹15,000.00, aggregate ₹25,000.00.
@@ -130,5 +140,9 @@ Profit / (Loss) for the year: 2,81,60,788.97
 Balance Sheet total: 3,26,74,553.39
 Ready for a signing copy.
 
-Read 2253 vouchers in 9.06ms; checked in 2.00ms.
-Files saved in: samples/exports/Glitchy Traders/FY 2025-26/Draft-2026-10-02_v1
+Before signing, please attend to:
+  - Format pack 'ICAI Guidance Note on Financial Statements of Non-Corporate Entities' is marked draft: draft – line items to be verified against the ICAI Guidance Note text
+  - Accounting policies are standard wording: review and edit them for this entity.
+
+Read 2253 vouchers in 9.35ms; checked in 2.42ms.
+Files saved in: samples/exports/Glitchy Traders/FY 2025-26/Draft-2026-10-03_v1

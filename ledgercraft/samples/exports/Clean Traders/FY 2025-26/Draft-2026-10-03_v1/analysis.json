@@ -9,7 +9,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -65000000,
-      "tb_closing": -65000000
+      "tb_closing": -65000000,
+      "tags": []
     },
     {
       "name": "Partner B - Capital",
@@ -19,7 +20,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -209170040,
-      "tb_closing": -209170040
+      "tb_closing": -209170040,
+      "tags": []
     },
     {
       "name": "Partners' Remuneration",
@@ -29,7 +31,8 @@
       "source": "name_rule",
       "reclassified": false,
       "amount": 24000000,
-      "tb_closing": 24000000
+      "tb_closing": 24000000,
+      "tags": []
     },
     {
       "name": "Interest on Partners' Capital",
@@ -39,7 +42,8 @@
       "source": "name_rule",
       "reclassified": false,
       "amount": 6000000,
-      "tb_closing": 6000000
+      "tb_closing": 6000000,
+      "tags": []
     },
     {
       "name": "Profit & Loss A/c",
@@ -49,7 +53,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 0,
-      "tb_closing": 0
+      "tb_closing": 0,
+      "tags": []
     },
     {
       "name": "Cash",
@@ -59,7 +64,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 539254259,
-      "tb_closing": 539254259
+      "tb_closing": 539254259,
+      "tags": []
     },
     {
       "name": "HDFC Bank Current A/c",
@@ -69,7 +75,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 1239855584,
-      "tb_closing": 1239855584
+      "tb_closing": 1239855584,
+      "tags": []
     },
     {
       "name": "Sales - Local",
@@ -79,7 +86,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -3611776348,
-      "tb_closing": -3611776348
+      "tb_closing": -3611776348,
+      "tags": []
     },
     {
       "name": "Purchases - Local",
@@ -89,7 +97,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 1632559927,
-      "tb_closing": 1632559927
+      "tb_closing": 1632559927,
+      "tags": []
     },
     {
       "name": "Freight Inward",
@@ -99,7 +108,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 0,
-      "tb_closing": 0
+      "tb_closing": 0,
+      "tags": []
     },
     {
       "name": "Office Expenses",
@@ -109,7 +119,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 13302279,
-      "tb_closing": 13302279
+      "tb_closing": 13302279,
+      "tags": []
     },
     {
       "name": "Printing & Stationery",
@@ -119,7 +130,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 13516171,
-      "tb_closing": 13516171
+      "tb_closing": 13516171,
+      "tags": []
     },
     {
       "name": "Telephone Expenses",
@@ -129,7 +141,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 15038507,
-      "tb_closing": 15038507
+      "tb_closing": 15038507,
+      "tags": []
     },
     {
       "name": "Staff Welfare",
@@ -139,7 +152,8 @@
       "source": "name_rule",
       "reclassified": false,
       "amount": 10845531,
-      "tb_closing": 10845531
+      "tb_closing": 10845531,
+      "tags": []
     },
     {
       "name": "Conveyance",
@@ -149,7 +163,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 15312465,
-      "tb_closing": 15312465
+      "tb_closing": 15312465,
+      "tags": []
     },
     {
       "name": "Rent",
@@ -159,7 +174,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 30000000,
-      "tb_closing": 30000000
+      "tb_closing": 30000000,
+      "tags": []
     },
     {
       "name": "Electricity Charges",
@@ -169,7 +185,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 7497789,
-      "tb_closing": 7497789
+      "tb_closing": 7497789,
+      "tags": []
     },
     {
       "name": "Salary",
@@ -179,7 +196,8 @@
       "source": "name_rule",
       "reclassified": false,
       "amount": 56898507,
-      "tb_closing": 56898507
+      "tb_closing": 56898507,
+      "tags": []
     },
     {
       "name": "Bank Charges",
@@ -189,7 +207,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 791427,
-      "tb_closing": 791427
+      "tb_closing": 791427,
+      "tags": []
     },
     {
       "name": "Depreciation",
@@ -199,7 +218,8 @@
       "source": "name_rule",
       "reclassified": false,
       "amount": 13500000,
-      "tb_closing": 13500000
+      "tb_closing": 13500000,
+      "tags": []
     },
     {
       "name": "Interest on Unsecured Loans",
@@ -209,7 +229,8 @@
       "source": "name_rule",
       "reclassified": false,
       "amount": 3600000,
-      "tb_closing": 3600000
+      "tb_closing": 3600000,
+      "tags": []
     },
     {
       "name": "Interest Received",
@@ -219,7 +240,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -6969746,
-      "tb_closing": -6969746
+      "tb_closing": -6969746,
+      "tags": []
     },
     {
       "name": "Plant & Machinery",
@@ -229,7 +251,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 68000000,
-      "tb_closing": 68000000
+      "tb_closing": 68000000,
+      "tags": []
     },
     {
       "name": "Furniture & Fixtures",
@@ -239,7 +262,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 13500000,
-      "tb_closing": 13500000
+      "tb_closing": 13500000,
+      "tags": []
     },
     {
       "name": "TDS Payable",
@@ -249,7 +273,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 0,
-      "tb_closing": 0
+      "tb_closing": 0,
+      "tags": []
     },
     {
       "name": "Unsecured Loan - Rajesh Kumar",
@@ -259,7 +284,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -33240000,
-      "tb_closing": -33240000
+      "tb_closing": -33240000,
+      "tags": []
     },
     {
       "name": "Stock-in-Trade",
@@ -269,7 +295,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 36445695,
-      "tb_closing": 21028331
+      "tb_closing": 21028331,
+      "tags": []
     },
     {
       "name": "Customer 01",
@@ -279,7 +306,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 36263629,
-      "tb_closing": 36263629
+      "tb_closing": 36263629,
+      "tags": []
     },
     {
       "name": "Customer 02",
@@ -289,7 +317,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 10446373,
-      "tb_closing": 10446373
+      "tb_closing": 10446373,
+      "tags": []
     },
     {
       "name": "Customer 03",
@@ -299,7 +328,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 1811380,
-      "tb_closing": 1811380
+      "tb_closing": 1811380,
+      "tags": []
     },
     {
       "name": "Customer 04",
@@ -309,7 +339,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 174956,
-      "tb_closing": 174956
+      "tb_closing": 174956,
+      "tags": []
     },
     {
       "name": "Customer 05",
@@ -319,7 +350,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 19939649,
-      "tb_closing": 19939649
+      "tb_closing": 19939649,
+      "tags": []
     },
     {
       "name": "Customer 06",
@@ -329,7 +361,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 104868746,
-      "tb_closing": 104868746
+      "tb_closing": 104868746,
+      "tags": []
     },
     {
       "name": "Customer 07",
@@ -339,7 +372,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 45244293,
-      "tb_closing": 45244293
+      "tb_closing": 45244293,
+      "tags": []
     },
     {
       "name": "Customer 08",
@@ -349,7 +383,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 1051883,
-      "tb_closing": 1051883
+      "tb_closing": 1051883,
+      "tags": []
     },
     {
       "name": "Customer 09",
@@ -359,7 +394,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 41674452,
-      "tb_closing": 41674452
+      "tb_closing": 41674452,
+      "tags": []
     },
     {
       "name": "Customer 10",
@@ -369,7 +405,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 11478425,
-      "tb_closing": 11478425
+      "tb_closing": 11478425,
+      "tags": []
     },
     {
       "name": "Supplier 01",
@@ -379,7 +416,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -22062687,
-      "tb_closing": -22062687
+      "tb_closing": -22062687,
+      "tags": []
     },
     {
       "name": "Supplier 02",
@@ -389,7 +427,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -15381466,
-      "tb_closing": -15381466
+      "tb_closing": -15381466,
+      "tags": []
     },
     {
       "name": "Supplier 03",
@@ -399,7 +438,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -5411188,
-      "tb_closing": -5411188
+      "tb_closing": -5411188,
+      "tags": []
     },
     {
       "name": "Supplier 04",
@@ -409,7 +449,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -7787761,
-      "tb_closing": -7787761
+      "tb_closing": -7787761,
+      "tags": []
     },
     {
       "name": "Supplier 05",
@@ -419,7 +460,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -8906577,
-      "tb_closing": -8906577
+      "tb_closing": -8906577,
+      "tags": []
     },
     {
       "name": "Supplier 06",
@@ -429,7 +471,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -11748750,
-      "tb_closing": -11748750
+      "tb_closing": -11748750,
+      "tags": []
     }
   ],
   "py_mapping": [
@@ -441,7 +484,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -567607831,
-      "tb_closing": -567607831
+      "tb_closing": -567607831,
+      "tags": []
     },
     {
       "name": "Purchases - Local",
@@ -451,7 +495,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 262749145,
-      "tb_closing": 262749145
+      "tb_closing": 262749145,
+      "tags": []
     },
     {
       "name": "Rent",
@@ -461,7 +506,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 30000000,
-      "tb_closing": 30000000
+      "tb_closing": 30000000,
+      "tags": []
     },
     {
       "name": "Salary",
@@ -471,7 +517,8 @@
       "source": "name_rule",
       "reclassified": false,
       "amount": 51255103,
-      "tb_closing": 51255103
+      "tb_closing": 51255103,
+      "tags": []
     },
     {
       "name": "Electricity Charges",
@@ -481,7 +528,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 7543812,
-      "tb_closing": 7543812
+      "tb_closing": 7543812,
+      "tags": []
     },
     {
       "name": "Office Expenses",
@@ -491,7 +539,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 5445493,
-      "tb_closing": 5445493
+      "tb_closing": 5445493,
+      "tags": []
     },
     {
       "name": "Depreciation",
@@ -501,7 +550,8 @@
       "source": "name_rule",
       "reclassified": false,
       "amount": 13583649,
-      "tb_closing": 13583649
+      "tb_closing": 13583649,
+      "tags": []
     },
     {
       "name": "Partner A - Capital",
@@ -511,7 +561,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -50000000,
-      "tb_closing": -50000000
+      "tb_closing": -50000000,
+      "tags": []
     },
     {
       "name": "Partner B - Capital",
@@ -521,7 +572,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -194170040,
-      "tb_closing": -194170040
+      "tb_closing": -194170040,
+      "tags": []
     },
     {
       "name": "Profit & Loss A/c",
@@ -531,7 +583,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 184961762,
-      "tb_closing": 184961762
+      "tb_closing": 184961762,
+      "tags": []
     },
     {
       "name": "Cash",
@@ -541,7 +594,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 6000000,
-      "tb_closing": 6000000
+      "tb_closing": 6000000,
+      "tags": []
     },
     {
       "name": "HDFC Bank Current A/c",
@@ -551,7 +605,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 90000000,
-      "tb_closing": 90000000
+      "tb_closing": 90000000,
+      "tags": []
     },
     {
       "name": "Plant & Machinery",
@@ -561,7 +616,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 80000000,
-      "tb_closing": 80000000
+      "tb_closing": 80000000,
+      "tags": []
     },
     {
       "name": "Furniture & Fixtures",
@@ -571,7 +627,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 15000000,
-      "tb_closing": 15000000
+      "tb_closing": 15000000,
+      "tags": []
     },
     {
       "name": "TDS Payable",
@@ -581,7 +638,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 0,
-      "tb_closing": 0
+      "tb_closing": 0,
+      "tags": []
     },
     {
       "name": "Unsecured Loan - Rajesh Kumar",
@@ -591,7 +649,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -30000000,
-      "tb_closing": -30000000
+      "tb_closing": -30000000,
+      "tags": []
     },
     {
       "name": "Stock-in-Trade",
@@ -601,7 +660,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 21028331,
-      "tb_closing": 33097198
+      "tb_closing": 33097198,
+      "tags": []
     },
     {
       "name": "Customer 01",
@@ -611,7 +671,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 4544436,
-      "tb_closing": 4544436
+      "tb_closing": 4544436,
+      "tags": []
     },
     {
       "name": "Customer 02",
@@ -621,7 +682,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 10814143,
-      "tb_closing": 10814143
+      "tb_closing": 10814143,
+      "tags": []
     },
     {
       "name": "Customer 03",
@@ -631,7 +693,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 3999597,
-      "tb_closing": 3999597
+      "tb_closing": 3999597,
+      "tags": []
     },
     {
       "name": "Customer 04",
@@ -641,7 +704,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 14821723,
-      "tb_closing": 14821723
+      "tb_closing": 14821723,
+      "tags": []
     },
     {
       "name": "Customer 05",
@@ -651,7 +715,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 14699924,
-      "tb_closing": 14699924
+      "tb_closing": 14699924,
+      "tags": []
     },
     {
       "name": "Customer 06",
@@ -661,7 +726,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 5256763,
-      "tb_closing": 5256763
+      "tb_closing": 5256763,
+      "tags": []
     },
     {
       "name": "Customer 07",
@@ -671,7 +737,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 12192888,
-      "tb_closing": 12192888
+      "tb_closing": 12192888,
+      "tags": []
     },
     {
       "name": "Customer 08",
@@ -681,7 +748,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 4432370,
-      "tb_closing": 4432370
+      "tb_closing": 4432370,
+      "tags": []
     },
     {
       "name": "Customer 09",
@@ -691,7 +759,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 12483615,
-      "tb_closing": 12483615
+      "tb_closing": 12483615,
+      "tags": []
     },
     {
       "name": "Customer 10",
@@ -701,7 +770,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": 5286936,
-      "tb_closing": 5286936
+      "tb_closing": 5286936,
+      "tags": []
     },
     {
       "name": "Supplier 01",
@@ -711,7 +781,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -4227352,
-      "tb_closing": -4227352
+      "tb_closing": -4227352,
+      "tags": []
     },
     {
       "name": "Supplier 02",
@@ -721,7 +792,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -3600521,
-      "tb_closing": -3600521
+      "tb_closing": -3600521,
+      "tags": []
     },
     {
       "name": "Supplier 03",
@@ -731,7 +803,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -6433931,
-      "tb_closing": -6433931
+      "tb_closing": -6433931,
+      "tags": []
     },
     {
       "name": "Supplier 04",
@@ -741,7 +814,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -2728517,
-      "tb_closing": -2728517
+      "tb_closing": -2728517,
+      "tags": []
     },
     {
       "name": "Supplier 05",
@@ -751,7 +825,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -7876830,
-      "tb_closing": -7876830
+      "tb_closing": -7876830,
+      "tags": []
     },
     {
       "name": "Supplier 06",
@@ -761,7 +836,8 @@
       "source": "group_default",
       "reclassified": false,
       "amount": -1523535,
-      "tb_closing": -1523535
+      "tb_closing": -1523535,
+      "tags": []
     }
   ],
   "statements": {
@@ -1379,6 +1455,839 @@
       "squared_up": false
     }
   ],
+  "facts_cy": {
+    "lines": {
+      "CAPITAL": [
+        {
+          "name": "Partner A - Capital",
+          "class": "CapitalAccount",
+          "tags": [],
+          "amount": 65000000
+        },
+        {
+          "name": "Partner B - Capital",
+          "class": "CapitalAccount",
+          "tags": [],
+          "amount": 209170040
+        },
+        {
+          "name": "Profit & Loss A/c",
+          "class": "ProfitLossAc",
+          "tags": [],
+          "amount": 0
+        }
+      ],
+      "LT_BORROWINGS": [
+        {
+          "name": "Unsecured Loan - Rajesh Kumar",
+          "class": "UnsecuredLoans",
+          "tags": [],
+          "amount": 33240000
+        }
+      ],
+      "TRADE_PAYABLES": [
+        {
+          "name": "Supplier 01",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 22062687
+        },
+        {
+          "name": "Supplier 02",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 15381466
+        },
+        {
+          "name": "Supplier 03",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 5411188
+        },
+        {
+          "name": "Supplier 04",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 7787761
+        },
+        {
+          "name": "Supplier 05",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 8906577
+        },
+        {
+          "name": "Supplier 06",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 11748750
+        }
+      ],
+      "OTHER_CURRENT_LIABILITIES": [
+        {
+          "name": "TDS Payable",
+          "class": "DutiesTaxes",
+          "tags": [],
+          "amount": 0
+        }
+      ],
+      "PPE": [
+        {
+          "name": "Plant & Machinery",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 68000000
+        },
+        {
+          "name": "Furniture & Fixtures",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 13500000
+        }
+      ],
+      "INVENTORIES": [
+        {
+          "name": "Stock-in-Trade",
+          "class": "StockInHand",
+          "tags": [],
+          "amount": 36445695
+        }
+      ],
+      "TRADE_RECEIVABLES": [
+        {
+          "name": "Customer 01",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 36263629
+        },
+        {
+          "name": "Customer 02",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 10446373
+        },
+        {
+          "name": "Customer 03",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 1811380
+        },
+        {
+          "name": "Customer 04",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 174956
+        },
+        {
+          "name": "Customer 05",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 19939649
+        },
+        {
+          "name": "Customer 06",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 104868746
+        },
+        {
+          "name": "Customer 07",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 45244293
+        },
+        {
+          "name": "Customer 08",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 1051883
+        },
+        {
+          "name": "Customer 09",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 41674452
+        },
+        {
+          "name": "Customer 10",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 11478425
+        }
+      ],
+      "CASH_BANK": [
+        {
+          "name": "Cash",
+          "class": "CashInHand",
+          "tags": [],
+          "amount": 539254259
+        },
+        {
+          "name": "HDFC Bank Current A/c",
+          "class": "BankAccounts",
+          "tags": [],
+          "amount": 1239855584
+        }
+      ],
+      "REVENUE_OPS": [
+        {
+          "name": "Sales - Local",
+          "class": "SalesAccounts",
+          "tags": [],
+          "amount": 3611776348
+        }
+      ],
+      "OTHER_INCOME": [
+        {
+          "name": "Interest Received",
+          "class": "IndirectIncomes",
+          "tags": [],
+          "amount": 6969746
+        }
+      ],
+      "PURCHASES": [
+        {
+          "name": "Purchases - Local",
+          "class": "PurchaseAccounts",
+          "tags": [],
+          "amount": 1632559927
+        }
+      ],
+      "EMPLOYEE_BENEFITS": [
+        {
+          "name": "Staff Welfare",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 10845531
+        },
+        {
+          "name": "Salary",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 56898507
+        }
+      ],
+      "FINANCE_COSTS": [
+        {
+          "name": "Interest on Unsecured Loans",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 3600000
+        }
+      ],
+      "DEPRECIATION": [
+        {
+          "name": "Depreciation",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 13500000
+        }
+      ],
+      "PARTNERS_REMUNERATION": [
+        {
+          "name": "Partners' Remuneration",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 24000000
+        },
+        {
+          "name": "Interest on Partners' Capital",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 6000000
+        }
+      ],
+      "OTHER_EXPENSES": [
+        {
+          "name": "Freight Inward",
+          "class": "DirectExpenses",
+          "tags": [],
+          "amount": 0
+        },
+        {
+          "name": "Office Expenses",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 13302279
+        },
+        {
+          "name": "Printing & Stationery",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 13516171
+        },
+        {
+          "name": "Telephone Expenses",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 15038507
+        },
+        {
+          "name": "Conveyance",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 15312465
+        },
+        {
+          "name": "Rent",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 30000000
+        },
+        {
+          "name": "Electricity Charges",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 7497789
+        },
+        {
+          "name": "Bank Charges",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 791427
+        }
+      ]
+    },
+    "opening_stock": 21028331,
+    "closing_stock": 36445695,
+    "change_in_inventories": -15417364,
+    "profit_to": "CAPITAL"
+  },
+  "facts_py": {
+    "lines": {
+      "CAPITAL": [
+        {
+          "name": "Partner A - Capital",
+          "class": "CapitalAccount",
+          "tags": [],
+          "amount": 50000000
+        },
+        {
+          "name": "Partner B - Capital",
+          "class": "CapitalAccount",
+          "tags": [],
+          "amount": 194170040
+        },
+        {
+          "name": "Profit & Loss A/c",
+          "class": "ProfitLossAc",
+          "tags": [],
+          "amount": -184961762
+        }
+      ],
+      "LT_BORROWINGS": [
+        {
+          "name": "Unsecured Loan - Rajesh Kumar",
+          "class": "UnsecuredLoans",
+          "tags": [],
+          "amount": 30000000
+        }
+      ],
+      "TRADE_PAYABLES": [
+        {
+          "name": "Supplier 01",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 4227352
+        },
+        {
+          "name": "Supplier 02",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 3600521
+        },
+        {
+          "name": "Supplier 03",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 6433931
+        },
+        {
+          "name": "Supplier 04",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 2728517
+        },
+        {
+          "name": "Supplier 05",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 7876830
+        },
+        {
+          "name": "Supplier 06",
+          "class": "SundryCreditors",
+          "tags": [],
+          "amount": 1523535
+        }
+      ],
+      "OTHER_CURRENT_LIABILITIES": [
+        {
+          "name": "TDS Payable",
+          "class": "DutiesTaxes",
+          "tags": [],
+          "amount": 0
+        }
+      ],
+      "PPE": [
+        {
+          "name": "Plant & Machinery",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 80000000
+        },
+        {
+          "name": "Furniture & Fixtures",
+          "class": "FixedAssets",
+          "tags": [],
+          "amount": 15000000
+        }
+      ],
+      "INVENTORIES": [
+        {
+          "name": "Stock-in-Trade",
+          "class": "StockInHand",
+          "tags": [],
+          "amount": 21028331
+        }
+      ],
+      "TRADE_RECEIVABLES": [
+        {
+          "name": "Customer 01",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 4544436
+        },
+        {
+          "name": "Customer 02",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 10814143
+        },
+        {
+          "name": "Customer 03",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 3999597
+        },
+        {
+          "name": "Customer 04",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 14821723
+        },
+        {
+          "name": "Customer 05",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 14699924
+        },
+        {
+          "name": "Customer 06",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 5256763
+        },
+        {
+          "name": "Customer 07",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 12192888
+        },
+        {
+          "name": "Customer 08",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 4432370
+        },
+        {
+          "name": "Customer 09",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 12483615
+        },
+        {
+          "name": "Customer 10",
+          "class": "SundryDebtors",
+          "tags": [],
+          "amount": 5286936
+        }
+      ],
+      "CASH_BANK": [
+        {
+          "name": "Cash",
+          "class": "CashInHand",
+          "tags": [],
+          "amount": 6000000
+        },
+        {
+          "name": "HDFC Bank Current A/c",
+          "class": "BankAccounts",
+          "tags": [],
+          "amount": 90000000
+        }
+      ],
+      "REVENUE_OPS": [
+        {
+          "name": "Sales - Local",
+          "class": "SalesAccounts",
+          "tags": [],
+          "amount": 567607831
+        }
+      ],
+      "PURCHASES": [
+        {
+          "name": "Purchases - Local",
+          "class": "PurchaseAccounts",
+          "tags": [],
+          "amount": 262749145
+        }
+      ],
+      "EMPLOYEE_BENEFITS": [
+        {
+          "name": "Salary",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 51255103
+        }
+      ],
+      "DEPRECIATION": [
+        {
+          "name": "Depreciation",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 13583649
+        }
+      ],
+      "OTHER_EXPENSES": [
+        {
+          "name": "Rent",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 30000000
+        },
+        {
+          "name": "Electricity Charges",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 7543812
+        },
+        {
+          "name": "Office Expenses",
+          "class": "IndirectExpenses",
+          "tags": [],
+          "amount": 5445493
+        }
+      ]
+    },
+    "opening_stock": 33097198,
+    "closing_stock": 21028331,
+    "change_in_inventories": 12068867,
+    "profit_to": "CAPITAL"
+  },
+  "capital": [
+    {
+      "owner": "Partner A - Capital",
+      "ledgers": [
+        "Partner A - Capital"
+      ],
+      "opening": 50000000,
+      "introduced": 0,
+      "remuneration_interest": 15000000,
+      "withdrawn": 0,
+      "other": 0,
+      "share_of_profit": 895650428,
+      "closing": 960650428,
+      "detailed": true,
+      "weight": 1
+    },
+    {
+      "owner": "Partner B - Capital",
+      "ledgers": [
+        "Partner B - Capital"
+      ],
+      "opening": 194170040,
+      "introduced": 0,
+      "remuneration_interest": 15000000,
+      "withdrawn": 0,
+      "other": 0,
+      "share_of_profit": 895650427,
+      "closing": 1104820467,
+      "detailed": true,
+      "weight": 1
+    }
+  ],
+  "ageing_receivables": {
+    "kind": "receivables",
+    "bucket_labels": [
+      "Less than 6 months",
+      "6 months - 1 year",
+      "1-2 years",
+      "2-3 years",
+      "More than 3 years"
+    ],
+    "rows": [
+      {
+        "category": "Undisputed trade receivables - considered good",
+        "buckets": [
+          272953786,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Undisputed trade receivables - considered doubtful",
+        "buckets": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Disputed trade receivables - considered good",
+        "buckets": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Disputed trade receivables - considered doubtful",
+        "buckets": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "ageing_payables": {
+    "kind": "payables",
+    "bucket_labels": [
+      "Less than 1 year",
+      "1-2 years",
+      "2-3 years",
+      "More than 3 years"
+    ],
+    "rows": [
+      {
+        "category": "MSME",
+        "buckets": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Others",
+        "buckets": [
+          71298429,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Disputed dues - MSME",
+        "buckets": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "category": "Disputed dues - Others",
+        "buckets": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "ratios": [
+    {
+      "name": "Current ratio",
+      "numerator": "Current assets",
+      "denominator": "Current liabilities",
+      "unit": "times",
+      "cy": 29.29250129760923,
+      "py": 7.789139168265653,
+      "variance_pct": 276.06853164149544,
+      "needs_explanation": true
+    },
+    {
+      "name": "Debt-equity ratio",
+      "numerator": "Total borrowings",
+      "denominator": "Owners' funds / shareholders' equity",
+      "unit": "times",
+      "cy": 0.016093182470140785,
+      "py": 0.1228651967292957,
+      "variance_pct": -86.90175664179475,
+      "needs_explanation": true
+    },
+    {
+      "name": "Debt service coverage ratio",
+      "numerator": "Profit after tax + depreciation + finance costs",
+      "denominator": "Finance costs + principal repaid",
+      "unit": "times",
+      "cy": 502.33357083333334,
+      "py": null,
+      "variance_pct": null,
+      "needs_explanation": false
+    },
+    {
+      "name": "Return on equity",
+      "numerator": "Profit after tax",
+      "denominator": "Average owners' funds",
+      "unit": "%",
+      "cy": 155.11509411310294,
+      "py": 75.75121091842391,
+      "variance_pct": 104.76912808713459,
+      "needs_explanation": true
+    },
+    {
+      "name": "Inventory turnover ratio",
+      "numerator": "Cost of goods sold",
+      "denominator": "Average inventory",
+      "unit": "times",
+      "cy": 56.273857098509154,
+      "py": 13.068940754261478,
+      "variance_pct": 330.59233457891037,
+      "needs_explanation": true
+    },
+    {
+      "name": "Trade receivables turnover ratio",
+      "numerator": "Revenue from operations",
+      "denominator": "Average trade receivables",
+      "unit": "times",
+      "cy": 19.982929018246484,
+      "py": 6.411300981973886,
+      "variance_pct": 211.68290296198538,
+      "needs_explanation": true
+    },
+    {
+      "name": "Trade payables turnover ratio",
+      "numerator": "Purchases",
+      "denominator": "Average trade payables",
+      "unit": "times",
+      "cy": 33.42357901389525,
+      "py": 9.956131682215462,
+      "variance_pct": 235.70848679713077,
+      "needs_explanation": true
+    },
+    {
+      "name": "Net capital turnover ratio",
+      "numerator": "Revenue from operations",
+      "denominator": "Working capital (current assets - current liabilities)",
+      "unit": "times",
+      "cy": 1.7904802898657752,
+      "py": 3.167984061397765,
+      "variance_pct": -43.482029733578045,
+      "needs_explanation": true
+    },
+    {
+      "name": "Net profit ratio",
+      "numerator": "Profit after tax",
+      "denominator": "Revenue from operations",
+      "unit": "%",
+      "cy": 49.59611787678721,
+      "py": 32.58618924868216,
+      "variance_pct": 52.19980924524018,
+      "needs_explanation": true
+    },
+    {
+      "name": "Return on capital employed",
+      "numerator": "Profit before interest and tax",
+      "denominator": "Capital employed (owners' funds + borrowings)",
+      "unit": "%",
+      "cy": 85.52396898859193,
+      "py": 67.4624266021189,
+      "variance_pct": 26.77274343094227,
+      "needs_explanation": true
+    },
+    {
+      "name": "Return on investment",
+      "numerator": "Income from investments",
+      "denominator": "Average investments",
+      "unit": "%",
+      "cy": null,
+      "py": null,
+      "variance_pct": null,
+      "needs_explanation": false
+    }
+  ],
+  "far": {
+    "ppe": [
+      {
+        "ledger": "Furniture & Fixtures",
+        "gross_opening": 20000000,
+        "additions": 0,
+        "deletions": 0,
+        "gross_closing": 20000000,
+        "dep_opening": 5000000,
+        "dep_for_year": 1500000,
+        "dep_on_deletions": 0,
+        "dep_closing": 6500000,
+        "net_closing": 13500000,
+        "net_opening": 15000000,
+        "gain_on_sale": 0
+      },
+      {
+        "ledger": "Plant & Machinery",
+        "gross_opening": 100000000,
+        "additions": 0,
+        "deletions": 0,
+        "gross_closing": 100000000,
+        "dep_opening": 20000000,
+        "dep_for_year": 12000000,
+        "dep_on_deletions": 0,
+        "dep_closing": 32000000,
+        "net_closing": 68000000,
+        "net_opening": 80000000,
+        "gain_on_sale": 0
+      }
+    ],
+    "it": [
+      {
+        "block": "furniture",
+        "label": "Furniture and fittings",
+        "rate": 10.0,
+        "opening_wdv": 15000000,
+        "additions_180_or_more": 0,
+        "additions_less_180": 0,
+        "sale_proceeds": 0,
+        "depreciation": 1500000,
+        "closing_wdv": 13500000,
+        "stcg": 0
+      },
+      {
+        "block": "plant_general",
+        "label": "Plant and machinery – general",
+        "rate": 15.0,
+        "opening_wdv": 80000000,
+        "additions_180_or_more": 0,
+        "additions_less_180": 0,
+        "sale_proceeds": 0,
+        "depreciation": 12000000,
+        "closing_wdv": 68000000,
+        "stcg": 0
+      }
+    ],
+    "book_dep_total": 13500000,
+    "errors": []
+  },
   "printable": true,
   "rules_version": "2026.10-draft"
 }

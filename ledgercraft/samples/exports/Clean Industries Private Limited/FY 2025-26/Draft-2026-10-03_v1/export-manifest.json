@@ -1,0 +1,32 @@
+{
+  "app": "LedgerCraft",
+  "app_version": "0.1.0",
+  "rules_version": "2026.10-draft",
+  "format_pack": "company_div1",
+  "entity": "Clean Industries Private Limited",
+  "financial_year": "2025-26",
+  "mode": "draft",
+  "created": "2026-10-03T18:11:42.864182336+00:00",
+  "files": [
+    [
+      "Auditor_Reference_Workbook.xlsx",
+      "d87d5676a90077c939605ba899cf9810e292c1dcecc2723f2abfe08e477166ee"
+    ],
+    [
+      "Financial_Statements.pdf",
+      "b4e3a1e4e74977269a604f540316c01bc5e7440166608d3223f3c77cac9a6370"
+    ],
+    [
+      "Financial_Statements.xlsx",
+      "b1ef29f2417cf812e655eb2664ad6f56f488a0d3cf1603d28979d436e22daa5d"
+    ],
+    [
+      "Financial_Statements_preview.html",
+      "0256e5ba6825ad907917be2b9a08798936f5cbc43c73d210e17664aa6282aabe"
+    ],
+    [
+      "analysis.json",
+      "30e5f98a37e0b34a42a46f9c4b7bbdc0c8c1404786f3a6346000fc0b8fdf95ea"
+    ]
+  ]
+}

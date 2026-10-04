@@ -159,6 +159,7 @@ fn engagement_from_args(a: &HashMap<String, String>) -> Result<lc_core::Engageme
         mapping_context: Default::default(),
         format_pack: None,
         consolidation: None,
+        comparative_end: None,
         far,
         profit_sharing,
     })

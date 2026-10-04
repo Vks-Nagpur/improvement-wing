@@ -205,6 +205,7 @@ mod tests {
             mapping_context: Default::default(),
             format_pack: None,
             consolidation: None,
+            comparative_end: None,
             far: None,
             profit_sharing: vec![],
         }

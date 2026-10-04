@@ -140,6 +140,9 @@ pub struct Engagement {
     /// Set when the books are a consolidation of head office and branches.
     #[serde(default)]
     pub consolidation: Option<crate::consolidate::MergeNotes>,
+    /// Date of the comparative figures (default: the day before `fy_start`).
+    #[serde(default)]
+    pub comparative_end: Option<NaiveDate>,
     /// Fixed asset register (optional).
     #[serde(default)]
     pub far: Option<crate::far::Register>,
@@ -167,4 +170,33 @@ pub fn norm_name(s: &str) -> String {
         out.pop();
     }
     out
+}
+
+impl Engagement {
+    /// True when the statements cover a full year (12 months).
+    pub fn is_full_year(&self) -> bool {
+        use chrono::Datelike;
+        let next = self
+            .fy_start
+            .with_year(self.fy_start.year() + 1)
+            .unwrap_or(self.fy_start);
+        next.pred_opt() == Some(self.fy_end)
+    }
+
+    /// "year ended 31 March 2026" or "period from 1 April 2025 to 30 June 2025".
+    pub fn period_phrase(&self) -> String {
+        use chrono::Datelike;
+        let d = |x: NaiveDate| format!("{} {}", x.day(), x.format("%B %Y"));
+        if self.is_full_year() {
+            format!("year ended {}", d(self.fy_end))
+        } else {
+            format!("period from {} to {}", d(self.fy_start), d(self.fy_end))
+        }
+    }
+
+    /// Date of the comparative column.
+    pub fn comparative_date(&self) -> NaiveDate {
+        self.comparative_end
+            .unwrap_or_else(|| self.fy_start.pred_opt().unwrap_or(self.fy_start))
+    }
 }

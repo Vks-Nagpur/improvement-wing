@@ -61,6 +61,38 @@ pub struct Inputs {
     pub branches: Vec<BranchInput>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Period {
+    pub start: chrono::NaiveDate,
+    pub end: chrono::NaiveDate,
+    /// Date of the comparative figures (e.g. last year end for a quarter).
+    #[serde(default)]
+    pub comparative: Option<chrono::NaiveDate>,
+}
+
+impl Period {
+    pub fn check(&self) -> Result<(), String> {
+        if self.end < self.start {
+            return Err("The period ends before it starts.".into());
+        }
+        if (self.end - self.start).num_days() > 548 {
+            return Err("A period can be at most 18 months.".into());
+        }
+        Ok(())
+    }
+}
+
+impl Settings {
+    /// Dates the statements cover: the chosen period, or the financial year.
+    pub fn dates(&self) -> Result<(chrono::NaiveDate, chrono::NaiveDate), String> {
+        match &self.period {
+            Some(p) => Ok((p.start, p.end)),
+            None => lc_core::date::parse_fy(&self.fy)
+                .ok_or_else(|| "financial year must look like 2025-26".to_string()),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[serde(default)]
 pub struct BranchInput {
@@ -85,6 +117,9 @@ pub struct Settings {
     pub inputs: Inputs,
     /// Manual adjustment entries over the imported books.
     pub adjustments: Vec<lc_core::adjust::Adjustment>,
+    /// Statements for a period other than the financial year (month, quarter,
+    /// calendar year, first accounting period …).
+    pub period: Option<Period>,
     pub created: String,
     pub modified: String,
 }
@@ -102,6 +137,7 @@ impl Default for Settings {
             depreciation_basis: BookBasis::IncomeTaxRates,
             inputs: Inputs::default(),
             adjustments: Vec::new(),
+            period: None,
             created: String::new(),
             modified: String::new(),
         }
@@ -420,8 +456,7 @@ impl Project {
     pub fn engagement_books(&self) -> Result<Engagement, String> {
         let s = self.load_settings()?;
         let entity_type = EntityType::parse(&s.entity_type).ok_or("unknown entity type")?;
-        let (fy_start, fy_end) =
-            lc_core::date::parse_fy(&s.fy).ok_or("financial year must look like 2025-26")?;
+        let (fy_start, fy_end) = s.dates()?;
         let inp = self.inputs_dir();
         let master = s.inputs.accounts_master.as_ref().map(|f| inp.join(f));
         let read_tb = |name: &Option<String>| -> Result<Option<TrialBalance>, String> {
@@ -514,6 +549,7 @@ impl Project {
             mapping_context: self.mapping_context(),
             format_pack: Some(self.format_pack()?),
             consolidation,
+            comparative_end: s.period.as_ref().and_then(|p| p.comparative),
             far,
             profit_sharing: s.profit_sharing.clone(),
         })

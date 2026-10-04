@@ -426,7 +426,7 @@ impl App {
     fn tally(&self, id: &str, b: &Value) -> Result<Value, String> {
         let p = self.store.project(id)?;
         let mut st = p.load_settings()?;
-        let (fy_start, fy_end) = lc_core::date::parse_fy(&st.fy).ok_or("bad financial year")?;
+        let (fy_start, fy_end) = st.dates()?;
         let host = if s(b, "host").is_empty() {
             "localhost".into()
         } else {
@@ -699,6 +699,16 @@ impl App {
             st.profit_sharing =
                 serde_json::from_value(o.clone()).map_err(|e| format!("profit sharing: {e}"))?;
         }
+        if let Some(o) = b.get("period") {
+            st.period = if o.is_null() {
+                None
+            } else {
+                let p: crate::store::Period =
+                    serde_json::from_value(o.clone()).map_err(|e| format!("period: {e}"))?;
+                p.check()?;
+                Some(p)
+            };
+        }
         if let Some(o) = b.get("depreciation_basis") {
             st.depreciation_basis = serde_json::from_value(o.clone())
                 .map_err(|e| format!("depreciation basis: {e}"))?;
@@ -706,7 +716,13 @@ impl App {
         p.save_settings(&st)?;
         let after = serde_json::to_value(&st).map_err(|e| e.to_string())?;
         let mut changed = serde_json::Map::new();
-        for k in ["options", "signoff", "profit_sharing", "depreciation_basis"] {
+        for k in [
+            "options",
+            "signoff",
+            "profit_sharing",
+            "depreciation_basis",
+            "period",
+        ] {
             if before.get(k) != after.get(k) {
                 changed.insert(k.into(), json!({"from": before.get(k), "to": after.get(k)}));
             }

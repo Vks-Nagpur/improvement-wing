@@ -10,7 +10,7 @@
 //! rounded to the paisa once, then all further arithmetic is exact.
 
 use crate::money::Money;
-use chrono::NaiveDate;
+use chrono::{Datelike, NaiveDate};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -153,7 +153,14 @@ pub fn compute(
     fy_end: NaiveDate,
 ) -> FarResult {
     let mut res = FarResult::default();
-    let year_days = days(fy_start, fy_end) as f64;
+    // Depreciation rates and lives are annual: a shorter period (month,
+    // quarter) gets its share of the year, never a full year's charge.
+    let year_end = fy_start
+        .with_year(fy_start.year() + 1)
+        .and_then(|d| d.pred_opt())
+        .unwrap_or(fy_end);
+    let year_days = days(fy_start, year_end) as f64;
+    let period_frac = (days(fy_start, fy_end) as f64 / year_days).min(1.0);
     let mut ppe: BTreeMap<String, PpeRow> = BTreeMap::new();
     let mut it: BTreeMap<String, ItRow> = BTreeMap::new();
     for (k, v) in &reg.it_opening {
@@ -199,8 +206,8 @@ pub fn compute(
                 Some(b) => {
                     let half = !existing && days(a.put_to_use, fy_end) < 180;
                     let rate = if half { b.rate / 2.0 } else { b.rate };
-                    let full_year = if a.sold_on.is_some() {
-                        used / year_days
+                    let full_year = if a.sold_on.is_some() || period_frac < 1.0 {
+                        (used / year_days).min(period_frac)
                     } else {
                         1.0
                     };
@@ -488,5 +495,35 @@ mod roll_tests {
             .unwrap()
             .closing_wdv;
         assert_eq!(next.it_opening["plant_general"], closing);
+    }
+
+    #[test]
+    fn a_quarter_takes_a_quarter_of_the_years_depreciation() {
+        let pack = DepPack::builtin();
+        for basis in [BookBasis::IncomeTaxRates, BookBasis::ScheduleIiSlm] {
+            let reg = Register {
+                assets: vec![Asset {
+                    name: "Machine".into(),
+                    ledger: "Plant & Machinery".into(),
+                    book_class: "plant_general".into(),
+                    it_block: "plant_general".into(),
+                    put_to_use: d(2023, 4, 1),
+                    cost: Money::rupees(1_000_000),
+                    opening_acc_dep: Money::rupees(100_000),
+                    sold_on: None,
+                    sale_value: Money::ZERO,
+                    useful_life_years: None,
+                }],
+                it_opening: Default::default(),
+                basis,
+            };
+            let year = compute(&reg, &pack, d(2025, 4, 1), d(2026, 3, 31)).book_dep_total;
+            let q1 = compute(&reg, &pack, d(2025, 4, 1), d(2025, 6, 30)).book_dep_total;
+            let ratio = q1.0 as f64 / year.0 as f64;
+            assert!(
+                (ratio - 91.0 / 365.0).abs() < 0.01,
+                "{basis:?}: {q1:?} of {year:?}"
+            );
+        }
     }
 }

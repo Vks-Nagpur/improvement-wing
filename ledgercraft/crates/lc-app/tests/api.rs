@@ -474,6 +474,40 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         .unwrap_err()
         .contains("at least one"));
 
+    // A quarter instead of the full year: headings follow the period.
+    c.call(
+        "POST",
+        &format!("/api/projects/{pid}/settings"),
+        Some(json!({"period": {"start": "2025-04-01", "end": "2025-06-30", "comparative": "2025-03-31"}})),
+    )
+    .unwrap();
+    let html = ureq::get(&format!(
+        "{}/api/projects/{pid}/preview?t={}",
+        c.base, c.token
+    ))
+    .call()
+    .unwrap()
+    .into_string()
+    .unwrap();
+    assert!(
+        html.contains("for the period from 1 April 2025 to 30 June 2025"),
+        "period heading"
+    );
+    assert!(c
+        .call(
+            "POST",
+            &format!("/api/projects/{pid}/settings"),
+            Some(json!({"period": {"start": "2025-07-01", "end": "2025-06-30"}})),
+        )
+        .unwrap_err()
+        .contains("ends before"));
+    c.call(
+        "POST",
+        &format!("/api/projects/{pid}/settings"),
+        Some(json!({"period": null})),
+    )
+    .unwrap();
+
     // Roll forward: this year's adjusted balances become next year's comparatives.
     let mut o2 = c
         .call("GET", &format!("/api/projects/{pid}"), None)

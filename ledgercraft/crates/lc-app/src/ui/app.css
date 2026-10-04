@@ -341,6 +341,9 @@ select.need { border-color: var(--blocker); }
 tr.off td { color: var(--muted); }
 tr.off .jl { text-decoration: line-through; }
 
+/* Period */
+.chips { display: flex; flex-wrap: wrap; gap: var(--s1); margin: var(--s2) 0 var(--s3); }
+
 /* Notes and disclosures */
 .answer-bar { margin: 0 0 var(--s4); padding: var(--s3) var(--s4); border-radius: var(--r); background: var(--accent-soft); border: 1px solid oklch(0.88 0.04 160); }
 .answer-bar.unanswered { background: var(--warn-soft); border-color: oklch(0.86 0.07 85); }

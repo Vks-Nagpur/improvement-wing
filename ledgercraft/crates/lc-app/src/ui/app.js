@@ -130,7 +130,7 @@ function nextAction() {
 function renderNext() {
   stepStatus();
   const st = state.settings;
-  $("#sbClient").textContent = st ? `${st.entity_name} · ${TYPE_LABEL[st.entity_type] || ""} · FY ${st.fy}` : "No client open";
+  $("#sbClient").textContent = st ? `${st.entity_name} · ${TYPE_LABEL[st.entity_type] || ""} · ${st.period ? `${st.period.start} to ${st.period.end}` : `FY ${st.fy}`}` : "No client open";
   $("#sbRules").textContent = st ? (Number(st.fy.slice(0, 4)) >= 2026 ? "Income-tax Act, 2025 · Form 26" : "Income-tax Act, 1961 · Form 3CD") + (state.rules ? ` · Rules ${state.rules.pinned.rules}${state.rules.update ? " (newer available)" : ""}` : "") : "";
   const [text, view] = nextAction();
   $("#nextBox").hidden = false;
@@ -995,6 +995,7 @@ const toggleOn = v => v === "on" || (v === "auto" && isCo());
 async function loadPresent() {
   const st = await reloadSettings();
   fillOpts(st.options);
+  fillPeriod(st.period);
   if (!state.analysis) { try { state.analysis = await api("POST", `/api/projects/${pid()}/analyse`); } catch (e) { toast(e.message, true); } }
   // Profit sharing (non-company).
   $("#psBox").hidden = isCo();
@@ -1010,6 +1011,28 @@ async function loadPresent() {
   renderRatioBox();
   refreshPreview();
 }
+// Period: full financial year or chosen dates.
+const iso = d => d.toISOString().slice(0, 10);
+function fyStartYear() { return Number(state.settings.fy.slice(0, 4)); }
+function fillPeriod(p) {
+  $$('input[name=per]').forEach(r => (r.checked = r.value === (p ? "other" : "fy")));
+  $("#perBox").hidden = !p;
+  $("#perStart").value = p ? p.start : ""; $("#perEnd").value = p ? p.end : ""; $("#perCmp").value = p && p.comparative ? p.comparative : "";
+}
+function readPeriod() {
+  if (($$('input[name=per]').find(r => r.checked) || {}).value !== "other") return null;
+  const start = $("#perStart").value, end = $("#perEnd").value, cmp = $("#perCmp").value;
+  if (!start || !end) throw new Error("Choose the start and end dates of the period.");
+  return { start, end, comparative: cmp || null };
+}
+$$('input[name=per]').forEach(r => r.addEventListener("change", () => { $("#perBox").hidden = r.value !== "other" || !r.checked; }));
+$$("[data-per]").forEach(b => b.addEventListener("click", () => {
+  const y = fyStartYear(), U = (yy, m, d) => iso(new Date(Date.UTC(yy, m, d)));
+  const map = { q1: [U(y, 3, 1), U(y, 5, 30)], q2: [U(y, 6, 1), U(y, 8, 30)], q3: [U(y, 9, 1), U(y, 11, 31)], q4: [U(y + 1, 0, 1), U(y + 1, 2, 31)], h1: [U(y, 3, 1), U(y, 8, 30)], cal: [U(y, 0, 1), U(y, 11, 31)] };
+  const [a, z] = map[b.dataset.per];
+  $("#perStart").value = a; $("#perEnd").value = z;
+  $("#perCmp").value = b.dataset.per === "cal" ? U(y - 1, 11, 31) : U(y, 2, 31);
+}));
 function fillOpts(o) {
   $("#oUnit").value = o.unit; $("#oDec").value = String(o.decimals);
   $$('input[name=layout]').forEach(r => (r.checked = r.value === o.layout));
@@ -1060,7 +1083,9 @@ async function saveOpts(options) {
   const profit_sharing = $$("#psRows input").map(i => [i.dataset.owner, Math.max(0, Math.round(Number(i.value) || 0))]);
   setStatus($("#oStatus"), "Saving...");
   try {
-    await api("POST", `/api/projects/${pid()}/settings`, { options, profit_sharing });
+    const period = readPeriod();
+    await api("POST", `/api/projects/${pid()}/settings`, { options, profit_sharing, period });
+    state.settings.period = period;
     state.settings.options = options; state.settings.profit_sharing = profit_sharing; state.analysis = null;
     setStatus($("#oStatus"), "Saved."); toast("Saved."); refreshPreview(); renderNext();
   } catch (err) { setStatus($("#oStatus"), err.message, true); }

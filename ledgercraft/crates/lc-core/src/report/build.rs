@@ -135,11 +135,22 @@ struct Ctx<'a> {
 
 impl Ctx<'_> {
     fn period_heads(&self, as_at: bool) -> (String, String) {
-        let lead = if as_at { "As at" } else { "For the year ended" };
-        (
-            format!("{lead} {}", long_date(self.end_cy)),
-            format!("{lead} {}", long_date(self.end_py)),
-        )
+        if as_at {
+            (
+                format!("As at {}", long_date(self.end_cy)),
+                format!("As at {}", long_date(self.end_py)),
+            )
+        } else if self.eng.is_full_year() {
+            (
+                format!("For the year ended {}", long_date(self.end_cy)),
+                format!("For the year ended {}", long_date(self.end_py)),
+            )
+        } else {
+            (
+                format!("For the period ended {}", long_date(self.end_cy)),
+                format!("Previous period ({})", long_date(self.end_py)),
+            )
+        }
     }
 
     fn has_py(&self) -> bool {
@@ -294,7 +305,7 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
         cy,
         py,
         end_cy: eng.fy_end,
-        end_py: eng.fy_start.pred_opt().unwrap_or(eng.fy_start),
+        end_py: eng.comparative_date(),
         warnings: Vec::new(),
         blockers: Vec::new(),
     };
@@ -413,8 +424,8 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
     sections.push(Section {
         id: "profit_and_loss".into(),
         title: format!(
-            "Statement of Profit and Loss for the year ended {}",
-            long_date(eng.fy_end)
+            "Statement of Profit and Loss for the {}",
+            eng.period_phrase()
         ),
         contents: true,
         blocks: vec![Block::Table(face_table(&c, pl_rows, false))],
@@ -447,7 +458,7 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
                         .collect();
                     sections.push(Section {
                         id: "cash_flow".into(),
-                        title: format!("Cash Flow Statement for the year ended {}", long_date(eng.fy_end)),
+                        title: format!("Cash Flow Statement for the {}", eng.period_phrase()),
                         contents: true,
                         blocks: vec![
                             Block::Table(Table {
@@ -510,7 +521,10 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
         signature: Some(sig.clone()),
     });
 
-    if opt.tax_depreciation_annexure {
+    if !eng.is_full_year() {
+        c.warnings.push("These statements cover less than a year: ratios are for the period and not annualised; the Income-tax depreciation annexure is left out (tax depreciation is worked out for a full year).".into());
+    }
+    if opt.tax_depreciation_annexure && eng.is_full_year() {
         if let Some(far) = &a.far {
             if !far.it.is_empty() {
                 sections.push(Section {
@@ -542,10 +556,7 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
         entity: eng.entity_name.clone(),
         entity_type: eng.entity_type.label().into(),
         details: opt.entity_details.clone(),
-        title: format!(
-            "Financial Statements for the year ended {}",
-            long_date(eng.fy_end)
-        ),
+        title: format!("Financial Statements for the {}", eng.period_phrase()),
         period_end: long_date(eng.fy_end),
         unit_note: format!(
             "(All amounts in {}, unless otherwise stated)",
@@ -1117,10 +1128,7 @@ fn capital_note(c: &mut Ctx) -> Vec<Block> {
     columns.push(col("24mm", Align::Right));
     header.push(hc("Balance at the end of the year", 1, 1, Align::Right));
     let mut blocks = vec![Block::Table(Table {
-        title: Some(format!(
-            "Movement during the year ended {}",
-            long_date(c.end_cy)
-        )),
+        title: Some(format!("Movement during the {}", c.eng.period_phrase())),
         columns,
         header: vec![header],
         rows: table_rows,

@@ -947,13 +947,20 @@ impl App {
                 pdf: want("pdf"),
                 statements_xlsx: want("xlsx"),
                 statements_html: want("html"),
+                statements_docx: want("docx"),
                 auditor_workbook: want("auditor_workbook"),
                 json: want("json"),
                 report: st.options.clone(),
                 adjustments: st.adjustments.clone(),
                 adjustment_effects: p.engagement_adjusted().map(|x| x.1).unwrap_or_default(),
             };
-            if !(o.pdf || o.statements_xlsx || o.statements_html || o.auditor_workbook || o.json) {
+            if !(o.pdf
+                || o.statements_xlsx
+                || o.statements_html
+                || o.statements_docx
+                || o.auditor_workbook
+                || o.json)
+            {
                 return Err("Choose at least one file to export.".into());
             }
             o

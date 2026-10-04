@@ -31,6 +31,7 @@ pub struct ExportOptions {
     pub pdf: bool,
     pub statements_xlsx: bool,
     pub statements_html: bool,
+    pub statements_docx: bool,
     pub auditor_workbook: bool,
     pub json: bool,
     pub report: ReportOptions,
@@ -46,6 +47,7 @@ impl Default for ExportOptions {
             pdf: true,
             statements_xlsx: true,
             statements_html: true,
+            statements_docx: true,
             auditor_workbook: true,
             json: true,
             report: ReportOptions::default(),
@@ -148,6 +150,13 @@ pub fn export(
             fs::write(
                 tmp.join("Financial_Statements.xlsx"),
                 crate::render::xlsx::render(&rep)?,
+            )
+            .map_err(|e| e.to_string())?;
+        }
+        if opt.statements_docx {
+            fs::write(
+                tmp.join("Financial_Statements.docx"),
+                crate::render::docx::render(&rep)?,
             )
             .map_err(|e| e.to_string())?;
         }

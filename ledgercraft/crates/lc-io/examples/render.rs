@@ -51,6 +51,11 @@ fn main() {
         );
         std::fs::write(out.join(format!("{name}.pdf")), pdf).unwrap();
         std::fs::write(
+            out.join(format!("{name}.docx")),
+            lc_io::render::docx::render(&r).unwrap(),
+        )
+        .unwrap();
+        std::fs::write(
             out.join(format!("{name}.xlsx")),
             lc_io::render::xlsx::render(&r).unwrap(),
         )

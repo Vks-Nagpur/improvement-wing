@@ -86,6 +86,12 @@ fn export_is_versioned_and_signing_copy_needs_no_blockers() {
     let d1 = export(&root, &ok.engagement, &a, &signoff, &opt)
         .unwrap()
         .dir;
+    // Word output: a valid package carrying the statements.
+    let docx = std::fs::read(d1.join("Financial_Statements.docx")).unwrap();
+    let mut z = zip::ZipArchive::new(std::io::Cursor::new(docx)).unwrap();
+    let mut xml = String::new();
+    std::io::Read::read_to_string(&mut z.by_name("word/document.xml").unwrap(), &mut xml).unwrap();
+    assert!(xml.contains("Balance Sheet as at") && xml.contains("w:tbl"));
     let d2 = export(&root, &ok.engagement, &a, &signoff, &opt)
         .unwrap()
         .dir;

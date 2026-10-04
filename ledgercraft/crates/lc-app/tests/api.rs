@@ -448,7 +448,7 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         .call(
             "POST",
             &format!("/api/projects/{pid}/export"),
-            Some(json!({"mode": "draft", "files": {"pdf": false, "xlsx": false, "html": false, "json": false, "auditor_workbook": true}})),
+            Some(json!({"mode": "draft", "files": {"pdf": false, "xlsx": false, "docx": false, "html": false, "json": false, "auditor_workbook": true}})),
         )
         .unwrap();
     let names: Vec<String> = ex["files"]
@@ -469,7 +469,7 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         .call(
             "POST",
             &format!("/api/projects/{pid}/export"),
-            Some(json!({"mode": "draft", "files": {"pdf": false, "xlsx": false, "html": false, "json": false, "auditor_workbook": false}})),
+            Some(json!({"mode": "draft", "files": {"pdf": false, "xlsx": false, "docx": false, "html": false, "json": false, "auditor_workbook": false}})),
         )
         .unwrap_err()
         .contains("at least one"));

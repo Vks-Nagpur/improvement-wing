@@ -427,3 +427,159 @@ pub fn read_far(
         basis,
     })
 }
+
+/// A bank statement as banks export it (Excel or CSV): date, narration,
+/// cheque / reference, withdrawal and deposit (or amount with Dr/Cr), balance.
+/// Lines above the column headings (account details) are skipped.
+pub fn read_bank_statement(path: &Path) -> Result<Vec<lc_core::bankrec::BankLine>, String> {
+    let t = read_table(
+        path,
+        &["Statement", "Bank Statement", "Transactions"],
+        &[
+            "narration",
+            "description",
+            "particulars",
+            "transaction details",
+            "remarks",
+            "details",
+        ],
+    )?;
+    let dc = t
+        .col(&[
+            "date",
+            "txn date",
+            "transaction date",
+            "tran date",
+            "value date",
+            "posting date",
+            "value dt",
+            "txn. date",
+        ])
+        .ok_or("no Date column (looked for Date, Txn Date, Transaction Date, Value Date)")?;
+    let nc = t.col(&[
+        "narration",
+        "description",
+        "particulars",
+        "transaction details",
+        "remarks",
+        "details",
+    ]);
+    let rc = t.col(&[
+        "chq/ref no",
+        "chq./ref.no.",
+        "chq / ref no",
+        "chq no",
+        "cheque no",
+        "cheque no.",
+        "cheque number",
+        "ref no",
+        "ref no.",
+        "reference",
+        "reference no",
+        "chq/ref number",
+        "instrument no",
+    ]);
+    let wc = t.col(&[
+        "withdrawal",
+        "withdrawals",
+        "withdrawal amt",
+        "withdrawal amt.",
+        "withdrawal amount",
+        "debit",
+        "debits",
+        "debit amount",
+        "dr",
+        "withdrawal (dr)",
+        "debit (rs)",
+    ]);
+    let pc = t.col(&[
+        "deposit",
+        "deposits",
+        "deposit amt",
+        "deposit amt.",
+        "deposit amount",
+        "credit",
+        "credits",
+        "credit amount",
+        "cr",
+        "deposit (cr)",
+        "credit (rs)",
+    ]);
+    let ac = t.col(&["amount", "transaction amount", "amount (rs)"]);
+    let tc = t.col(&["dr/cr", "dr / cr", "cr/dr", "type", "txn type"]);
+    let bc = t.col(&[
+        "balance",
+        "closing balance",
+        "running balance",
+        "balance (rs)",
+        "available balance",
+    ]);
+    if wc.is_none() && pc.is_none() && ac.is_none() {
+        return Err("no Withdrawal / Deposit (or Amount) columns".into());
+    }
+    let num = |s: &str, line: usize| -> Result<Money, String> {
+        let s = s.trim();
+        if s.is_empty() {
+            return Ok(Money::ZERO);
+        }
+        let low = s.to_ascii_lowercase();
+        let digits: String = s
+            .chars()
+            .filter(|c| {
+                c.is_ascii_digit() || *c == '.' || *c == '-' || *c == '(' || *c == ')' || *c == ','
+            })
+            .collect();
+        let m = Money::parse(&digits).map_err(|e| format!("row {line}: {e}"))?;
+        Ok(if low.ends_with("dr") {
+            -m.abs()
+        } else if low.ends_with("cr") {
+            m.abs()
+        } else {
+            m
+        })
+    };
+    let mut out = Vec::new();
+    for (row, &line) in t.rows.iter().zip(&t.source_rows) {
+        let ds = t.get(row, Some(dc));
+        let Some(date) = parse_date(ds) else {
+            // Opening / closing / total lines without a date are not transactions.
+            continue;
+        };
+        let amount = if let Some(a) = ac {
+            let m = num(t.get(row, Some(a)), line)?.abs();
+            let kind = t.get(row, tc).to_ascii_lowercase();
+            if kind.starts_with("dr") || kind.starts_with("d") && !kind.starts_with("dep") {
+                -m
+            } else {
+                m
+            }
+        } else {
+            num(t.get(row, pc), line)?.abs() - num(t.get(row, wc), line)?.abs()
+        };
+        if amount.is_zero() {
+            continue;
+        }
+        let balance = match bc {
+            Some(_) => {
+                let b = t.get(row, bc);
+                if b.trim().is_empty() {
+                    None
+                } else {
+                    Some(num(b, line)?)
+                }
+            }
+            None => None,
+        };
+        out.push(lc_core::bankrec::BankLine {
+            date,
+            narration: t.get(row, nc).to_string(),
+            reference: t.get(row, rc).to_string(),
+            amount,
+            balance,
+        });
+    }
+    if out.is_empty() {
+        return Err("no transactions found in the statement".into());
+    }
+    Ok(out)
+}

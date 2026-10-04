@@ -40,6 +40,7 @@
     <button data-view="import" disabled><b>2</b><span><span class="sn">Import books</span><small class="ss" data-ss="import"></small></span></button>
     <button data-view="check" disabled><b>3</b><span><span class="sn">Check</span><small class="ss" data-ss="check"></small></span></button>
     <button data-view="map" disabled><b>4</b><span><span class="sn">Map ledgers</span><small class="ss" data-ss="map"></small></span></button>
+    <button data-view="bank" disabled><b>5</b><span><span class="sn">Bank reconciliation</span><small class="ss" data-ss="bank">Optional</small></span></button>
     <button data-view="adjust" disabled><b>5</b><span><span class="sn">Adjustments</span><small class="ss" data-ss="adjust">Optional</small></span></button>
     <button data-view="analysis" disabled><b>5</b><span><span class="sn">Analysis</span><small class="ss" data-ss="analysis"></small></span></button>
     <button data-view="disclose" disabled><b>6</b><span><span class="sn">Notes and disclosures</span><small class="ss" data-ss="disclose"></small></span></button>
@@ -193,6 +194,16 @@
         <label class="check"><input type="checkbox" id="mapAttention" checked> Only lines that need attention</label>
       </div>
       <table class="grid dense" id="mapTable"><thead><tr><th>Ledger</th><th>Group in books</th><th class="num">Balance</th><th>Shown under</th><th>Status</th><th>Tags</th><th class="act">Actions</th></tr></thead><tbody></tbody></table>
+    </section>
+
+    <!-- Bank reconciliation -->
+    <section data-panel="bank" hidden>
+      <header class="screen-head">
+        <div><h1>Bank reconciliation</h1><p class="lead">Upload the bank statement (Excel or CSV, as downloaded from net banking) for each bank account. LedgerCraft matches it with the day book and prepares the reconciliation.</p></div>
+        <div class="actions"><button class="primary" type="button" data-next>Next</button></div>
+      </header>
+      <div class="guide" data-guide="bank"></div>
+      <div id="bankBody"><p class="empty">Run the checks first.</p></div>
     </section>
 
     <!-- 5. Adjustments -->
@@ -403,6 +414,7 @@
             <label class="switch"><input type="checkbox" data-file="xlsx" checked> Excel of the statements</label>
             <label class="switch"><input type="checkbox" data-file="docx" checked> Word document (to edit wording)</label>
             <label class="switch"><input type="checkbox" data-file="auditor_workbook" checked> Auditor workbook (findings, loans, adjustments)</label>
+            <label class="switch"><input type="checkbox" data-file="tax_audit" checked> Tax audit helper (Form 3CD / Form 26 clauses)</label>
             <label class="switch"><input type="checkbox" data-file="html" checked> Preview page (opens in a browser)</label>
             <label class="switch"><input type="checkbox" data-file="json"> Data file for other software</label>
           </div>

@@ -384,6 +384,12 @@ tr.off .jl { text-decoration: line-through; }
 .final-why .k { margin: 0 0 var(--s1); font-weight: 600; color: var(--warn-ink); }
 .final-why ul { margin: 0; padding-left: var(--s5); line-height: 1.6; }
 
+/* Bank reconciliation */
+.brs { max-width: 720px; }
+.brs tr.strong td { font-weight: 600; background: var(--line-2); }
+#bankBody details { margin-top: var(--s2); }
+#bankBody details table { margin-top: var(--s2); }
+
 /* Analysis */
 tr.nil td { color: var(--muted); }
 tr.flag td { background: var(--warn-soft); }

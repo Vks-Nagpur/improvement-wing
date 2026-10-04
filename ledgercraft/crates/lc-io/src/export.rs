@@ -33,11 +33,15 @@ pub struct ExportOptions {
     pub statements_html: bool,
     pub statements_docx: bool,
     pub auditor_workbook: bool,
+    /// Tax audit helper (Form 3CD / Form 26 clauses).
+    pub tax_audit: bool,
     pub json: bool,
     pub report: ReportOptions,
     /// Manual adjustments already applied to the books (listed in the workbook).
     pub adjustments: Vec<lc_core::adjust::Adjustment>,
     pub adjustment_effects: Vec<lc_core::adjust::Applied>,
+    /// Bank reconciliations (one sheet each in the auditor workbook).
+    pub bank_recs: Vec<lc_core::bankrec::Reconciliation>,
 }
 
 impl Default for ExportOptions {
@@ -49,10 +53,12 @@ impl Default for ExportOptions {
             statements_html: true,
             statements_docx: true,
             auditor_workbook: true,
+            tax_audit: true,
             json: true,
             report: ReportOptions::default(),
             adjustments: Vec::new(),
             adjustment_effects: Vec::new(),
+            bank_recs: Vec::new(),
         }
     }
 }
@@ -169,6 +175,9 @@ pub fn export(
         }
         if opt.auditor_workbook {
             write_auditor_workbook(&tmp.join("Auditor_Reference_Workbook.xlsx"), eng, a, opt)?;
+        }
+        if opt.tax_audit {
+            crate::tax_audit::write(&tmp.join(crate::tax_audit::file_name(eng)), eng, a)?;
         }
         if opt.json {
             fs::write(
@@ -562,5 +571,160 @@ fn write_auditor_workbook(
         }
         ws.set_freeze_panes(3, 0).ok();
     }
+    for (k, r) in opt.bank_recs.iter().enumerate() {
+        bank_sheet(&mut wb, &f, k, r)?;
+    }
     x(wb.save(path))
+}
+
+/// (title, items (date, what, amount), sign) of one block of a reconciliation.
+type OpenGroup<'a> = (&'a str, Vec<(String, String, Money)>, i64);
+
+fn bank_sheet(
+    wb: &mut Workbook,
+    f: &Fmts,
+    k: usize,
+    r: &lc_core::bankrec::Reconciliation,
+) -> Result<(), String> {
+    let short: String = r
+        .ledger
+        .chars()
+        .filter(|c| c.is_alphanumeric() || *c == ' ')
+        .take(20)
+        .collect();
+    let name = format!("BRS {} {}", k + 1, short);
+    let ws = x(wb.add_worksheet().set_name(name.trim()))?;
+    x(ws.write_string_with_format(
+        0,
+        0,
+        format!(
+            "Bank reconciliation statement: {} as at {}",
+            r.ledger,
+            r.as_at
+                .map(|d| d.format("%d-%m-%Y").to_string())
+                .unwrap_or_default()
+        ),
+        &f.title,
+    ))?;
+    let mut row = 2u32;
+    let line = |ws: &mut Worksheet,
+                row: &mut u32,
+                label: &str,
+                m: Money,
+                bold: bool|
+     -> Result<(), String> {
+        x(ws.write_string_with_format(*row, 0, label, if bold { &f.bold } else { &f.wrap }))?;
+        x(ws.write_number_with_format(
+            *row,
+            3,
+            m.as_f64(),
+            if bold { &f.num_bold } else { &f.num },
+        ))?;
+        *row += 1;
+        Ok(())
+    };
+    line(
+        ws,
+        &mut row,
+        "Balance as per books (Dr = money in the bank)",
+        r.book_balance,
+        true,
+    )?;
+    let bl = |v: &[lc_core::bankrec::BookLine]| -> Vec<(String, String, Money)> {
+        v.iter()
+            .map(|b| {
+                (
+                    b.date.format("%d-%m-%Y").to_string(),
+                    b.voucher.clone(),
+                    b.amount,
+                )
+            })
+            .collect()
+    };
+    let sl = |v: &[lc_core::bankrec::BankLine]| -> Vec<(String, String, Money)> {
+        v.iter()
+            .map(|b| {
+                (
+                    b.date.format("%d-%m-%Y").to_string(),
+                    format!("{} {}", b.reference, b.narration)
+                        .trim()
+                        .to_string(),
+                    b.amount,
+                )
+            })
+            .collect()
+    };
+    let groups: [OpenGroup; 4] = [
+        (
+            "Less: deposited in the books, not yet credited by the bank",
+            bl(&r.deposited_not_cleared),
+            -1,
+        ),
+        (
+            "Add: payments in the books, not yet presented to the bank",
+            bl(&r.issued_not_presented),
+            -1,
+        ),
+        (
+            "Add: credited by the bank, not yet in the books",
+            sl(&r.credited_by_bank_only),
+            1,
+        ),
+        (
+            "Less: debited by the bank, not yet in the books",
+            sl(&r.debited_by_bank_only),
+            1,
+        ),
+    ];
+    for (title, items, sign) in groups {
+        x(ws.write_string_with_format(row, 0, title, &f.bold))?;
+        row += 1;
+        let mut total = Money::ZERO;
+        for (d, what, m) in &items {
+            let v = Money(m.0 * sign);
+            x(ws.write_string(row, 0, d))?;
+            x(ws.write_string_with_format(row, 1, what, &f.wrap))?;
+            x(ws.write_number_with_format(row, 2, v.as_f64(), &f.num))?;
+            total += v;
+            row += 1;
+        }
+        line(ws, &mut row, "", total, false)?;
+    }
+    line(
+        ws,
+        &mut row,
+        "Balance as per bank statement (worked out)",
+        r.computed_statement_balance,
+        true,
+    )?;
+    if let Some(sb) = r.statement_balance {
+        line(
+            ws,
+            &mut row,
+            "Balance shown by the bank statement",
+            sb,
+            true,
+        )?;
+        line(
+            ws,
+            &mut row,
+            "Difference (should be nil)",
+            r.difference.unwrap_or_default(),
+            true,
+        )?;
+    }
+    row += 1;
+    x(ws.write_string(
+        row,
+        0,
+        format!(
+            "{} entries matched between the books and the statement.",
+            r.matched.len()
+        ),
+    ))?;
+    ws.set_column_width(0, 52).ok();
+    ws.set_column_width(1, 40).ok();
+    ws.set_column_width(2, 16).ok();
+    ws.set_column_width(3, 18).ok();
+    Ok(())
 }

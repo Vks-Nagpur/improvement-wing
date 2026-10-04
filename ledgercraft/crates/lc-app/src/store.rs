@@ -59,6 +59,8 @@ pub struct Inputs {
     pub tally_company: Option<String>,
     /// Branch books for consolidated statements (head office = the files above).
     pub branches: Vec<BranchInput>,
+    /// Bank statements for reconciliation: (bank ledger, file).
+    pub bank_statements: Vec<(String, String)>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

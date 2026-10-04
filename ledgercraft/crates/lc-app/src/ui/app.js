@@ -141,9 +141,9 @@ function renderNext() {
 
 // ---- what the user wants to do (sets the steps) --------------------------------
 const FLOWS = {
-  statements: { name: "Financial statements", steps: ["projects", "import", "check", "map", "adjust", "disclose", "present", "export", "audit"] },
-  analysis: { name: "Check and analyse", steps: ["projects", "import", "check", "analysis", "map", "adjust", "audit"] },
-  taxaudit: { name: "Tax audit help", steps: ["projects", "import", "check", "analysis", "adjust", "export", "audit"] },
+  statements: { name: "Financial statements", steps: ["projects", "import", "check", "map", "bank", "adjust", "disclose", "present", "export", "audit"] },
+  analysis: { name: "Check and analyse", steps: ["projects", "import", "check", "analysis", "bank", "map", "adjust", "audit"] },
+  taxaudit: { name: "Tax audit help", steps: ["projects", "import", "check", "analysis", "bank", "adjust", "export", "audit"] },
 };
 state.intent = store.get("intent", "statements");
 function applyFlow() {
@@ -207,6 +207,7 @@ function show(view) {
   if (view === "audit") loadAudit();
   if (view === "adjust") loadAdjustments();
   if (view === "disclose") loadDisclosures();
+  if (view === "bank") loadBank();
   if ((view === "map" || view === "check") && !state.analysis && state.settings?.inputs.tb) runChecks();
   if (view === "check") loadRules();
   renderNext();
@@ -688,6 +689,51 @@ let mapTimer;
 $("#mapSearch").addEventListener("input", () => { clearTimeout(mapTimer); mapTimer = setTimeout(() => { state.mapLimit = 0; renderMap(); }, 150); });
 $("#mapAttention").addEventListener("change", () => { state.mapLimit = 0; renderMap(); });
 
+// ---- bank reconciliation -------------------------------------------------------
+async function loadBank() {
+  const box = $("#bankBody");
+  let d;
+  try { d = await api("GET", `/api/projects/${pid()}/bankrec`); }
+  catch (e) { box.innerHTML = `<p class="empty">${esc(e.message)}</p>`; return; }
+  if (!d.ledgers.length) { box.innerHTML = '<p class="empty">No bank ledgers in this trial balance.</p>'; return; }
+  const m = p => (p < 0 ? `(${rupees(-p)})` : rupees(p));
+  const sum = a => a.reduce((t, x) => t + x.amount, 0);
+  box.innerHTML = "";
+  for (const l of d.ledgers) {
+    const r = d.recs.find(x => x.ledger === l.name);
+    const card = document.createElement("div"); card.className = "box";
+    let body = `<div class="title-row"><h2>${esc(l.name)}</h2><label class="btnlike small"><input type="file" accept=".xlsx,.xls,.csv,.xlsm,.ods" hidden><span tabindex="0" role="button">${r ? "Replace" : "Upload"} bank statement</span></label></div>
+      <p class="muted small">Balance as per books: ${esc(l.balance)}</p>`;
+    if (r) {
+      const diff = r.difference;
+      const rows = [
+        ["Balance as per books", r.book_balance, true],
+        [`Less: deposited, not yet credited by the bank (${r.deposited_not_cleared.length})`, -sum(r.deposited_not_cleared)],
+        [`Add: payments not yet presented (${r.issued_not_presented.length})`, -sum(r.issued_not_presented)],
+        [`Add: credited by the bank, not in the books (${r.credited_by_bank_only.length})`, sum(r.credited_by_bank_only)],
+        [`Less: debited by the bank, not in the books (${r.debited_by_bank_only.length})`, sum(r.debited_by_bank_only)],
+        ["Balance as per bank (worked out)", r.computed_statement_balance, true],
+      ];
+      if (r.statement_balance != null) rows.push(["Balance shown by the statement", r.statement_balance, true]);
+      body += `<table class="grid dense brs"><tbody>${rows.map(([t, v, b]) => `<tr class="${b ? "strong" : ""}"><td>${esc(t)}</td><td class="num">${m(v)}</td></tr>`).join("")}</tbody></table>
+        <p class="${diff == null ? "muted" : diff === 0 ? "okt" : "errt"} small mt">${diff == null ? "The statement has no balance column: compare the worked-out balance with the statement yourself." : diff === 0 ? `Reconciled: ${r.matched.length} entries matched, nothing unexplained.` : `Difference of ${m(diff)} not explained by the open items. Check the period of the statement and entries outside the matching window.`}</p>`;
+      const list = (title, items, isBook) => items.length ? `<details><summary>${esc(title)} (${items.length})</summary><table class="grid dense"><tbody>${items.map(x => `<tr><td>${esc(x.date)}</td><td>${esc(isBook ? x.voucher : `${x.reference} ${x.narration}`)}</td><td class="num">${m(Math.abs(x.amount))}</td></tr>`).join("")}</tbody></table></details>` : "";
+      body += list("Deposited, not yet credited by the bank", r.deposited_not_cleared, true) + list("Payments not yet presented", r.issued_not_presented, true) + list("Credited by the bank only", r.credited_by_bank_only, false) + list("Debited by the bank only", r.debited_by_bank_only, false);
+    }
+    card.innerHTML = body;
+    const input = card.querySelector("input[type=file]");
+    card.querySelector("[role=button]").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+    input.addEventListener("change", async () => {
+      const f = input.files[0]; if (!f) return;
+      try {
+        const res = await api("POST", `/api/projects/${pid()}/upload?kind=bank&branch=${encodeURIComponent(l.name)}&name=${encodeURIComponent(f.name)}`, undefined, await f.arrayBuffer());
+        toast(`${l.name}: ${res.contents} read.`); loadBank();
+      } catch (e) { toast(e.message, true); }
+    });
+    box.appendChild(card);
+  }
+}
+
 // ---- 5. adjustments --------------------------------------------------------
 // Amounts typed in rupees ("1,23,456.50") become exact paise.
 function paise(s) {
@@ -848,10 +894,10 @@ $("#anRerun").addEventListener("click", runChecks);
 $("#anWorkbook").addEventListener("click", async () => {
   const b = $("#anWorkbook"); b.disabled = true; b.textContent = "Saving...";
   try {
-    const r = await api("POST", `/api/projects/${pid()}/export`, { mode: "draft", folder: "", files: { pdf: false, xlsx: false, html: false, auditor_workbook: true, json: false } });
+    const r = await api("POST", `/api/projects/${pid()}/export`, { mode: "draft", folder: "", files: { pdf: false, xlsx: false, docx: false, html: false, auditor_workbook: true, tax_audit: true, json: false } });
     state.lastExport = r.dir; $("#openExport").disabled = false;
-    toast("Auditor workbook saved.");
-    if (await confirmBox("Auditor workbook saved", r.dir, "Open folder")) openFolder(r.dir);
+    toast("Auditor workbooks saved.");
+    if (await confirmBox("Auditor workbook and tax audit helper saved", r.dir, "Open folder")) openFolder(r.dir);
   } catch (e) { toast(e.message, true); }
   b.disabled = false; b.textContent = "Save auditor workbook";
 });

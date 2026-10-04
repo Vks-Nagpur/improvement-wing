@@ -7,6 +7,7 @@
 
 pub mod adjust;
 pub mod ageing;
+pub mod bankrec;
 pub mod capital;
 pub mod checks;
 pub mod consolidate;

@@ -130,3 +130,50 @@ fn export_is_versioned_and_signing_copy_needs_no_blockers() {
     );
     let _ = std::fs::remove_dir_all(&root);
 }
+
+#[test]
+fn tax_audit_helper_lists_the_planted_cases() {
+    let root = tmp("taxaudit");
+    let s = lc_testdata::scenarios::firm_with_glitches();
+    let a = analyse(&s.engagement, &RulesPack::builtin());
+    let ex = export(
+        &root,
+        &s.engagement,
+        &a,
+        &SignOff::default(),
+        &ExportOptions::default(),
+    )
+    .unwrap();
+    let path = ex.dir.join("Tax_Audit_Helper_Form_3CD.xlsx");
+    let mut book: calamine::Xlsx<_> = calamine::open_workbook(&path).unwrap();
+    let names = calamine::Reader::sheet_names(&book);
+    for want in [
+        "Index",
+        "18 Depreciation",
+        "21(d) Cash payments",
+        "26 Statutory dues",
+        "31 Loans",
+        "31(ba) Cash receipts",
+        "34 TDS check",
+        "40 Ratios",
+        "44 GST break-up",
+    ] {
+        assert!(names.contains(&want.to_string()), "missing sheet {want}");
+    }
+    let cash = calamine::Reader::worksheet_range(&mut book, "21(d) Cash payments").unwrap();
+    let n = a
+        .findings
+        .iter()
+        .filter(|f| f.code == "CASH_PAYMENT_LIMIT" || f.code == "CASH_ASSET_PURCHASE")
+        .count();
+    assert_eq!(
+        cash.rows()
+            .skip(4)
+            .filter(|r| !r[0].to_string().is_empty())
+            .count(),
+        n
+    );
+    let loans = calamine::Reader::worksheet_range(&mut book, "31 Loans").unwrap();
+    assert!(loans.rows().any(|r| r[0].to_string().contains("Loan from")));
+    let _ = std::fs::remove_dir_all(&root);
+}

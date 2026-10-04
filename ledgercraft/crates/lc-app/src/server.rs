@@ -219,6 +219,7 @@ impl App {
             ("GET", ["api", "recycle-bin"]) => Ok(json!(self.store.deleted())),
             ("POST", ["api", "recycle-bin", item, "restore"]) => self.store.restore(item).map(|id| json!({"id": id})),
             ("GET", ["api", "projects", id, "policies"]) => self.policies(id),
+            ("GET", ["api", "projects", id, "bankrec"]) => self.bank_recs(id).map(|(ledgers, recs)| json!({"ledgers": ledgers, "recs": recs})),
             ("GET", ["api", "projects", id, "rules"]) => self.rules_info(id),
             ("POST", ["api", "projects", id, "rules", "migrate"]) => {
                 self.invalidate(id);
@@ -359,7 +360,12 @@ impl App {
         if body.is_empty() {
             return Err("The file is empty.".into());
         }
-        let file = if let Some(part) = kind.strip_prefix("branch_") {
+        let file = if kind == "bank" {
+            if branch.trim().is_empty() {
+                return Err("Choose the bank ledger first.".into());
+            }
+            format!("bank-{}.{ext}", crate::store::slug(branch))
+        } else if let Some(part) = kind.strip_prefix("branch_") {
             if !st.inputs.branches.iter().any(|b| b.name == branch) {
                 return Err("Add the branch first.".into());
             }
@@ -380,6 +386,9 @@ impl App {
                     .as_deref(),
             )
             .map(|t| format!("{} ledgers", t.ledgers.len())),
+            "bank" => {
+                lc_io::read::read_bank_statement(&tmp).map(|v| format!("{} bank entries", v.len()))
+            }
             "vouchers" | "branch_vouchers" => {
                 lc_io::read::read_vouchers(&tmp).map(|v| format!("{} vouchers", v.len()))
             }
@@ -402,6 +411,12 @@ impl App {
             "py_tb" => st.inputs.py_tb = Some(file.clone()),
             "vouchers" => st.inputs.vouchers = Some(file.clone()),
             "far" => st.inputs.far = Some(file.clone()),
+            "bank" => {
+                st.inputs.bank_statements.retain(|(l, _)| l != branch);
+                st.inputs
+                    .bank_statements
+                    .push((branch.to_string(), file.clone()));
+            }
             "branch_tb" | "branch_vouchers" => {
                 if let Some(b) = st.inputs.branches.iter_mut().find(|b| b.name == branch) {
                     if kind == "branch_tb" {
@@ -734,6 +749,40 @@ impl App {
         Ok(json!({"ok": true}))
     }
 
+    /// Bank ledgers of the year and the reconciliation of each one that has a
+    /// statement.
+    fn bank_recs(
+        &self,
+        id: &str,
+    ) -> Result<(Vec<Value>, Vec<lc_core::bankrec::Reconciliation>), String> {
+        let p = self.store.project(id)?;
+        let st = p.load_settings()?;
+        let (eng, a) = self.analysis(id)?;
+        let ledgers: Vec<Value> = a
+            .mapping
+            .iter()
+            .filter(|m| matches!(m.class, Some(lc_core::groups::Class::BankAccounts) | Some(lc_core::groups::Class::BankOdAc)))
+            .map(|m| json!({"name": m.name, "balance": m.tb_closing.fmt_drcr(), "statement": st.inputs.bank_statements.iter().any(|(l, _)| *l == m.name)}))
+            .collect();
+        let mut recs = Vec::new();
+        for (ledger, file) in &st.inputs.bank_statements {
+            let bank = lc_io::read::read_bank_statement(&p.inputs_dir().join(file))?;
+            let key = lc_core::model::norm_name(ledger);
+            let balance = eng
+                .cy
+                .ledgers
+                .iter()
+                .find(|l| lc_core::model::norm_name(&l.name) == key)
+                .map(|l| l.closing)
+                .unwrap_or_default();
+            let book = lc_core::bankrec::book_lines(&eng, ledger, eng.fy_end);
+            recs.push(lc_core::bankrec::reconcile(
+                ledger, balance, &book, &bank, eng.fy_end, 10,
+            ));
+        }
+        Ok((ledgers, recs))
+    }
+
     /// Which rule and format packs this year is pinned to, and whether this
     /// build has newer ones.
     fn rules_info(&self, id: &str) -> Result<Value, String> {
@@ -949,16 +998,19 @@ impl App {
                 statements_html: want("html"),
                 statements_docx: want("docx"),
                 auditor_workbook: want("auditor_workbook"),
+                tax_audit: want("tax_audit"),
                 json: want("json"),
                 report: st.options.clone(),
                 adjustments: st.adjustments.clone(),
                 adjustment_effects: p.engagement_adjusted().map(|x| x.1).unwrap_or_default(),
+                bank_recs: self.bank_recs(id).map(|x| x.1).unwrap_or_default(),
             };
             if !(o.pdf
                 || o.statements_xlsx
                 || o.statements_html
                 || o.statements_docx
                 || o.auditor_workbook
+                || o.tax_audit
                 || o.json)
             {
                 return Err("Choose at least one file to export.".into());

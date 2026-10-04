@@ -448,7 +448,7 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         .call(
             "POST",
             &format!("/api/projects/{pid}/export"),
-            Some(json!({"mode": "draft", "files": {"pdf": false, "xlsx": false, "docx": false, "html": false, "json": false, "auditor_workbook": true}})),
+            Some(json!({"mode": "draft", "files": {"pdf": false, "xlsx": false, "docx": false, "html": false, "json": false, "tax_audit": false, "auditor_workbook": true}})),
         )
         .unwrap();
     let names: Vec<String> = ex["files"]
@@ -469,7 +469,7 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         .call(
             "POST",
             &format!("/api/projects/{pid}/export"),
-            Some(json!({"mode": "draft", "files": {"pdf": false, "xlsx": false, "docx": false, "html": false, "json": false, "auditor_workbook": false}})),
+            Some(json!({"mode": "draft", "files": {"pdf": false, "xlsx": false, "docx": false, "html": false, "json": false, "tax_audit": false, "auditor_workbook": false}})),
         )
         .unwrap_err()
         .contains("at least one"));
@@ -773,6 +773,99 @@ fn branches_are_consolidated_and_must_cancel_out() {
         .unwrap()
         .iter()
         .any(|f| f["code"] == "BRANCH_NOT_ELIMINATED" && f["severity"] == "blocker"));
+    let _ = c.call("POST", "/api/quit", None);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn bank_statement_is_matched_and_reconciled() {
+    let dir = std::env::temp_dir().join(format!("lc-app-test4-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let app = Arc::new(App::new(dir.join("data"), "http://127.0.0.1:1").unwrap());
+    let (tx, rx) = std::sync::mpsc::channel();
+    let a2 = app.clone();
+    std::thread::spawn(move || serve(a2, 0, |addr| tx.send(addr).unwrap()).unwrap());
+    let c = Client {
+        base: rx.recv().unwrap(),
+        token: app.token.clone(),
+    };
+    let s = lc_testdata::scenarios::clean(lc_testdata::scenarios::Kind::Firm, 5, 6, 4, 2);
+    let f = dir.join("files");
+    std::fs::create_dir_all(&f).unwrap();
+    lc_io::write_inputs::write_trial_balance(&s.engagement.cy, &f.join("tb.xlsx")).unwrap();
+    lc_io::write_inputs::write_vouchers_csv(&s.engagement.vouchers, &f.join("daybook.csv"))
+        .unwrap();
+    // A statement that mirrors the bank ledger, except one cheque not yet
+    // presented and a bank charge not yet in the books.
+    let bank = lc_testdata::scenarios::BANK;
+    let led = s
+        .engagement
+        .cy
+        .ledgers
+        .iter()
+        .find(|l| l.name == bank)
+        .unwrap();
+    let mut lines = lc_core::bankrec::book_lines(&s.engagement, bank, s.engagement.fy_end);
+    lines.sort_by_key(|l| l.date);
+    let unpresented = lines.iter().rposition(|l| l.amount.is_cr()).unwrap();
+    let mut csv = String::from("Bank statement\nAccount 123\n\nDate,Narration,Chq./Ref.No.,Withdrawal Amt.,Deposit Amt.,Closing Balance\n");
+    let mut bal = led.opening;
+    for (i, l) in lines.iter().enumerate() {
+        if i == unpresented {
+            continue;
+        }
+        bal += l.amount;
+        let (w, d) = if l.amount.is_cr() {
+            (format!("{}", l.amount.abs().as_f64()), String::new())
+        } else {
+            (String::new(), format!("{}", l.amount.as_f64()))
+        };
+        csv.push_str(&format!(
+            "{},ENTRY,,{w},{d},{}\n",
+            l.date.format("%d/%m/%Y"),
+            bal.as_f64()
+        ));
+    }
+    bal += lc_core::Money(-11800);
+    csv.push_str(&format!(
+        "{},CHARGES,,118.00,,{}\n",
+        s.engagement.fy_end.format("%d/%m/%Y"),
+        bal.as_f64()
+    ));
+    std::fs::write(f.join("stmt.csv"), csv).unwrap();
+
+    let id = c
+        .call(
+            "POST",
+            "/api/projects",
+            Some(json!({"name": "Bank Co", "entity_type": "firm", "fy": "2025-26"})),
+        )
+        .unwrap()["id"]
+        .as_str()
+        .unwrap()
+        .replace('~', "%7E");
+    c.upload(&id, "tb", &f.join("tb.xlsx")).unwrap();
+    c.upload(&id, "vouchers", &f.join("daybook.csv")).unwrap();
+    let bytes = std::fs::read(f.join("stmt.csv")).unwrap();
+    let r: Value = ureq::post(&format!(
+        "{}/api/projects/{id}/upload?kind=bank&branch={}&name=stmt.csv",
+        c.base,
+        bank.replace(' ', "%20").replace('/', "%2F")
+    ))
+    .set("X-LC-Token", &c.token)
+    .send_bytes(&bytes)
+    .unwrap()
+    .into_json()
+    .unwrap();
+    assert!(r["contents"].as_str().unwrap().contains("bank entries"));
+    let br = c
+        .call("GET", &format!("/api/projects/{id}/bankrec"), None)
+        .unwrap();
+    let rec = &br["recs"][0];
+    assert_eq!(rec["issued_not_presented"].as_array().unwrap().len(), 1);
+    assert_eq!(rec["debited_by_bank_only"].as_array().unwrap().len(), 1);
+    assert_eq!(rec["deposited_not_cleared"].as_array().unwrap().len(), 0);
+    assert_eq!(rec["difference"], 0, "reconciles exactly: {rec}");
     let _ = c.call("POST", "/api/quit", None);
     let _ = std::fs::remove_dir_all(&dir);
 }

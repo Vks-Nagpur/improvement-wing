@@ -281,6 +281,10 @@ tr.current td { background: var(--accent-soft); }
 .file-row .state { font-size: 12.5px; color: var(--muted); }
 .file-row .state.ok { color: var(--accent-ink); }
 
+/* Branches */
+.inline-form { display: flex; gap: var(--s2); align-items: center; }
+.inline-form input { min-height: var(--h-sm); width: 220px; }
+
 /* Check */
 .rules-bar { display: flex; align-items: center; gap: var(--s3); margin: 0 0 var(--s4); padding: var(--s2) var(--s3); border-radius: var(--r); background: var(--line-2); font-size: 13px; color: var(--ink-2); }
 .rules-bar.update { background: var(--warn-soft); }

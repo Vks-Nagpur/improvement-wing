@@ -137,6 +137,9 @@ pub struct Engagement {
     /// Format pack pinned to this client year (None: the built-in one).
     #[serde(default)]
     pub format_pack: Option<crate::statements::FormatPack>,
+    /// Set when the books are a consolidation of head office and branches.
+    #[serde(default)]
+    pub consolidation: Option<crate::consolidate::MergeNotes>,
     /// Fixed asset register (optional).
     #[serde(default)]
     pub far: Option<crate::far::Register>,

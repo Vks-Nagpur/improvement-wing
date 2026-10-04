@@ -282,6 +282,36 @@
       "effective_from": "",
       "effective_until": ""
     },
+    "BRANCH_NOT_ELIMINATED": {
+      "severity": "blocker",
+      "title": "Branch accounts do not cancel out",
+      "simple": "In the combined books, the head office and branch accounts (group Branch / Divisions) should cancel to nil. They leave a difference: goods or cash in transit, or an entry passed in one set of books only.",
+      "old_ref": "",
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Consolidation of branch accounts",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
+    },
+    "BRANCH_GROUP_CONFLICT": {
+      "severity": "warning",
+      "title": "Same ledger, different groups in branches",
+      "simple": "This ledger is grouped differently in head office and a branch. LedgerCraft uses the head office group; correct the branch books if that is wrong.",
+      "old_ref": "",
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Consolidation of branch accounts",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
+    },
     "ABNORMAL_BALANCE": {
       "severity": "warning",
       "title": "Unusual balance side",

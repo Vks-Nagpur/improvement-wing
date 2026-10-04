@@ -9,6 +9,7 @@ pub mod adjust;
 pub mod ageing;
 pub mod capital;
 pub mod checks;
+pub mod consolidate;
 pub mod date;
 pub mod engine;
 pub mod facts;

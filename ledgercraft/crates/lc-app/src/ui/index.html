@@ -138,6 +138,7 @@
           </div>
           <div class="row-form">
             <div class="field grow"><label for="tCompany">Company</label><select id="tCompany"><option value="">Press "Find companies" first</option></select></div>
+            <div class="field"><label for="tInto">Import into</label><select id="tInto"><option value="">Head office</option></select></div>
             <label class="check"><input type="checkbox" id="tVouchers" checked> Day book too</label>
             <button class="primary" type="button" id="tImport">Import</button>
           </div>
@@ -151,6 +152,12 @@
             <select id="depBasis"><option value="income_tax_rates">Income-tax rates (WDV, 180-day rule)</option><option value="schedule_ii_wdv">Companies Act Schedule II, WDV</option><option value="schedule_ii_slm">Companies Act Schedule II, SLM</option></select></div>
           <p class="status" id="fStatus" role="status"></p>
         </div>
+      </div>
+          <div class="box mt" id="branchBox">
+        <div class="title-row"><h2>Branches (for consolidated statements)</h2>
+          <form class="inline-form" id="branchAdd"><input id="branchName" placeholder="Branch name, e.g. Pune" aria-label="Branch name" required><button type="submit" class="small">Add branch</button></form></div>
+        <p class="muted small">Only if the business keeps separate books for branches. The files above are the head office. Each branch's trial balance (and day book) is added ledger by ledger; head office and branch accounts must cancel out.</p>
+        <div id="branchRows"></div>
       </div>
     </section>
 

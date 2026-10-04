@@ -232,7 +232,9 @@ impl App {
                 self.invalidate(id);
                 self.store.project(id).and_then(|p| p.remove_input(&kind)).map(|f| json!({"ok": true, "file": f}))
             }
-            ("POST", ["api", "projects", id, "upload"]) => self.upload(id, q.get("kind").map(|s| s.as_str()).unwrap_or(""), q.get("name").map(|s| s.as_str()).unwrap_or("file"), body),
+            ("POST", ["api", "projects", id, "upload"]) => self.upload(id, q.get("kind").map(|s| s.as_str()).unwrap_or(""), q.get("name").map(|s| s.as_str()).unwrap_or("file"), q.get("branch").map(|s| s.as_str()).unwrap_or(""), body),
+            ("POST", ["api", "projects", id, "branches"]) => self.add_branch(id, &s(&json_body(), "name")),
+            ("POST", ["api", "projects", id, "branches", name, "remove"]) => self.remove_branch(id, name),
             ("GET", ["api", "tally", "companies"]) => {
                 let port = q.get("port").and_then(|p| p.parse().ok()).unwrap_or(9000);
                 lc_io::tally::TallyClient::new(q.get("host").map(|s| s.as_str()).unwrap_or("localhost"), port).companies().map(|c| json!(c))
@@ -297,7 +299,53 @@ impl App {
         self.cache.lock().unwrap().remove(id);
     }
 
-    fn upload(&self, id: &str, kind: &str, name: &str, body: &[u8]) -> Result<Value, String> {
+    fn add_branch(&self, id: &str, name: &str) -> Result<Value, String> {
+        let p = self.store.project(id)?;
+        let mut st = p.load_settings()?;
+        let name = name.trim();
+        if name.is_empty() {
+            return Err("Enter the branch name.".into());
+        }
+        if st
+            .inputs
+            .branches
+            .iter()
+            .any(|b| b.name.eq_ignore_ascii_case(name))
+        {
+            return Err(format!("Branch '{name}' is already there."));
+        }
+        st.inputs.branches.push(crate::store::BranchInput {
+            name: name.into(),
+            ..Default::default()
+        });
+        p.save_settings(&st)?;
+        p.log("user", "branch_added", json!({"branch": name}))?;
+        self.invalidate(id);
+        Ok(json!({"ok": true}))
+    }
+
+    fn remove_branch(&self, id: &str, name: &str) -> Result<Value, String> {
+        let p = self.store.project(id)?;
+        let mut st = p.load_settings()?;
+        let before = st.inputs.branches.len();
+        st.inputs.branches.retain(|b| b.name != name);
+        if st.inputs.branches.len() == before {
+            return Err("branch not found".into());
+        }
+        p.save_settings(&st)?;
+        p.log("user", "branch_removed", json!({"branch": name}))?;
+        self.invalidate(id);
+        Ok(json!({"ok": true}))
+    }
+
+    fn upload(
+        &self,
+        id: &str,
+        kind: &str,
+        name: &str,
+        branch: &str,
+        body: &[u8],
+    ) -> Result<Value, String> {
         let p = self.store.project(id)?;
         let mut st = p.load_settings()?;
         let ext = std::path::Path::new(name)
@@ -311,12 +359,19 @@ impl App {
         if body.is_empty() {
             return Err("The file is empty.".into());
         }
-        let file = format!("{kind}.{ext}");
+        let file = if kind.starts_with("branch_") {
+            if !st.inputs.branches.iter().any(|b| b.name == branch) {
+                return Err("Add the branch first.".into());
+            }
+            format!("branch-{}-{}.{ext}", crate::store::slug(branch), &kind[7..])
+        } else {
+            format!("{kind}.{ext}")
+        };
         // Validate before accepting, so a wrong file never replaces a good one.
         let tmp = p.inputs_dir().join(format!("check-{file}"));
         write_atomic(&tmp, body)?;
         let checked = match kind {
-            "tb" | "py_tb" => lc_io::read::read_trial_balance_with(
+            "tb" | "py_tb" | "branch_tb" => lc_io::read::read_trial_balance_with(
                 &tmp,
                 st.inputs
                     .accounts_master
@@ -325,7 +380,9 @@ impl App {
                     .as_deref(),
             )
             .map(|t| format!("{} ledgers", t.ledgers.len())),
-            "vouchers" => lc_io::read::read_vouchers(&tmp).map(|v| format!("{} vouchers", v.len())),
+            "vouchers" | "branch_vouchers" => {
+                lc_io::read::read_vouchers(&tmp).map(|v| format!("{} vouchers", v.len()))
+            }
             "far" => lc_io::read::read_far(&tmp, st.depreciation_basis)
                 .map(|r| format!("{} assets", r.assets.len())),
             "accounts_master" => Ok("account master".to_string()),
@@ -345,13 +402,23 @@ impl App {
             "py_tb" => st.inputs.py_tb = Some(file.clone()),
             "vouchers" => st.inputs.vouchers = Some(file.clone()),
             "far" => st.inputs.far = Some(file.clone()),
+            "branch_tb" | "branch_vouchers" => {
+                if let Some(b) = st.inputs.branches.iter_mut().find(|b| b.name == branch) {
+                    if kind == "branch_tb" {
+                        b.tb = Some(file.clone());
+                        b.tally_company = None;
+                    } else {
+                        b.vouchers = Some(file.clone());
+                    }
+                }
+            }
             _ => st.inputs.accounts_master = Some(file.clone()),
         }
         if kind == "tb" {
             st.inputs.tally_company = None;
         }
         p.save_settings(&st)?;
-        p.log("user", "file_imported", json!({"kind": kind, "original_name": name, "bytes": body.len(), "sha256": digest, "contents": what}))?;
+        p.log("user", "file_imported", json!({"kind": kind, "branch": branch, "original_name": name, "bytes": body.len(), "sha256": digest, "contents": what}))?;
         self.invalidate(id);
         Ok(json!({"ok": true, "contents": what}))
     }
@@ -372,6 +439,44 @@ impl App {
         let (cy, py, vouchers) =
             lc_io::tally::import_year(&client, &company, fy_start, fy_end, with_v, |_, _| {})?;
         let inp = p.inputs_dir();
+        // Importing a branch company into its branch slot.
+        let branch = s(b, "branch");
+        if !branch.is_empty() {
+            let slug = crate::store::slug(&branch);
+            let bi = st
+                .inputs
+                .branches
+                .iter_mut()
+                .find(|x| x.name == branch)
+                .ok_or("Add the branch first.")?;
+            let (tf, vf) = (
+                format!("branch-{slug}-tb.json"),
+                format!("branch-{slug}-vouchers.json"),
+            );
+            write_atomic(
+                &inp.join(&tf),
+                serde_json::to_string(&cy)
+                    .map_err(|e| e.to_string())?
+                    .as_bytes(),
+            )?;
+            bi.tb = Some(tf);
+            if with_v {
+                write_atomic(
+                    &inp.join(&vf),
+                    serde_json::to_string(&vouchers)
+                        .map_err(|e| e.to_string())?
+                        .as_bytes(),
+                )?;
+                bi.vouchers = Some(vf);
+            }
+            bi.tally_company = Some(company.clone());
+            p.save_settings(&st)?;
+            p.log("user", "tally_import", json!({"company": company, "branch": branch, "host": host, "port": port, "ledgers": cy.ledgers.len(), "vouchers": vouchers.len()}))?;
+            self.invalidate(id);
+            return Ok(
+                json!({"ledgers": cy.ledgers.len(), "previous_year": false, "vouchers": vouchers.len(), "branch": branch}),
+            );
+        }
         write_atomic(
             &inp.join("tb.json"),
             serde_json::to_string(&cy)
@@ -459,7 +564,7 @@ impl App {
         Ok(json!({
             "summary": {
                 "entity": eng.entity_name, "entity_type": eng.entity_type.label(), "fy": st.fy,
-                "ledgers": eng.cy.ledgers.len(), "vouchers": eng.vouchers.len(), "has_previous_year": eng.py.is_some(), "has_far": eng.far.is_some(),
+                "ledgers": eng.cy.ledgers.len(), "vouchers": eng.vouchers.len(), "has_previous_year": eng.py.is_some(), "has_far": eng.far.is_some(), "units": eng.consolidation.as_ref().map(|c| c.units.clone()).unwrap_or_default(),
                 "must_fix": a.count(Severity::Blocker), "check": a.count(Severity::Warning), "notes": a.count(Severity::Info),
                 "profit": a.facts_cy.profit().fmt_indian(), "total_assets": a.facts_cy.total_assets().fmt_indian(), "printable": a.printable,
             },

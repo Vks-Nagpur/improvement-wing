@@ -57,6 +57,17 @@ pub struct Inputs {
     pub accounts_master: Option<String>,
     /// Set when the data came from Tally (snapshots stored as JSON).
     pub tally_company: Option<String>,
+    /// Branch books for consolidated statements (head office = the files above).
+    pub branches: Vec<BranchInput>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct BranchInput {
+    pub name: String,
+    pub tb: Option<String>,
+    pub vouchers: Option<String>,
+    pub tally_company: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -439,6 +450,38 @@ impl Project {
             Some(f) => lc_io::read::read_vouchers(&inp.join(f))?,
             None => Vec::new(),
         };
+        // Head office and branches: combine into one set of books.
+        let mut vouchers = vouchers;
+        let mut consolidation = None;
+        if !s.inputs.branches.is_empty() {
+            let mut units = vec![lc_core::consolidate::Unit {
+                name: "Head office".into(),
+                tb: cy.clone(),
+                vouchers: vouchers.clone(),
+            }];
+            for b in &s.inputs.branches {
+                let btb = read_tb(&b.tb)?.ok_or_else(|| {
+                    format!("Branch '{}': trial balance not imported yet.", b.name)
+                })?;
+                let bv: Vec<Voucher> = match &b.vouchers {
+                    Some(f) if f.ends_with(".json") => serde_json::from_str(
+                        &fs::read_to_string(inp.join(f)).map_err(|e| e.to_string())?,
+                    )
+                    .map_err(|e| e.to_string())?,
+                    Some(f) => lc_io::read::read_vouchers(&inp.join(f))?,
+                    None => Vec::new(),
+                };
+                units.push(lc_core::consolidate::Unit {
+                    name: b.name.clone(),
+                    tb: btb,
+                    vouchers: bv,
+                });
+            }
+            let (tb, v, notes) = lc_core::consolidate::merge(&units);
+            cy = tb;
+            vouchers = v;
+            consolidation = Some(notes);
+        }
         for tb in std::iter::once(&mut cy).chain(py.iter_mut()) {
             for l in tb.ledgers.iter_mut() {
                 if let Some(t) = s.tags.get(&l.name) {
@@ -470,6 +513,7 @@ impl Project {
             mapping_memory: self.mapping(),
             mapping_context: self.mapping_context(),
             format_pack: Some(self.format_pack()?),
+            consolidation,
             far,
             profit_sharing: s.profit_sharing.clone(),
         })

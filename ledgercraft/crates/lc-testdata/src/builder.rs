@@ -398,6 +398,7 @@ impl Builder {
             mapping_memory: HashMap::new(),
             mapping_context: HashMap::new(),
             format_pack: None,
+            consolidation: None,
             far: self.far.clone(),
             profit_sharing: Vec::new(),
         };

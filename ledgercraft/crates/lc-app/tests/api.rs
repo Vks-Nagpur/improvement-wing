@@ -632,3 +632,113 @@ fn adjustments_hiding_removal_and_recycle_bin() {
     let _ = c.call("POST", "/api/quit", None);
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn branches_are_consolidated_and_must_cancel_out() {
+    use lc_core::{Ledger, Money, TrialBalance};
+    let dir = std::env::temp_dir().join(format!("lc-app-test3-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let app = Arc::new(App::new(dir.join("data"), "http://127.0.0.1:1").unwrap());
+    let (tx, rx) = std::sync::mpsc::channel();
+    let a2 = app.clone();
+    std::thread::spawn(move || serve(a2, 0, |addr| tx.send(addr).unwrap()).unwrap());
+    let c = Client {
+        base: rx.recv().unwrap(),
+        token: app.token.clone(),
+    };
+    let l = |n: &str, g: &str, close: i64| Ledger {
+        name: n.into(),
+        group: g.into(),
+        opening: Money::ZERO,
+        closing: Money(close),
+        closing_stock: None,
+        tags: vec![],
+    };
+    let f = dir.join("files");
+    std::fs::create_dir_all(&f).unwrap();
+    let ho = TrialBalance {
+        ledgers: vec![
+            l("Cash", "Cash-in-Hand", 100000),
+            l("Pune Branch", "Branch / Divisions", 500000),
+            l("Capital", "Capital Account", -600000),
+        ],
+        groups: vec![],
+    };
+    let br = |transit: i64| TrialBalance {
+        ledgers: vec![
+            l("Cash", "Cash-in-Hand", 200000 - transit),
+            l("Head Office A/c", "Branch / Divisions", -500000 + transit),
+            l("Sales", "Sales Accounts", -300000),
+            l("Rent", "Indirect Expenses", 600000),
+        ],
+        groups: vec![],
+    };
+    lc_io::write_inputs::write_trial_balance(&ho, &f.join("ho.xlsx")).unwrap();
+    lc_io::write_inputs::write_trial_balance(&br(0), &f.join("pune.xlsx")).unwrap();
+    lc_io::write_inputs::write_trial_balance(&br(10000), &f.join("pune2.xlsx")).unwrap();
+    let id = c
+        .call(
+            "POST",
+            "/api/projects",
+            Some(json!({"name": "Branch Co", "entity_type": "firm", "fy": "2025-26"})),
+        )
+        .unwrap()["id"]
+        .as_str()
+        .unwrap()
+        .replace('~', "%7E");
+    c.upload(&id, "tb", &f.join("ho.xlsx")).unwrap();
+    assert!(c
+        .call(
+            "POST",
+            &format!("/api/projects/{id}/upload?kind=branch_tb&branch=Pune&name=pune.xlsx"),
+            None
+        )
+        .is_err());
+    c.call(
+        "POST",
+        &format!("/api/projects/{id}/branches"),
+        Some(json!({"name": "Pune"})),
+    )
+    .unwrap();
+    let up = |file: &str| {
+        let bytes = std::fs::read(f.join(file)).unwrap();
+        ureq::post(&format!(
+            "{}/api/projects/{id}/upload?kind=branch_tb&branch=Pune&name={file}",
+            c.base
+        ))
+        .set("X-LC-Token", &c.token)
+        .send_bytes(&bytes)
+        .unwrap();
+    };
+    up("pune.xlsx");
+    let a = c
+        .call("POST", &format!("/api/projects/{id}/analyse"), None)
+        .unwrap();
+    assert_eq!(a["summary"]["units"], json!(["Head office", "Pune"]));
+    let codes: Vec<&str> = a["findings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|f| f["code"].as_str().unwrap())
+        .collect();
+    assert!(!codes.contains(&"BRANCH_NOT_ELIMINATED"), "{codes:?}");
+    let names: Vec<&str> = a["mapping"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|m| m["name"].as_str().unwrap())
+        .collect();
+    assert!(!names.contains(&"Pune Branch") && names.contains(&"Rent"));
+    // Cash in transit: the branch accounts do not cancel → must fix.
+    up("pune2.xlsx");
+    let a = c
+        .call("POST", &format!("/api/projects/{id}/analyse"), None)
+        .unwrap();
+    assert!(a["findings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|f| f["code"] == "BRANCH_NOT_ELIMINATED" && f["severity"] == "blocker"));
+    let _ = c.call("POST", "/api/quit", None);
+    let _ = std::fs::remove_dir_all(&dir);
+}

@@ -158,6 +158,7 @@ fn engagement_from_args(a: &HashMap<String, String>) -> Result<lc_core::Engageme
         mapping_memory,
         mapping_context: Default::default(),
         format_pack: None,
+        consolidation: None,
         far,
         profit_sharing,
     })

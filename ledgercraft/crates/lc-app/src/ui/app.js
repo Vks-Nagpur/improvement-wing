@@ -409,7 +409,7 @@ async function openProject(id) {
   $$(".steps button").forEach(b => (b.disabled = false));
   applyFlow();
   $("#openExport").disabled = true; $("#eResult").hidden = true;
-  renderFiles();
+  renderFiles(); renderBranches();
   $("#depBasis").value = st.depreciation_basis;
   loadProjects();
   store.set("last", { id, name: st.entity_name, fy: st.fy, intent: state.intent });
@@ -453,6 +453,42 @@ function renderFiles() {
     box.appendChild(row);
   }
 }
+// Branches: each has its own trial balance and day book.
+function renderBranches() {
+  const box = $("#branchRows"); box.innerHTML = "";
+  const list = state.settings.inputs.branches || [];
+  $("#tInto").innerHTML = '<option value="">Head office</option>' + list.map(b => `<option value="${esc(b.name)}">Branch: ${esc(b.name)}</option>`).join("");
+  if (!list.length) { box.innerHTML = '<p class="list-empty muted small">No branches. Head office books only.</p>'; return; }
+  for (const b of list) {
+    const row = document.createElement("div"); row.className = "file-row";
+    const tb = b.tb ? (b.tally_company ? `Trial balance from Tally: ${esc(b.tally_company)}` : "Trial balance loaded") : "Trial balance needed";
+    row.innerHTML = `<div><div class="name">${esc(b.name)}</div><div class="state ${b.tb ? "ok" : ""}">${tb}${b.vouchers ? ", day book loaded" : ""}</div></div>
+      <div class="act"><label class="btnlike small"><input type="file" data-k="branch_tb" accept=".xlsx,.xls,.csv,.xlsm,.ods" hidden><span tabindex="0" role="button">${b.tb ? "Replace" : "Choose"} trial balance</span></label><label class="btnlike small"><input type="file" data-k="branch_vouchers" accept=".xlsx,.xls,.csv,.xlsm,.ods" hidden><span tabindex="0" role="button">${b.vouchers ? "Replace" : "Choose"} day book</span></label><button type="button" class="small danger-ghost">Remove</button></div>`;
+    $$("input[type=file]", row).forEach(input => {
+      input.parentElement.querySelector("[role=button]").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+      input.addEventListener("change", async () => {
+        const f = input.files[0]; if (!f) return;
+        setStatus($("#fStatus"), `Reading ${f.name}...`);
+        try {
+          const r = await api("POST", `/api/projects/${pid()}/upload?kind=${input.dataset.k}&branch=${encodeURIComponent(b.name)}&name=${encodeURIComponent(f.name)}`, undefined, await f.arrayBuffer());
+          setStatus($("#fStatus"), `${b.name}: ${f.name}: ${r.contents} loaded.`);
+          await reloadSettings(); state.analysis = null; renderBranches(); renderNext();
+        } catch (e) { setStatus($("#fStatus"), e.message, true); }
+      });
+    });
+    row.querySelector(".danger-ghost").addEventListener("click", async () => {
+      if (!(await confirmBox(`Remove branch ${b.name}?`, "Its books are no longer added to the head office. The files stay in the client's folder.", "Remove"))) return;
+      try { await api("POST", `/api/projects/${pid()}/branches/${encodeURIComponent(b.name)}/remove`); await reloadSettings(); state.analysis = null; renderBranches(); toast("Branch removed."); }
+      catch (e) { toast(e.message, true); }
+    });
+    box.appendChild(row);
+  }
+}
+$("#branchAdd").addEventListener("submit", async e => {
+  e.preventDefault();
+  try { await api("POST", `/api/projects/${pid()}/branches`, { name: $("#branchName").value }); $("#branchName").value = ""; await reloadSettings(); state.analysis = null; renderBranches(); toast("Branch added. Now import its trial balance."); }
+  catch (err) { toast(err.message, true); }
+});
 $("#depBasis").addEventListener("change", async () => {
   await api("POST", `/api/projects/${pid()}/settings`, { depreciation_basis: $("#depBasis").value });
   state.analysis = null; toast("Depreciation basis saved.");
@@ -471,9 +507,9 @@ $("#tImport").addEventListener("click", async () => {
   setStatus($("#tStatus"), "Importing from Tally. Large books take a minute...");
   $("#tImport").disabled = true;
   try {
-    const r = await api("POST", `/api/projects/${pid()}/tally`, { host: $("#tHost").value, port: Number($("#tPort").value), company, vouchers: $("#tVouchers").checked });
-    setStatus($("#tStatus"), `Imported ${r.ledgers} ledgers, ${r.vouchers} vouchers${r.previous_year ? ", and last year's balances" : ""}.`);
-    await reloadSettings(); state.analysis = null; renderFiles(); renderNext();
+    const r = await api("POST", `/api/projects/${pid()}/tally`, { host: $("#tHost").value, port: Number($("#tPort").value), company, vouchers: $("#tVouchers").checked, branch: $("#tInto").value });
+    setStatus($("#tStatus"), `${r.branch ? `Branch ${r.branch}: imported` : "Imported"} ${r.ledgers} ledgers, ${r.vouchers} vouchers${r.previous_year ? ", and last year's balances" : ""}.`);
+    await reloadSettings(); state.analysis = null; renderFiles(); renderBranches(); renderNext();
   } catch (e) { setStatus($("#tStatus"), e.message, true); }
   $("#tImport").disabled = false;
 });
@@ -523,7 +559,7 @@ function renderCheck() {
     <div class="tile"><div class="k">Notes</div><div class="v">${s.notes}</div></div>
     <div class="tile"><div class="k">Profit / (loss)</div><div class="v money">${esc(s.profit)}</div></div>
     <div class="tile"><div class="k">Balance sheet total</div><div class="v money">${esc(s.total_assets)}</div></div>
-    <div class="tile"><div class="k">Data</div><div class="v sm">${s.ledgers} ledgers, ${s.vouchers} vouchers${s.has_previous_year ? ", last year" : ""}${s.has_far ? ", asset register" : ""}</div></div>`;
+    <div class="tile"><div class="k">Data</div><div class="v sm">${s.ledgers} ledgers, ${s.vouchers} vouchers${s.has_previous_year ? ", last year" : ""}${s.has_far ? ", asset register" : ""}${s.units && s.units.length > 1 ? `; consolidated: ${s.units.length} units` : ""}</div></div>`;
   const ul = $("#findings"); ul.innerHTML = "";
   const codes = state.codes;
   const list = a.findings.filter(f => (codes ? codes.includes(f.code) : state.filter === "all" || f.severity === state.filter));
@@ -1117,6 +1153,8 @@ function describe(e) {
     case "rules_migrated": return `Moved from rule pack ${d.rules_from} to ${d.rules_to}; ${(d.rule_changes || []).length} rule(s) changed${d.format_changed ? ", format changed" : ""}`;
     case "rolled_forward": return `Started from FY ${d.from_fy}: ${d.previous_year_ledgers} ledgers as last year's figures (${d.adjustments_included} adjustment(s) included), ${d.fixed_assets} fixed assets carried forward`;
     case "next_year_started": return `Next year FY ${d.fy} started from this year`;
+    case "branch_added": return `Branch ${d.branch} added`;
+    case "branch_removed": return `Branch ${d.branch} removed`;
     case "tags_changed": return `${d.ledger}: tags ${(d.to || []).join(", ") || "removed"}`;
     case "adjustment_added": case "adjustment_changed": {
       const a = d.to || {};

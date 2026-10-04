@@ -5,6 +5,42 @@ use crate::groups::{Class, Nature};
 use crate::money::Money;
 
 pub fn run(ctx: &Ctx, f: &mut Findings) {
+    if let Some(c) = &ctx.eng.consolidation {
+        if !c.inter_branch_difference.is_zero() {
+            f.add(
+                "BRANCH_NOT_ELIMINATED",
+                "branches",
+                &format!(
+                    "Units: {}. Net difference {}.",
+                    c.units.join(", "),
+                    c.inter_branch_difference.fmt_drcr()
+                ),
+                Detail {
+                    amount: Some(c.inter_branch_difference),
+                    suggestion: Some("Reconcile the branch accounts in each set of books (transit items, missing entries) and import again.".into()),
+                    ..Default::default()
+                },
+            );
+        }
+        for (ledger, list) in &c.group_conflicts {
+            f.add(
+                "BRANCH_GROUP_CONFLICT",
+                ledger,
+                &format!(
+                    "'{ledger}': {}.",
+                    list.iter()
+                        .map(|(u, g)| format!("{u}: {g}"))
+                        .collect::<Vec<_>>()
+                        .join("; ")
+                ),
+                Detail {
+                    ledger: Some(ledger.clone()),
+                    ..Default::default()
+                },
+            );
+        }
+    }
+
     let tb = &ctx.eng.cy;
     let total_closing: Money = tb.ledgers.iter().map(|l| l.closing).sum();
     if !total_closing.is_zero() {

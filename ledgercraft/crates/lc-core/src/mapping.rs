@@ -161,6 +161,65 @@ pub enum MapSource {
     GroupDefault,
 }
 
+/// How sure LedgerCraft is of a ledger's placement (see TRUTH-MODEL.md §3–5).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MapStatus {
+    /// Only one line is possible for this standard group.
+    #[default]
+    Rule,
+    /// Proposed by LedgerCraft; the user must confirm before a final copy.
+    Suggested,
+    /// Confirmed earlier, but the group or balance side has changed since.
+    Review,
+    /// Chosen or confirmed by the user.
+    Confirmed,
+    /// No placement.
+    Unmapped,
+}
+
+impl MapStatus {
+    pub fn needs_user(self) -> bool {
+        matches!(
+            self,
+            MapStatus::Suggested | MapStatus::Review | MapStatus::Unmapped
+        )
+    }
+}
+
+/// Standard groups whose ledgers have exactly one possible line in the
+/// formats, so the default placement is certain.
+pub fn is_unambiguous(class: Class) -> bool {
+    use Class::*;
+    matches!(
+        class,
+        CapitalAccount
+            | ReservesSurplus
+            | ProfitLossAc
+            | BankOdAc
+            | SundryCreditors
+            | DutiesTaxes
+            | StockInHand
+            | SundryDebtors
+            | BankAccounts
+            | CashInHand
+            | SalesAccounts
+            | IndirectIncomes
+            | PurchaseAccounts
+            | DirectExpenses
+            | IndirectExpenses
+    )
+}
+
+/// Context stored with a confirmed mapping: normalised group and balance side.
+pub fn memory_context(group: &str, balance: crate::money::Money) -> String {
+    format!(
+        "{}|{}",
+        norm_name(group),
+        if balance.is_cr() { "cr" } else { "dr" }
+    )
+}
+
 /// Word-boundary keyword test on a normalised name.
 pub fn has_word(name_norm: &str, words: &[&str]) -> bool {
     let padded = format!(" {name_norm} ");

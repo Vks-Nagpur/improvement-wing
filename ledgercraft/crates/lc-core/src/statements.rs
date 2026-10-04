@@ -9,7 +9,7 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PackRow {
     pub t: String,
     #[serde(default)]
@@ -27,7 +27,7 @@ pub struct PackRow {
     pub keep: bool,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FormatPack {
     pub id: String,
     pub name: String,
@@ -53,6 +53,22 @@ impl FormatPack {
             _ => NON_CORPORATE,
         };
         serde_json::from_str(src).expect("built-in format pack is valid")
+    }
+
+    /// Built-in pack text for the entity (to pin a client year to it).
+    pub fn builtin_text(e: EntityType) -> &'static str {
+        match e {
+            EntityType::Company => COMPANY_DIV1,
+            EntityType::Llp => LLP,
+            _ => NON_CORPORATE,
+        }
+    }
+
+    /// The pack pinned to the engagement, or the built-in one.
+    pub fn of(eng: &crate::model::Engagement) -> FormatPack {
+        eng.format_pack
+            .clone()
+            .unwrap_or_else(|| FormatPack::for_entity(eng.entity_type))
     }
 }
 
@@ -90,6 +106,11 @@ pub struct MappedLedger {
     pub tb_closing: Money,
     #[serde(default)]
     pub tags: Vec<String>,
+    #[serde(default)]
+    pub status: crate::mapping::MapStatus,
+    /// Why the status is what it is (shown to the user).
+    #[serde(default)]
+    pub status_reason: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

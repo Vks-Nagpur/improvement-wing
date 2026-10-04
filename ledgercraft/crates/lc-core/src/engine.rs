@@ -2,7 +2,10 @@
 
 use crate::checks::{self, loans::LoanRow, Ctx, Detail, Finding, Findings};
 use crate::groups::{Class, GroupResolver};
-use crate::mapping::{group_default, name_rule, reclass_by_side, Head, MapSource};
+use crate::mapping::{
+    group_default, is_unambiguous, memory_context, name_rule, reclass_by_side, Head, MapSource,
+    MapStatus,
+};
 use crate::model::{norm_name, Engagement, TrialBalance};
 use crate::rules::{RulesPack, Severity};
 use crate::statements::{self, FormatPack, MappedLedger, Statements};
@@ -56,14 +59,44 @@ pub fn analyse(eng: &Engagement, rules: &RulesPack) -> Analysis {
                 .unwrap_or(false))
     });
 
-    let pack = FormatPack::for_entity(eng.entity_type);
+    let pack = FormatPack::of(eng);
     let mapping = map_tb(
         &eng.cy,
         &ctx.classes,
         &eng.mapping_memory,
+        &eng.mapping_context,
         pack.profit_to,
         Some(&mut f),
     );
+    // Placements that need the user (TRUTH-MODEL.md §4–5): one finding each kind.
+    for (status, code) in [
+        (MapStatus::Suggested, "MAPPING_UNCONFIRMED"),
+        (MapStatus::Review, "MAPPING_REVIEW"),
+    ] {
+        let names: Vec<&str> = mapping
+            .iter()
+            .filter(|m| m.status == status)
+            .map(|m| m.name.as_str())
+            .collect();
+        if !names.is_empty() {
+            let shown: Vec<&str> = names.iter().take(8).copied().collect();
+            f.add(
+                code,
+                "mapping",
+                &format!(
+                    "{} ledger(s): {}{}.",
+                    names.len(),
+                    shown.join(", "),
+                    if names.len() > shown.len() {
+                        ", …"
+                    } else {
+                        ""
+                    }
+                ),
+                Detail::default(),
+            );
+        }
+    }
     let py_mapping = eng.py.as_ref().map(|py| {
         let res = GroupResolver::new(py);
         let cy_res = GroupResolver::new(&eng.cy);
@@ -76,7 +109,14 @@ pub fn analyse(eng: &Engagement, rules: &RulesPack) -> Analysis {
                     .or_else(|| cy_res.resolve(&l.group).ok())
             })
             .collect();
-        map_tb(py, &classes, &eng.mapping_memory, pack.profit_to, None)
+        map_tb(
+            py,
+            &classes,
+            &eng.mapping_memory,
+            &HashMap::new(),
+            pack.profit_to,
+            None,
+        )
     });
 
     let st = statements::build(
@@ -159,6 +199,7 @@ fn map_tb(
     tb: &TrialBalance,
     classes: &[Option<Class>],
     memory: &HashMap<String, String>,
+    context: &HashMap<String, String>,
     profit_to: Head,
     mut findings: Option<&mut Findings>,
 ) -> Vec<MappedLedger> {
@@ -217,6 +258,47 @@ fn map_tb(
                 }
             }
         }
+        let key = norm_name(&l.name);
+        let (status, status_reason) = match (head, source) {
+            (None, _) | (_, None) => (MapStatus::Unmapped, "No line chosen yet".to_string()),
+            (Some(_), Some(MapSource::Memory)) => match context.get(&key) {
+                Some(ctx) if *ctx != memory_context(&l.group, l.closing) => {
+                    let (g0, s0) = ctx.split_once('|').unwrap_or((ctx.as_str(), ""));
+                    let now = memory_context(&l.group, l.closing);
+                    let (g1, s1) = now.split_once('|').unwrap_or((now.as_str(), ""));
+                    let why = if g0 != g1 {
+                        format!("Group changed since you confirmed it (was '{g0}')")
+                    } else {
+                        format!(
+                            "Balance changed from {} to {}",
+                            s0.to_uppercase(),
+                            s1.to_uppercase()
+                        )
+                    };
+                    (MapStatus::Review, why)
+                }
+                _ => (MapStatus::Confirmed, "Your choice".to_string()),
+            },
+            (Some(_), Some(MapSource::NameRule)) => (
+                MapStatus::Suggested,
+                "Placed by the ledger name".to_string(),
+            ),
+            (Some(_), Some(MapSource::GroupDefault)) => {
+                if reclassified {
+                    (
+                        MapStatus::Suggested,
+                        "Moved to the other side because of its balance".to_string(),
+                    )
+                } else if class.map(is_unambiguous).unwrap_or(false) {
+                    (
+                        MapStatus::Rule,
+                        "Only one line possible for this group".to_string(),
+                    )
+                } else {
+                    (MapStatus::Suggested, "This group can go under more than one line (for example long-term or short-term)".to_string())
+                }
+            }
+        };
         out.push(MappedLedger {
             name: l.name.clone(),
             group: l.group.clone(),
@@ -227,6 +309,8 @@ fn map_tb(
             amount,
             tb_closing: l.closing,
             tags: l.tags.clone(),
+            status,
+            status_reason,
         });
     }
     out

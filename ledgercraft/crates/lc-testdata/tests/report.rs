@@ -203,3 +203,91 @@ fn report_casts_in_every_unit() {
         }
     }
 }
+
+#[test]
+fn disclosures_print_and_check_against_books() {
+    use lc_core::report::disclosures::*;
+    let s = scenarios::clean(Kind::Company, 7, 6, 6, 3);
+    let eng = &s.engagement;
+    let a = lc_core::analyse(eng, &lc_core::rules::RulesPack::builtin());
+    let capital = a.facts_cy.head(lc_core::mapping::Head::Capital);
+    let shares = capital.0 / 1000; // ₹10 shares
+    let mut o = lc_core::report::ReportOptions {
+        disclosures: Disclosures {
+            share_classes: vec![ShareClass {
+                name: "Equity shares of ₹10 each".into(),
+                face_value: Money(1000),
+                authorised: shares * 2,
+                issued: shares,
+                subscribed: shares,
+                py_authorised: shares * 2,
+                py_issued: shares,
+                py_subscribed: shares,
+                ..Default::default()
+            }],
+            holders_5pct: vec![Holder {
+                name: "A. Shareholder".into(),
+                shares: shares / 2,
+                py_shares: shares / 2,
+            }],
+            promoters: vec![Holder {
+                name: "A. Shareholder".into(),
+                shares: shares / 2,
+                py_shares: shares / 4,
+            }],
+            contingent_liabilities: vec![AmountLine {
+                nature: "Bank guarantee".into(),
+                cy: Money(50_000_000),
+                py: Money(0),
+            }],
+            related_parties: vec![RelatedParty {
+                name: "A. Shareholder".into(),
+                relationship: "Director".into(),
+            }],
+            related_transactions: vec![RelatedTxn {
+                party: "A. Shareholder".into(),
+                nature: "Remuneration".into(),
+                cy: Money(120_000_000),
+                py: Money(100_000_000),
+            }],
+            notes: vec![FreeNote {
+                title: "Events after the balance sheet date".into(),
+                text: "None.".into(),
+            }],
+            policy_text: [(
+                "Basis of preparation".to_string(),
+                "Our own wording.".to_string(),
+            )]
+            .into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    let rep = lc_core::report::build(eng, &a, &o, &Default::default());
+    let text = serde_json::to_string(&rep).unwrap();
+    for want in [
+        "Authorised",
+        "Reconciliation of the number of shares",
+        "more than 5%",
+        "Shares held by promoters",
+        "100.00%",
+        "Contingent liabilities and commitments",
+        "Bank guarantee",
+        "Related party disclosures",
+        "Remuneration",
+        "Events after the balance sheet date",
+    ] {
+        assert!(text.contains(want), "missing {want}");
+    }
+    if capital.0 % 1000 == 0 {
+        assert!(
+            !rep.warnings.iter().any(|w| w.contains("does not agree")),
+            "{:?}",
+            rep.warnings
+        );
+    }
+    // A wrong number of shares is caught.
+    o.disclosures.share_classes[0].subscribed += 1;
+    let rep = lc_core::report::build(eng, &a, &o, &Default::default());
+    assert!(rep.warnings.iter().any(|w| w.contains("does not agree")));
+}

@@ -42,6 +42,7 @@
     <button data-view="map" disabled><b>4</b><span><span class="sn">Map ledgers</span><small class="ss" data-ss="map"></small></span></button>
     <button data-view="adjust" disabled><b>5</b><span><span class="sn">Adjustments</span><small class="ss" data-ss="adjust">Optional</small></span></button>
     <button data-view="analysis" disabled><b>5</b><span><span class="sn">Analysis</span><small class="ss" data-ss="analysis"></small></span></button>
+    <button data-view="disclose" disabled><b>6</b><span><span class="sn">Notes and disclosures</span><small class="ss" data-ss="disclose"></small></span></button>
     <button data-view="present" disabled><b>6</b><span><span class="sn">Presentation</span><small class="ss" data-ss="present"></small></span></button>
     <button data-view="export" disabled><b>7</b><span><span class="sn">Sign and export</span><small class="ss" data-ss="export"></small></span></button>
     <button data-view="audit" disabled><b>8</b><span><span class="sn">Audit trail</span><small class="ss" data-ss="audit">Every change, sealed</small></span></button>
@@ -123,7 +124,7 @@
     <section data-panel="import" hidden>
       <header class="screen-head">
         <div><h1>Import books</h1><p class="lead">Bring in the trial balance, and if you have them, last year's balances, the day book and the fixed asset register.</p></div>
-        <div class="actions"><button class="primary" type="button" data-go="check">Next: run the checks</button></div>
+        <div class="actions"><button class="primary" type="button" data-next>Next</button></div>
       </header>
       <div class="guide" data-guide="import"></div>
       <div class="two">
@@ -160,6 +161,7 @@
         <div class="actions"><button class="primary" type="button" id="runChecks">Run checks</button></div>
       </header>
       <div class="guide" data-guide="check"></div>
+      <div class="rules-bar" id="rulesBar" hidden></div>
       <div class="tiles" id="tiles"></div>
       <div class="filters" role="group" aria-label="Filter findings">
         <button data-f="all" class="on">All</button><button data-f="blocker">Must fix</button><button data-f="warning">Check</button><button data-f="info">Note</button>
@@ -175,14 +177,15 @@
     <section data-panel="map" hidden>
       <header class="screen-head">
         <div><h1>Map ledgers</h1><p class="lead">LedgerCraft places most ledgers itself. Change any line once; it is remembered for this client every year.</p></div>
-        <div class="actions"><button class="primary" type="button" data-go="adjust">Next: adjustments</button></div>
+        <div class="actions"><button type="button" id="mapConfirmAll">Confirm all suggested</button><button class="primary" type="button" data-next>Next</button></div>
       </header>
       <div class="guide" data-guide="map"></div>
+      <p class="map-summary" id="mapSummary"></p>
       <div class="filters">
         <input id="mapSearch" type="search" placeholder="Search ledger or group" aria-label="Search ledgers">
         <label class="check"><input type="checkbox" id="mapAttention" checked> Only lines that need attention</label>
       </div>
-      <table class="grid dense" id="mapTable"><thead><tr><th>Ledger</th><th>Group in books</th><th class="num">Balance</th><th>Shown under</th><th>Tags</th><th class="act">Actions</th></tr></thead><tbody></tbody></table>
+      <table class="grid dense" id="mapTable"><thead><tr><th>Ledger</th><th>Group in books</th><th class="num">Balance</th><th>Shown under</th><th>Status</th><th>Tags</th><th class="act">Actions</th></tr></thead><tbody></tbody></table>
     </section>
 
     <!-- 5. Adjustments -->
@@ -191,7 +194,7 @@
         <div><h1>Adjustments</h1><p class="lead">Entries you pass on top of the books: provisions, rectifications, audit adjustments, closing stock. The imported books are never changed.</p></div>
         <div class="actions">
           <button type="button" id="adjNew">New adjustment</button>
-          <button class="primary" type="button" data-go="present">Next: presentation</button>
+          <button class="primary" type="button" data-next>Next</button>
         </div>
       </header>
       <div class="guide" data-guide="adjust"></div>
@@ -215,13 +218,79 @@
       <p class="muted small" id="adjNote"></p>
     </section>
 
+    <!-- Notes and disclosures -->
+    <section data-panel="disclose" hidden>
+      <header class="screen-head">
+        <div><h1>Notes and disclosures</h1><p class="lead">Particulars that are not in the books: share capital, shareholders, contingent liabilities, related parties, MSME interest, your own accounting policy wording and extra notes.</p></div>
+        <div class="actions">
+          <button type="button" data-go="present">Preview</button>
+          <button type="button" id="dSave">Save disclosures</button>
+          <button class="primary" type="button" data-next>Next</button>
+        </div>
+      </header>
+      <div class="guide" data-guide="disclose"></div>
+      <nav class="tabs" role="tablist" aria-label="Disclosure sections">
+        <button type="button" role="tab" data-tab="capital" class="co-only">Share capital</button>
+        <button type="button" role="tab" data-tab="contingent">Contingent liabilities</button>
+        <button type="button" role="tab" data-tab="related">Related parties</button>
+        <button type="button" role="tab" data-tab="msme">MSME interest</button>
+        <button type="button" role="tab" data-tab="policies">Accounting policies</button>
+        <button type="button" role="tab" data-tab="notes">Other notes</button>
+      </nav>
+      <div class="tabpanel" data-tabpanel="capital">
+        <div class="answer-bar" data-answer="share_capital"></div>
+        <div class="title-row"><h2>Classes of shares</h2><button type="button" class="small" data-add="share_classes">Add class of shares</button></div>
+        <div id="dShareClasses"></div>
+        <div class="title-row mt"><h2>Shareholders holding more than 5%</h2><button type="button" class="small" data-add="holders_5pct">Add shareholder</button></div>
+        <div data-list="holders_5pct"></div>
+        <div class="title-row mt"><h2>Promoters' shareholding</h2><button type="button" class="small" data-add="promoters">Add promoter</button></div>
+        <div data-list="promoters"></div>
+      </div>
+      <div class="tabpanel" data-tabpanel="contingent" hidden>
+        <div class="answer-bar" data-answer="contingent"></div>
+        <div class="title-row"><h2>Contingent liabilities (not provided for)</h2><button type="button" class="small" data-add="contingent_liabilities">Add line</button></div>
+        <div data-list="contingent_liabilities"></div>
+        <div class="title-row mt"><h2>Commitments</h2><button type="button" class="small" data-add="commitments">Add line</button></div>
+        <div data-list="commitments"></div>
+      </div>
+      <div class="tabpanel" data-tabpanel="related" hidden>
+        <div class="answer-bar" data-answer="related_parties"></div>
+        <div class="title-row"><h2>Related parties and relationship</h2><button type="button" class="small" data-add="related_parties">Add party</button></div>
+        <div data-list="related_parties"></div>
+        <div class="title-row mt"><h2>Transactions and balances</h2><button type="button" class="small" data-add="related_transactions">Add transaction</button></div>
+        <div data-list="related_transactions"></div>
+        <datalist id="rpRel"><option>Partner</option><option>Director</option><option>Key managerial personnel</option><option>Relative of key managerial personnel</option><option>Proprietor</option><option>Karta</option><option>Member of the HUF</option><option>Entity controlled by key managerial personnel</option><option>Holding company</option><option>Subsidiary</option><option>Associate</option></datalist>
+        <datalist id="rpNature"><option>Remuneration</option><option>Interest on capital</option><option>Interest on loan</option><option>Loan taken</option><option>Loan repaid</option><option>Purchase of goods</option><option>Sale of goods</option><option>Rent paid</option><option>Professional fees</option><option>Balance payable at year end</option><option>Balance receivable at year end</option></datalist>
+        <datalist id="rpParties"></datalist>
+      </div>
+      <div class="tabpanel" data-tabpanel="msme" hidden>
+        <div class="answer-bar" data-answer="msme"></div>
+        <h2>Section 22, Micro, Small and Medium Enterprises Development Act, 2006</h2>
+        <p class="muted small">The principal amount comes from creditors tagged <b>msme</b> on the Map ledgers screen. Enter the interest figures (₹).</p>
+        <table class="grid dense" id="dMsme"><thead><tr><th>Particulars</th><th class="num">This year</th><th class="num">Last year</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="tabpanel" data-tabpanel="policies" hidden>
+        <p class="muted small">Standard wording is shown. Change any policy for this entity; leave it as it is to keep the standard text. Your wording is used from the next preview.</p>
+        <div id="dPolicies"></div>
+        <div class="title-row mt"><h2>Additional accounting policies</h2><button type="button" class="small" data-add="extra_policies">Add policy</button></div>
+        <div data-list="extra_policies"></div>
+      </div>
+      <div class="tabpanel" data-tabpanel="notes" hidden>
+        <div class="title-row"><h2>Other notes</h2><button type="button" class="small" data-add="notes">Add note</button></div>
+        <p class="muted small">For example: events after the balance sheet date, going concern, previous year figures regrouped. Leave a blank line between paragraphs.</p>
+        <div data-list="notes"></div>
+      </div>
+      <p class="status" id="dStatus" role="status"></p>
+    </section>
+
     <!-- Analysis -->
     <section data-panel="analysis" hidden>
       <header class="screen-head">
         <div><h1>Analysis</h1><p class="lead">Key figures, items that matter for tax audit, loans, ratios and ageing. Figures include your adjustments.</p></div>
         <div class="actions">
           <button type="button" id="anRerun">Run checks again</button>
-          <button class="primary" type="button" id="anWorkbook">Save auditor workbook</button>
+          <button type="button" id="anWorkbook">Save auditor workbook</button>
+          <button class="primary" type="button" data-next>Next</button>
         </div>
       </header>
       <div class="guide" data-guide="analysis"></div>
@@ -303,6 +372,7 @@
           </div>
         </fieldset>
         <fieldset><legend>Signing for the business</legend><div id="sigRows"></div><button type="button" id="addSig">Add signatory</button></fieldset>
+        <div class="final-why" id="finalWhy" hidden></div>
         <fieldset><legend>Copy</legend>
           <label class="radio"><input type="radio" name="mode" value="draft" checked> Draft (marked DRAFT on every page)</label>
           <label class="radio"><input type="radio" name="mode" value="final" id="modeFinal"> Final signing copy</label>
@@ -325,7 +395,7 @@
     <!-- 8. Audit -->
     <section data-panel="audit" hidden>
       <header class="screen-head">
-        <div><h1>Audit trail</h1><p class="lead">Every import, change, adjustment and export is recorded and sealed. It cannot be switched off.</p></div>
+        <div><h1>Audit trail</h1><p class="lead">Every import, change, adjustment and export is recorded in a tamper-evident log on this PC. It cannot be switched off.</p></div>
         <div class="actions"><button type="button" id="reloadAudit">Reload</button></div>
       </header>
       <div class="guide" data-guide="audit"></div>

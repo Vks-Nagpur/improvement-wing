@@ -1425,6 +1425,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "lc-core",
+ "serde_json",
 ]
 
 [[package]]

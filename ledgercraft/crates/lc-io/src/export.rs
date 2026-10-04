@@ -109,6 +109,9 @@ pub fn export(
         return Err(format!("Signing copy refused: {n} item(s) marked 'Must fix' are still open. Export as draft or fix them first."));
     }
     let rep = report(eng, a, signoff, opt);
+    if opt.mode == Mode::Signing && !rep.blockers.is_empty() {
+        return Err(format!("Final copy refused: {}", rep.blockers.join(" ")));
+    }
     let fy = lc_core::date::fy_label(eng.fy_start);
     let base = root.join(safe(&eng.entity_name)).join(format!("FY {fy}"));
     fs::create_dir_all(&base).map_err(|e| e.to_string())?;

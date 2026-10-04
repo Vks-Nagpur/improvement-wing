@@ -217,6 +217,12 @@ impl App {
             ("POST", ["api", "open-folder"]) => open_folder(&s(&json_body(), "path")),
             ("GET", ["api", "recycle-bin"]) => Ok(json!(self.store.deleted())),
             ("POST", ["api", "recycle-bin", item, "restore"]) => self.store.restore(item).map(|id| json!({"id": id})),
+            ("GET", ["api", "projects", id, "policies"]) => self.policies(id),
+            ("GET", ["api", "projects", id, "rules"]) => self.rules_info(id),
+            ("POST", ["api", "projects", id, "rules", "migrate"]) => {
+                self.invalidate(id);
+                self.store.project(id).and_then(|p| p.migrate_pins())
+            }
             ("GET", ["api", "projects", id, "adjustments"]) => self.adjustments(id),
             ("POST", ["api", "projects", id, "adjustments"]) => self.save_adjustment(id, &json_body()),
             ("POST", ["api", "projects", id, "adjustments", n, what]) => self.adjustment_action(id, n, what, &json_body()),
@@ -233,6 +239,7 @@ impl App {
             ("POST", ["api", "projects", id, "tally"]) => self.tally(id, &json_body()),
             ("POST", ["api", "projects", id, "analyse"]) => self.analyse(id),
             ("POST", ["api", "projects", id, "mapping"]) => self.set_mapping(id, &json_body()),
+            ("POST", ["api", "projects", id, "mapping", "confirm"]) => self.confirm_mapping(id, &json_body()),
             ("POST", ["api", "projects", id, "tags"]) => self.set_tags(id, &json_body()),
             ("POST", ["api", "projects", id, "settings"]) => self.set_settings(id, &json_body()),
             ("GET", ["api", "projects", id, "preview"]) => match self.preview(id) {
@@ -404,7 +411,7 @@ impl App {
         if let Some(a) = self.cache.lock().unwrap().get(id) {
             return Ok((eng, a.clone()));
         }
-        let a = lc_core::analyse(&eng, &RulesPack::builtin());
+        let a = lc_core::analyse(&eng, &p.rules_pack()?);
         self.cache.lock().unwrap().insert(id.to_string(), a.clone());
         Ok((eng, a))
     }
@@ -422,7 +429,7 @@ impl App {
                 json!({
                     "name": m.name, "group": m.group, "standard_group": m.class.map(|c| c.label()),
                     "head": m.head.map(|h| h.id()), "head_label": m.head.map(|h| h.label()),
-                    "source": m.source, "reclassified": m.reclassified, "amount": m.amount.fmt_drcr(), "tags": st.tags.get(&m.name).cloned().unwrap_or_default(),
+                    "source": m.source, "reclassified": m.reclassified, "status": m.status, "status_reason": m.status_reason, "amount": m.amount.fmt_drcr(), "tags": st.tags.get(&m.name).cloned().unwrap_or_default(),
                 })
             })
             .collect();
@@ -462,6 +469,7 @@ impl App {
             "ageing": {"receivables": a.ageing_receivables, "payables": a.ageing_payables},
             "loans": a.loans,
             "warnings": rep.warnings,
+            "blockers": rep.blockers,
         }))
     }
 
@@ -471,17 +479,76 @@ impl App {
         let head = s(b, "head");
         let key = lc_core::model::norm_name(&ledger);
         let mut m = p.mapping();
+        let mut ctx = p.mapping_context();
         let old = m.get(&key).cloned();
         if head.is_empty() {
             m.remove(&key);
+            ctx.remove(&key);
         } else {
             Head::from_id(&head).ok_or("unknown head")?;
-            m.insert(key, head.clone());
+            m.insert(key.clone(), head.clone());
+            // Remember the group and side it was confirmed with (TRUTH-MODEL §5).
+            if let Some(l) = p
+                .engagement()?
+                .cy
+                .ledgers
+                .iter()
+                .find(|l| lc_core::model::norm_name(&l.name) == key)
+            {
+                ctx.insert(key, lc_core::mapping::memory_context(&l.group, l.closing));
+            }
         }
         p.save_mapping(&m)?;
+        p.save_mapping_context(&ctx)?;
         p.log("user", "mapping_changed", json!({"ledger": ledger, "from": old, "to": if head.is_empty() { Value::Null } else { json!(head) }, "ai_suggested": b.get("ai").and_then(|x| x.as_bool()).unwrap_or(false)}))?;
         self.invalidate(id);
         Ok(json!({"ok": true}))
+    }
+
+    /// Confirm the current placement of the listed ledgers (or of every ledger
+    /// waiting for confirmation when `all` is true). Recorded as one event.
+    fn confirm_mapping(&self, id: &str, b: &Value) -> Result<Value, String> {
+        let p = self.store.project(id)?;
+        let (_, a) = self.analysis(id)?;
+        let wanted: Vec<String> = b
+            .get("ledgers")
+            .and_then(|x| x.as_array())
+            .into_iter()
+            .flatten()
+            .filter_map(|x| x.as_str().map(lc_core::model::norm_name))
+            .collect();
+        let all = b.get("all").and_then(|x| x.as_bool()).unwrap_or(false);
+        let mut m = p.mapping();
+        let mut ctx = p.mapping_context();
+        let mut done = Vec::new();
+        for l in &a.mapping {
+            let key = lc_core::model::norm_name(&l.name);
+            let pick = if all {
+                l.status.needs_user()
+            } else {
+                wanted.contains(&key)
+            };
+            if let (true, Some(h)) = (pick, l.head) {
+                m.insert(key.clone(), h.id());
+                ctx.insert(
+                    key,
+                    lc_core::mapping::memory_context(&l.group, l.tb_closing),
+                );
+                done.push(json!({"ledger": l.name, "head": h.id(), "was": l.status}));
+            }
+        }
+        if done.is_empty() {
+            return Err("Nothing to confirm.".into());
+        }
+        p.save_mapping(&m)?;
+        p.save_mapping_context(&ctx)?;
+        p.log(
+            "user",
+            "mapping_confirmed",
+            json!({"count": done.len(), "ledgers": done}),
+        )?;
+        self.invalidate(id);
+        Ok(json!({"ok": true, "confirmed": done.len()}))
     }
 
     fn set_tags(&self, id: &str, b: &Value) -> Result<Value, String> {
@@ -543,6 +610,51 @@ impl App {
         }
         self.invalidate(id);
         Ok(json!({"ok": true}))
+    }
+
+    /// Which rule and format packs this year is pinned to, and whether this
+    /// build has newer ones.
+    fn rules_info(&self, id: &str) -> Result<Value, String> {
+        let p = self.store.project(id)?;
+        let st = p.load_settings()?;
+        let et = lc_core::EntityType::parse(&st.entity_type).ok_or("unknown entity type")?;
+        let (pr, pf) = (p.rules_pack()?, p.format_pack()?);
+        let (br, bf) = (
+            RulesPack::builtin(),
+            lc_core::statements::FormatPack::for_entity(et),
+        );
+        let changes = lc_core::rules::changed_rules(&pr, &br);
+        let format_changed = pf != bf;
+        let unverified = pr
+            .rules
+            .values()
+            .filter(|r| r.verification == "unverified")
+            .count();
+        Ok(json!({
+            "pinned": {"rules": pr.version, "rules_verification": pr.verification, "format": pf.name, "format_status": pf.status, "unverified_rules": unverified},
+            "available": {"rules": br.version, "format": bf.name, "format_status": bf.status},
+            "update": !changes.is_empty() || format_changed || pr.version != br.version,
+            "changes": changes, "format_changed": format_changed,
+        }))
+    }
+
+    /// Standard accounting policy wording for this entity (to edit on screen).
+    fn policies(&self, id: &str) -> Result<Value, String> {
+        let p = self.store.project(id)?;
+        let st = p.load_settings()?;
+        let (eng, a) = self.analysis(id)?;
+        let mut o = st.options.clone();
+        o.disclosures.policy_text.clear();
+        let list = lc_core::report::policies::accounting_policies(
+            &eng,
+            &o,
+            !a.facts_cy.head(Head::Inventories).is_zero(),
+            !a.facts_cy.head(Head::EmployeeBenefits).is_zero(),
+        );
+        Ok(json!(list
+            .into_iter()
+            .map(|(t, b)| json!({"title": t, "text": b}))
+            .collect::<Vec<_>>()))
     }
 
     fn adjustments(&self, id: &str) -> Result<Value, String> {

@@ -23,7 +23,7 @@ const HELP = {
       "<b>Explain</b> gives a simple explanation from the local AI (if installed).",
     ],
     map: [
-      "Each ledger is placed under a line of the Balance Sheet or Profit and Loss. Only the doubtful ones are shown first.",
+      "Each ledger is placed under a line of the Balance Sheet or Profit and Loss. <b>Certain</b>: only one line is possible. <b>Confirm</b>: LedgerCraft's proposal, which you must check. <b>Review</b>: your earlier choice, but the books changed.",
       "To change, pick a new line in <b>Shown under</b>. It is saved at once and remembered for next year.",
       "<b>Reset</b> goes back to LedgerCraft's own choice. Tags (MSME, transporter …) change how checks and notes treat the ledger.",
     ],
@@ -49,9 +49,14 @@ const HELP = {
       "<b>Items for tax audit</b> counts cash payments, cash receipts and loans in cash. Press <b>See list</b> for each case.",
       "<b>Save auditor workbook</b> (top right) writes everything to an Excel file for the auditor.",
     ],
+    disclose: [
+      "Open each tab and fill what applies. Companies must fill <b>Share capital</b>; the total must agree with the books.",
+      "<b>Accounting policies</b> shows the standard wording; change any of it for this entity.",
+      "Press <b>Save disclosures</b> (top right), then <b>Preview</b> to see them in the notes.",
+    ],
     audit: [
       "This list shows who did what and when, newest first.",
-      "The green line means nothing was edited or removed afterwards. A red line means the record was tampered with.",
+      "The green line means no entry was edited or removed in between. A red line means the record was changed. Keep the exported files as your outside copy.",
     ],
     tour: [
       ["Welcome to LedgerCraft", "First choose what you want to do: make financial statements, check and analyse books, or get tax audit help. It turns your books into financial statements in the format required by law, checks the books like a CA, and prepares a workbook for the auditor. Everything stays on this computer."],
@@ -61,7 +66,7 @@ const HELP = {
       ["4. Print and sign", "Choose what to print and the units, look at the preview, fill the signing details and export. PDF and Excel land in one folder."],
       ["Always on your side", "Steps are on the left; the main buttons are always at the top right of each screen. 'What to do now' at the bottom left tells you the next step. Every change is recorded in the audit trail."],
     ],
-    next: { intent: "Choose what you want to do.", analyse: "Look at the analysis and save the auditor workbook.", create: "Create or open a client.", tb: "Import the trial balance.", run: "Run the checks.", fix: n => `Solve ${n} "Must fix" item(s).`, map: n => `${n} ledger(s) need a line in the statements.`, ready: "Look at the preview, then sign and export." },
+    next: { intent: "Choose what you want to do.", analyse: "Look at the analysis and save the auditor workbook.", create: "Create or open a client.", tb: "Import the trial balance.", run: "Run the checks.", fix: n => `Solve ${n} "Must fix" item(s).`, map: n => `${n} ledger placement(s) need your confirmation.`, ready: "Look at the preview, then sign and export." },
   },
   hi: {
     _title: "इस स्क्रीन का उपयोग कैसे करें",
@@ -84,7 +89,7 @@ const HELP = {
       "<b>Explain</b> स्थानीय AI (यदि लगा हो) से सरल भाषा में समझाता है।",
     ],
     map: [
-      "हर लेजर बैलेंस शीट या लाभ-हानि की किसी पंक्ति में रखा जाता है। पहले केवल संदिग्ध लेजर दिखते हैं।",
+      "हर लेजर बैलेंस शीट या लाभ-हानि की किसी पंक्ति में रखा जाता है। <b>Certain</b>: केवल एक पंक्ति संभव। <b>Confirm</b>: LedgerCraft का प्रस्ताव, जिसे आपको जाँचना है। <b>Review</b>: आपकी पिछली पसंद, पर किताबें बदल गईं।",
       "बदलने के लिए <b>Shown under</b> में नई पंक्ति चुनें। तुरंत सेव होता है और अगले वर्ष भी याद रहता है।",
       "<b>Reset</b> LedgerCraft की अपनी पसंद पर लौटाता है। टैग (MSME, transporter …) जाँच और नोट्स को बदलते हैं।",
     ],
@@ -110,6 +115,11 @@ const HELP = {
       "<b>Items for tax audit</b> नकद भुगतान, नकद प्राप्ति और नकद ऋण गिनता है। हर मामले के लिए <b>See list</b> दबाएँ।",
       "ऊपर दाईं ओर <b>Save auditor workbook</b> सब कुछ ऑडिटर के लिए Excel फ़ाइल में लिखता है।",
     ],
+    disclose: [
+      "हर टैब खोलें और जो लागू हो वह भरें। कंपनियों को <b>Share capital</b> भरना ज़रूरी है; जोड़ किताबों से मिलना चाहिए।",
+      "<b>Accounting policies</b> में मानक शब्द दिखते हैं; इस इकाई के लिए कोई भी बदल सकते हैं।",
+      "ऊपर दाईं ओर <b>Save disclosures</b> दबाएँ, फिर नोट्स में देखने के लिए <b>Preview</b>।",
+    ],
     audit: [
       "यह सूची बताती है किसने क्या और कब किया, नया सबसे ऊपर।",
       "हरी पंक्ति का अर्थ है बाद में कुछ बदला या हटाया नहीं गया। लाल पंक्ति का अर्थ है रिकॉर्ड से छेड़छाड़ हुई।",
@@ -122,7 +132,7 @@ const HELP = {
       ["4. छापें और हस्ताक्षर", "क्या छापना है और इकाई चुनें, पूर्वावलोकन देखें, हस्ताक्षर विवरण भरें और export करें। PDF और Excel एक ही फ़ोल्डर में आते हैं।"],
       ["हमेशा आपके साथ", "चरण बाईं ओर हैं; मुख्य बटन हर स्क्रीन पर ऊपर दाईं ओर हैं। नीचे बाईं ओर 'What to do now' अगला चरण बताता है। हर बदलाव ऑडिट ट्रेल में दर्ज होता है।"],
     ],
-    next: { intent: "आप क्या करना चाहते हैं, चुनें।", analyse: "विश्लेषण देखें और ऑडिटर वर्कबुक सेव करें।", create: "क्लाइंट बनाएँ या खोलें।", tb: "ट्रायल बैलेंस import करें।", run: "जाँच चलाएँ।", fix: n => `${n} "Must fix" बिंदु सुधारें।`, map: n => `${n} लेजर को विवरण में जगह चाहिए।`, ready: "पूर्वावलोकन देखें, फिर हस्ताक्षर कर export करें।" },
+    next: { intent: "आप क्या करना चाहते हैं, चुनें।", analyse: "विश्लेषण देखें और ऑडिटर वर्कबुक सेव करें।", create: "क्लाइंट बनाएँ या खोलें।", tb: "ट्रायल बैलेंस import करें।", run: "जाँच चलाएँ।", fix: n => `${n} "Must fix" बिंदु सुधारें।`, map: n => `${n} लेजर की जगह की पुष्टि करनी है।`, ready: "पूर्वावलोकन देखें, फिर हस्ताक्षर कर export करें।" },
   },
   mr: {
     _title: "ही स्क्रीन कशी वापरायची",
@@ -145,7 +155,7 @@ const HELP = {
       "<b>Explain</b> स्थानिक AI (असल्यास) कडून सोप्या भाषेत समजावते.",
     ],
     map: [
-      "प्रत्येक लेजर ताळेबंद किंवा नफा-तोटा पत्रकातील एका ओळीखाली ठेवला जातो. आधी फक्त शंकास्पद लेजर दिसतात.",
+      "प्रत्येक लेजर ताळेबंद किंवा नफा-तोटा पत्रकातील एका ओळीखाली ठेवला जातो. <b>Certain</b>: एकच ओळ शक्य. <b>Confirm</b>: LedgerCraft चा प्रस्ताव, जो तुम्ही तपासायचा. <b>Review</b>: तुमची आधीची निवड, पण पुस्तके बदलली.",
       "बदलायचे असल्यास <b>Shown under</b> मध्ये नवीन ओळ निवडा. लगेच जतन होते आणि पुढच्या वर्षीही लक्षात राहते.",
       "<b>Reset</b> LedgerCraft च्या स्वतःच्या निवडीकडे परत नेते. टॅग (MSME, transporter …) तपासणी आणि नोट्स बदलतात.",
     ],
@@ -171,6 +181,11 @@ const HELP = {
       "<b>Items for tax audit</b> रोख देयके, रोख प्राप्ती आणि रोख कर्जे मोजते. प्रत्येक प्रकरणासाठी <b>See list</b> दाबा.",
       "वर उजवीकडे <b>Save auditor workbook</b> सर्व काही ऑडिटरसाठी Excel फाइलमध्ये लिहिते.",
     ],
+    disclose: [
+      "प्रत्येक टॅब उघडा आणि लागू असेल ते भरा. कंपन्यांनी <b>Share capital</b> भरणे आवश्यक आहे; बेरीज पुस्तकांशी जुळली पाहिजे.",
+      "<b>Accounting policies</b> मध्ये मानक मजकूर दिसतो; या संस्थेसाठी कोणताही बदलू शकता.",
+      "वर उजवीकडे <b>Save disclosures</b> दाबा, मग नोट्समध्ये पाहण्यासाठी <b>Preview</b>.",
+    ],
     audit: [
       "ही यादी कोणी काय आणि केव्हा केले ते दाखवते, नवीन सर्वात वर.",
       "हिरवी ओळ म्हणजे नंतर काहीही बदलले किंवा काढले नाही. लाल ओळ म्हणजे नोंदीत फेरफार झाला.",
@@ -183,6 +198,6 @@ const HELP = {
       ["4. छापा आणि सही करा", "काय छापायचे आणि एकक निवडा, पूर्वावलोकन पाहा, सहीचा तपशील भरा आणि export करा. PDF आणि Excel एकाच फोल्डरमध्ये येतात."],
       ["नेहमी तुमच्यासोबत", "पायऱ्या डावीकडे आहेत; मुख्य बटणे प्रत्येक स्क्रीनवर वर उजवीकडे आहेत. खाली डावीकडे 'What to do now' पुढची पायरी सांगते. प्रत्येक बदल ऑडिट ट्रेलमध्ये नोंदवला जातो."],
     ],
-    next: { intent: "तुम्हाला काय करायचे आहे ते निवडा.", analyse: "विश्लेषण पाहा आणि ऑडिटर वर्कबुक जतन करा.", create: "क्लायंट तयार करा किंवा उघडा.", tb: "ट्रायल बॅलन्स import करा.", run: "तपासणी चालवा.", fix: n => `${n} "Must fix" मुद्दे सोडवा.`, map: n => `${n} लेजरना विवरणात जागा हवी.`, ready: "पूर्वावलोकन पाहा, मग सही करून export करा." },
+    next: { intent: "तुम्हाला काय करायचे आहे ते निवडा.", analyse: "विश्लेषण पाहा आणि ऑडिटर वर्कबुक जतन करा.", create: "क्लायंट तयार करा किंवा उघडा.", tb: "ट्रायल बॅलन्स import करा.", run: "तपासणी चालवा.", fix: n => `${n} "Must fix" मुद्दे सोडवा.`, map: n => `${n} लेजरच्या जागेची पुष्टी करायची आहे.`, ready: "पूर्वावलोकन पाहा, मग सही करून export करा." },
   },
 };

@@ -101,6 +101,12 @@ pub fn render(r: &Report) -> String {
         },
         if m.draft { " draft" } else { "" }
     ));
+    if m.draft && !m.draft_note.is_empty() {
+        h.push_str(&format!(
+            "<p class=\"draftnote\">Draft: {}. A final copy is available once they are resolved.</p>",
+            esc(&m.draft_note)
+        ));
+    }
     if m.cover {
         h.push_str(&format!(
             "<section class=\"page cover\"><h1>{}</h1>{}<hr><p class=\"title\">{}</p><p class=\"fmt\">Prepared in the format: {}</p></section>",
@@ -196,6 +202,7 @@ tr.remark td{font-style:italic;font-size:9pt}
 .ruled tr.total td.r span{border-bottom:3px double var(--rule)}
 .closing{font-style:italic;font-size:9pt;margin-top:6px}
 .sig{display:grid;grid-template-columns:1fr 1fr;gap:16mm;margin-top:16px;font-size:9.5pt;break-inside:avoid}
+.draftnote{max-width:210mm;margin:12px auto 0;padding:8px 12px;background:#fff4dc;border:1px solid #e8c77a;border-radius:6px;font:13px/1.4 sans-serif;color:#6b4a00}
 .draft .page::before{content:"DRAFT";position:absolute;top:40%;left:18%;font-size:90pt;font-weight:bold;color:rgba(0,0,0,.06);transform:rotate(-38deg);pointer-events:none}
 @media print{body{background:#fff}.page{margin:0;width:auto;min-height:auto;padding:0;break-after:page}.wide{}}
 @media (max-width:820px){.page{width:auto;padding:16px}.sig{grid-template-columns:1fr}}

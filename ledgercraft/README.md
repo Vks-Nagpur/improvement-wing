@@ -68,7 +68,17 @@ references by the year of the client.
 
 ### Audit trail
 Every import, mapping, setting, export and AI suggestion is recorded in a
-hash-chained log. Editing or deleting any past entry is detected and shown.
+tamper-evident, hash-chained log on this PC: editing or removing an entry in the
+middle is detected and shown. It is not tamper-proof (someone with full control of
+the files could delete the whole history), so keep exports as the outside record.
+
+### What LedgerCraft decides and what it asks you
+See [TRUTH-MODEL.md](TRUTH-MODEL.md). In short: arithmetic and certain placements
+are automatic; ambiguous placements, name-based placements and AI suggestions
+wait for your confirmation; disclosures (share capital, contingent liabilities,
+related parties, MSME) are never assumed nil. A **draft** can always be printed
+and says how many problems are open; a **final** copy is refused until they are
+resolved. Each client year is pinned to its rule and format pack.
 
 ### Local AI (optional)
 Install Ollama (free, ollama.com), then in LedgerCraft open *Local AI* and

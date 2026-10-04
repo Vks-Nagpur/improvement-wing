@@ -309,7 +309,15 @@ pub fn render(r: &Report) -> Result<Vec<u8>, String> {
         ws.set_header(format!(
             "&L&\"{FONT}\"&8{}&R&\"{FONT}\"&8{}",
             r.meta.entity.replace('&', "&&"),
-            if r.meta.draft { "DRAFT" } else { "" }
+            if r.meta.draft {
+                if r.meta.draft_note.is_empty() {
+                    "DRAFT".to_string()
+                } else {
+                    format!("DRAFT ({})", r.meta.draft_note)
+                }
+            } else {
+                String::new()
+            }
         ));
         ws.set_footer(format!("&C&\"{FONT}\"&8Page &P of &N"));
         ws.set_screen_gridlines(false);

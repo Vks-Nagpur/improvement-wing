@@ -156,6 +156,8 @@ fn engagement_from_args(a: &HashMap<String, String>) -> Result<lc_core::Engageme
         py,
         vouchers,
         mapping_memory,
+        mapping_context: Default::default(),
+        format_pack: None,
         far,
         profit_sharing,
     })

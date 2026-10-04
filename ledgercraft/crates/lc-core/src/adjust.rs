@@ -202,6 +202,8 @@ mod tests {
             py: None,
             vouchers: vec![],
             mapping_memory: Default::default(),
+            mapping_context: Default::default(),
+            format_pack: None,
             far: None,
             profit_sharing: vec![],
         }

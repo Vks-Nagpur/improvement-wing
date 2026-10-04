@@ -1,5 +1,7 @@
 {
   "version": "2026.10-draft",
+  "pack_id": "in-rules",
+  "verification": "Legal references unverified against official texts (see TRUTH-MODEL.md §10)",
   "note": "Thresholds and legal references are data. New-Act numbers 185/186/188 and 33 per incometaxindia.gov.in section pages and TaxTMI; s.36 as the counterpart of s.40A(3) per published section listings (statute text not yet read); the counterpart of s.43(1) 6th proviso is not yet confirmed. Tax audit: Form 26 under s.63 / Rule 47 (Income-tax Rules 2026, G.S.R. 198(E), 20-03-2026) from Tax Year 2026-27; Form 3CA/3CB/3CD for FY 2025-26 and earlier.",
   "new_act_from": "2026-04-01",
   "thresholds": {
@@ -15,252 +17,570 @@
       "title": "Trial balance does not tally",
       "simple": "Total debits and total credits are not equal.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "OPENING_TOTAL_DIFF": {
       "severity": "blocker",
       "title": "Difference in opening balances",
       "simple": "Opening debits and credits of this year are not equal.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "OPENING_DIFF": {
       "severity": "warning",
       "title": "Opening balance differs from last year's closing",
       "simple": "This ledger's opening this year does not match its closing last year.",
       "old_ref": "AS 5 / consistency of comparatives",
-      "new_ref": "AS 5 / consistency of comparatives"
+      "new_ref": "AS 5 / consistency of comparatives",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "OPENING_MISSING_LEDGER": {
       "severity": "warning",
       "title": "Last year's ledger missing this year",
       "simple": "A ledger had a closing balance last year but is not in this year's books.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "OPENING_NEW_LEDGER": {
       "severity": "warning",
       "title": "New ledger with opening balance",
       "simple": "A ledger has an opening balance but did not exist last year.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "PL_OPENING": {
       "severity": "warning",
       "title": "Income/expense ledger has an opening balance",
       "simple": "Income and expense ledgers must start the year at zero.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "Companies Act, 2013 Schedule III; ICAI Guidance Notes; Accounting Standards",
+        "document": "Presentation and classification",
+        "section": ""
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "UNKNOWN_GROUP": {
       "severity": "blocker",
       "title": "Group not recognised",
       "simple": "This ledger's group could not be linked to a standard group. Tell LedgerCraft the parent group once.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
+    },
+    "MAPPING_UNCONFIRMED": {
+      "severity": "blocker",
+      "title": "Placement needs your confirmation",
+      "simple": "LedgerCraft has placed these ledgers, but they could go under more than one line (or were placed by name or moved because of their balance). Confirm each one on the Map ledgers screen; it is remembered for this client.",
+      "old_ref": "",
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
+    },
+    "MAPPING_REVIEW": {
+      "severity": "blocker",
+      "title": "Earlier placement needs review",
+      "simple": "You placed these ledgers earlier, but their group in the books or their Dr/Cr side has changed since. Check and confirm them again on the Map ledgers screen.",
+      "old_ref": "",
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "UNMAPPED": {
       "severity": "blocker",
       "title": "Ledger not mapped",
       "simple": "This ledger has no place in the financial statements yet.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "VOUCHER_UNBALANCED": {
       "severity": "blocker",
       "title": "Voucher debit and credit differ",
       "simple": "This voucher's debits and credits are not equal.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "VOUCHER_UNKNOWN_LEDGER": {
       "severity": "blocker",
       "title": "Voucher uses a ledger not in the trial balance",
       "simple": "A voucher refers to a ledger that is missing from the trial balance.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "VOUCHER_TB_MISMATCH": {
       "severity": "blocker",
       "title": "Vouchers do not add up to trial balance",
       "simple": "Opening + all vouchers does not equal the closing balance of this ledger.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "VOUCHER_OUTSIDE_PERIOD": {
       "severity": "warning",
       "title": "Voucher dated outside the financial year",
       "simple": "This voucher's date is outside the year being prepared.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "DUPLICATE_VOUCHER": {
       "severity": "warning",
       "title": "Possible duplicate voucher",
       "simple": "Two vouchers have the same date, ledgers and amounts.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "NEGATIVE_CASH": {
       "severity": "warning",
       "title": "Cash balance negative",
       "simple": "Cash in hand went below zero at the end of this day, which is not possible in reality.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "CASH_CR_BALANCE": {
       "severity": "blocker",
       "title": "Cash in hand has credit balance",
       "simple": "Cash in hand cannot be negative at year end.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "SUSPENSE_BALANCE": {
       "severity": "warning",
       "title": "Suspense account has a balance",
       "simple": "Suspense must be cleared before finalising.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "ABNORMAL_BALANCE": {
       "severity": "warning",
       "title": "Unusual balance side",
       "simple": "This ledger normally has the opposite balance.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "Companies Act, 2013 Schedule III; ICAI Guidance Notes; Accounting Standards",
+        "document": "Presentation and classification",
+        "section": ""
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "RECLASS_DEBTOR_CR": {
       "severity": "info",
       "title": "Customer credit balance shown as liability",
       "simple": "Customer has paid in advance; shown under Other Current Liabilities (advance from customers).",
       "old_ref": "Schedule III / ICAI GN: no netting of assets and liabilities",
-      "new_ref": "Schedule III / ICAI GN: no netting of assets and liabilities"
+      "new_ref": "Schedule III / ICAI GN: no netting of assets and liabilities",
+      "source": {
+        "authority": "Companies Act, 2013 Schedule III; ICAI Guidance Notes; Accounting Standards",
+        "document": "Presentation and classification",
+        "section": "Schedule III / ICAI GN: no netting of assets and liabilities"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "RECLASS_CREDITOR_DR": {
       "severity": "info",
       "title": "Supplier debit balance shown as asset",
       "simple": "Supplier has been paid in advance; shown under Short-term Loans and Advances.",
       "old_ref": "Schedule III / ICAI GN: no netting of assets and liabilities",
-      "new_ref": "Schedule III / ICAI GN: no netting of assets and liabilities"
+      "new_ref": "Schedule III / ICAI GN: no netting of assets and liabilities",
+      "source": {
+        "authority": "Companies Act, 2013 Schedule III; ICAI Guidance Notes; Accounting Standards",
+        "document": "Presentation and classification",
+        "section": "Schedule III / ICAI GN: no netting of assets and liabilities"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "RECLASS_BANK_CR": {
       "severity": "info",
       "title": "Bank credit balance shown as borrowing",
       "simple": "Bank account is overdrawn; shown under Short-term Borrowings.",
       "old_ref": "Schedule III / ICAI GN",
-      "new_ref": "Schedule III / ICAI GN"
+      "new_ref": "Schedule III / ICAI GN",
+      "source": {
+        "authority": "Companies Act, 2013 Schedule III; ICAI Guidance Notes; Accounting Standards",
+        "document": "Presentation and classification",
+        "section": "Schedule III / ICAI GN"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "MISGROUP_LOAN": {
       "severity": "warning",
       "title": "Loan grouped as creditor/debtor",
       "simple": "This looks like a loan but is grouped as a party. Loans go under Borrowings, and cash loan limits apply.",
       "old_ref": "Schedule III; s.269SS/269T; Form 3CD cl. 31",
-      "new_ref": "Schedule III; Income-tax Act 2025, ss.185/188 (correspond to s.269SS/269T)"
+      "new_ref": "Schedule III; Income-tax Act 2025, ss.185/188 (correspond to s.269SS/269T)",
+      "source": {
+        "authority": "Companies Act, 2013 Schedule III; ICAI Guidance Notes; Accounting Standards",
+        "document": "Presentation and classification",
+        "section": "Schedule III; s.269SS/269T; Form 3CD cl. 31"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "MISGROUP_OD": {
       "severity": "warning",
       "title": "Overdraft / cash credit grouped as bank account",
       "simple": "Overdraft and cash credit accounts are borrowings, not bank balances.",
       "old_ref": "Schedule III",
-      "new_ref": "Schedule III"
+      "new_ref": "Schedule III",
+      "source": {
+        "authority": "Companies Act, 2013 Schedule III; ICAI Guidance Notes; Accounting Standards",
+        "document": "Presentation and classification",
+        "section": "Schedule III"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "MISGROUP_TAX": {
       "severity": "warning",
       "title": "Tax ledger grouped as creditor",
       "simple": "GST/TDS ledgers belong under Duties & Taxes (statutory dues), not trade creditors.",
       "old_ref": "Schedule III",
-      "new_ref": "Schedule III"
+      "new_ref": "Schedule III",
+      "source": {
+        "authority": "Companies Act, 2013 Schedule III; ICAI Guidance Notes; Accounting Standards",
+        "document": "Presentation and classification",
+        "section": "Schedule III"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "CAPITAL_IN_EXPENSE": {
       "severity": "info",
       "title": "Possible capital item in expenses",
       "simple": "This expense ledger name suggests an asset purchase. Check whether it should be capitalised.",
       "old_ref": "AS 10",
-      "new_ref": "AS 10"
+      "new_ref": "AS 10",
+      "source": {
+        "authority": "Companies Act, 2013 Schedule III; ICAI Guidance Notes; Accounting Standards",
+        "document": "Presentation and classification",
+        "section": "AS 10"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "MISC_EXP_ASSET": {
       "severity": "warning",
       "title": "Miscellaneous expenditure carried as asset",
       "simple": "Preliminary/deferred expenses generally cannot be carried as assets under AS 26.",
       "old_ref": "AS 26",
-      "new_ref": "AS 26"
+      "new_ref": "AS 26",
+      "source": {
+        "authority": "Companies Act, 2013 Schedule III; ICAI Guidance Notes; Accounting Standards",
+        "document": "Presentation and classification",
+        "section": "AS 26"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "CASH_PAYMENT_LIMIT": {
       "severity": "warning",
       "title": "Cash payment above limit",
       "simple": "Cash paid for an expense/purchase to one person in a day is above the limit. The expense may be disallowed.",
       "old_ref": "s.40A(3)/(3A), Rule 6DD exceptions; Form 3CD cl. 21(d)",
-      "new_ref": "Income-tax Act 2025, s.36 (corresponds to s.40A(3); sub-section to be confirmed); reported in Form 26 (Rule 47, Income-tax Rules 2026)"
+      "new_ref": "Income-tax Act 2025, s.36 (corresponds to s.40A(3); sub-section to be confirmed); reported in Form 26 (Rule 47, Income-tax Rules 2026)",
+      "source": {
+        "authority": "Income-tax Act, 1961 (up to FY 2025-26); Income-tax Act, 2025 (from Tax Year 2026-27)",
+        "document": "Act text",
+        "section": "s.40A(3) (1961) / s.36 (2025)"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "CASH_ASSET_PURCHASE": {
       "severity": "warning",
       "title": "Asset bought in cash above limit",
       "simple": "Asset bought in cash above the limit; that amount is not counted in tax depreciation.",
       "old_ref": "s.43(1), 6th proviso",
-      "new_ref": "IT Act 2025 provision corresponding to s.43(1) (section no. to be confirmed)"
+      "new_ref": "IT Act 2025 provision corresponding to s.43(1) (section no. to be confirmed)",
+      "source": {
+        "authority": "Income-tax Act, 1961 (up to FY 2025-26); Income-tax Act, 2025 (from Tax Year 2026-27)",
+        "document": "Act text",
+        "section": "s.43(1), 6th proviso (1961)"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "CASH_RECEIPT_LIMIT": {
       "severity": "warning",
       "title": "Cash received ₹2 lakh or more",
       "simple": "Cash of ₹2 lakh or more received from one person in a day / one transaction. Penalty may apply.",
       "old_ref": "s.269ST; s.271DA",
-      "new_ref": "Income-tax Act 2025, s.186 (corresponds to s.269ST); reported in Form 26"
+      "new_ref": "Income-tax Act 2025, s.186 (corresponds to s.269ST); reported in Form 26",
+      "source": {
+        "authority": "Income-tax Act, 1961 (up to FY 2025-26); Income-tax Act, 2025 (from Tax Year 2026-27)",
+        "document": "Act text",
+        "section": "s.269ST (1961) / s.186 (2025)"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "LOAN_ACCEPTED_CASH": {
       "severity": "warning",
       "title": "Loan accepted in cash (limit test)",
       "simple": "Loan taken in cash where the loan (with earlier unpaid principal) is ₹20,000 or more.",
       "old_ref": "s.269SS; s.271D; Form 3CD cl. 31(a)",
-      "new_ref": "Income-tax Act 2025, s.185 (corresponds to s.269SS); reported in Form 26"
+      "new_ref": "Income-tax Act 2025, s.185 (corresponds to s.269SS); reported in Form 26",
+      "source": {
+        "authority": "Income-tax Act, 1961 (up to FY 2025-26); Income-tax Act, 2025 (from Tax Year 2026-27)",
+        "document": "Act text",
+        "section": "s.269SS (1961) / s.185 (2025)"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "LOAN_ACCEPTED_JOURNAL": {
       "severity": "warning",
       "title": "Loan accepted by journal entry",
       "simple": "Loan credited through a journal (not bank or cash). Check the mode; book adjustments may count as 'otherwise than banking channel'.",
       "old_ref": "s.269SS; Form 3CD cl. 31(a)",
-      "new_ref": "Income-tax Act 2025, s.185 (corresponds to s.269SS); reported in Form 26"
+      "new_ref": "Income-tax Act 2025, s.185 (corresponds to s.269SS); reported in Form 26",
+      "source": {
+        "authority": "Income-tax Act, 1961 (up to FY 2025-26); Income-tax Act, 2025 (from Tax Year 2026-27)",
+        "document": "Act text",
+        "section": "s.269SS (1961) / s.185 (2025)"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "LOAN_REPAID_CASH": {
       "severity": "warning",
       "title": "Loan repaid in cash (limit test)",
       "simple": "Loan repaid in cash where the amount, or the balance with interest, is ₹20,000 or more.",
       "old_ref": "s.269T; s.271E; Form 3CD cl. 31(b)",
-      "new_ref": "Income-tax Act 2025, s.188 (corresponds to s.269T); reported in Form 26"
+      "new_ref": "Income-tax Act 2025, s.188 (corresponds to s.269T); reported in Form 26",
+      "source": {
+        "authority": "Income-tax Act, 1961 (up to FY 2025-26); Income-tax Act, 2025 (from Tax Year 2026-27)",
+        "document": "Act text",
+        "section": "s.269T (1961) / s.188 (2025)"
+      },
+      "verification": "unverified",
+      "effective_from": "2021-04-01",
+      "effective_until": ""
     },
     "STATEMENT_NOT_BALANCED": {
       "severity": "blocker",
       "title": "Balance Sheet does not tally",
       "simple": "Total assets and total liabilities are not equal after mapping.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "FAR_TB_MISMATCH": {
       "severity": "warning",
       "title": "Fixed asset register does not match books",
       "simple": "Net block of this ledger as per the fixed asset register differs from the trial balance.",
       "old_ref": "AS 10; Schedule III",
-      "new_ref": "AS 10; Schedule III"
+      "new_ref": "AS 10; Schedule III",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "FAR_DEP_MISMATCH": {
       "severity": "warning",
       "title": "Depreciation in books differs from register",
       "simple": "Depreciation charged in the books is not equal to depreciation worked out in the fixed asset register.",
       "old_ref": "Schedule II, Companies Act 2013 / AS 10",
-      "new_ref": "Schedule II, Companies Act 2013 / AS 10"
+      "new_ref": "Schedule II, Companies Act 2013 / AS 10",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "FAR_MISSING_LEDGER": {
       "severity": "warning",
       "title": "Fixed asset ledger not in register",
       "simple": "This fixed asset ledger has a balance but no asset in the fixed asset register.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     },
     "FAR_ERROR": {
       "severity": "warning",
       "title": "Fixed asset register entry not understood",
       "simple": "An asset in the register has an unknown class / block.",
       "old_ref": "",
-      "new_ref": ""
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Double-entry arithmetic and data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": ""
     }
   }
 }

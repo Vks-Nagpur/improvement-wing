@@ -7,3 +7,6 @@ description = "Synthetic books (basic to complex, with planted glitches and grou
 [dependencies]
 lc-core = { path = "../lc-core" }
 chrono.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

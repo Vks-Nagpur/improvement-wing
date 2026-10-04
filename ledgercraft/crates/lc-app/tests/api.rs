@@ -142,6 +142,7 @@ fn full_flow_through_the_app() {
         .unwrap()
         .iter()
         .map(|f| f["key"].as_str().unwrap().to_string())
+        .filter(|k| !k.starts_with("MAPPING_"))
         .collect();
     let mut want = s.expected.keys.clone();
     want.retain(|k| !k.starts_with("FAR_")); // no register uploaded here
@@ -187,12 +188,49 @@ fn full_flow_through_the_app() {
     .into_string()
     .unwrap();
     assert!(preview.contains("GLITCHY TRADERS") && preview.contains("₹ lakhs"));
-    let err = c.call(
+    // Final copy refused until placements are confirmed and disclosures answered.
+    let err = c
+        .call(
+            "POST",
+            &format!("/api/projects/{pid}/export"),
+            Some(json!({"mode": "final"})),
+        )
+        .unwrap_err();
+    assert!(err.contains("Must fix") || err.contains("refused"), "{err}");
+    let r = c
+        .call(
+            "POST",
+            &format!("/api/projects/{pid}/mapping/confirm"),
+            Some(json!({"all": true})),
+        )
+        .unwrap();
+    assert!(r["confirmed"].as_u64().unwrap() > 0);
+    let err = c
+        .call(
+            "POST",
+            &format!("/api/projects/{pid}/export"),
+            Some(json!({"mode": "final"})),
+        )
+        .unwrap_err();
+    assert!(err.contains("Not answered yet"), "{err}");
+    let p = c
+        .call("GET", &format!("/api/projects/{pid}"), None)
+        .unwrap();
+    let mut o = p["settings"]["options"].clone();
+    o["disclosures"]["answers"] =
+        json!({"contingent": "nil", "related_parties": "nil", "msme": "provided"});
+    c.call(
+        "POST",
+        &format!("/api/projects/{pid}/settings"),
+        Some(json!({"options": o})),
+    )
+    .unwrap();
+    let ok = c.call(
         "POST",
         &format!("/api/projects/{pid}/export"),
         Some(json!({"mode": "final"})),
     );
-    assert!(err.is_ok(), "warnings only: final copy allowed: {err:?}");
+    assert!(ok.is_ok(), "warnings only: final copy allowed: {ok:?}");
     let ex = c
         .call(
             "POST",
@@ -211,6 +249,9 @@ fn full_flow_through_the_app() {
     }
 
     // AI unavailable: clear message, nothing breaks.
+    let a = c
+        .call("POST", &format!("/api/projects/{pid}/analyse"), None)
+        .unwrap();
     let e = c
         .call(
             "POST",
@@ -237,6 +278,7 @@ fn full_flow_through_the_app() {
         "tags_changed",
         "checks_run",
         "mapping_changed",
+        "mapping_confirmed",
         "settings_changed",
         "exported",
     ] {
@@ -456,6 +498,46 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         .next()
         .is_some());
 
+    // Rules are pinned to the year; a newer pack is only applied after review.
+    let r = c
+        .call("GET", &format!("/api/projects/{pid}/rules"), None)
+        .unwrap();
+    assert_eq!(r["update"], false);
+    let pin = dir.join("data/clients/Adjust-Co/2025-26/pins/rules.json");
+    let t = std::fs::read_to_string(&pin).unwrap();
+    let older = t.replacen(
+        "\"cash_receipt_paise\": 20000000",
+        "\"cash_receipt_paise\": 10000000",
+        1,
+    );
+    let older = older.replacen(
+        &format!(
+            "\"version\": \"{}\"",
+            lc_core::rules::RulesPack::builtin().version
+        ),
+        "\"version\": \"2025.1-old\"",
+        1,
+    );
+    std::fs::write(&pin, older).unwrap();
+    let r = c
+        .call("GET", &format!("/api/projects/{pid}/rules"), None)
+        .unwrap();
+    assert_eq!(r["update"], true);
+    assert_eq!(r["pinned"]["rules"], "2025.1-old");
+    assert!(r["changes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|x| x == "thresholds"));
+    let m = c
+        .call("POST", &format!("/api/projects/{pid}/rules/migrate"), None)
+        .unwrap();
+    assert_eq!(m["rules_from"], "2025.1-old");
+    let r = c
+        .call("GET", &format!("/api/projects/{pid}/rules"), None)
+        .unwrap();
+    assert_eq!(r["update"], false);
+
     // Delete → Recycle Bin → restore, with the audit trail intact.
     c.call("POST", &format!("/api/projects/{pid}/delete"), None)
         .unwrap();
@@ -486,6 +568,8 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         "file_removed",
         "project_deleted",
         "project_restored",
+        "rules_pinned",
+        "rules_migrated",
     ] {
         assert!(actions.iter().any(|a| a == want), "audit missing {want}");
     }

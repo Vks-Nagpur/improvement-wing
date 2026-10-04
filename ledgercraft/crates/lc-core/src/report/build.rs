@@ -130,6 +130,7 @@ struct Ctx<'a> {
     end_cy: NaiveDate,
     end_py: NaiveDate,
     warnings: Vec<String>,
+    blockers: Vec<String>,
 }
 
 impl Ctx<'_> {
@@ -273,7 +274,7 @@ struct Notes {
 }
 
 pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &SignOff) -> Report {
-    let pack = FormatPack::for_entity(eng.entity_type);
+    let pack = FormatPack::of(eng);
     let g = granularity(opt.unit, opt.decimals);
     let cy = a.facts_cy.rounded(g);
     let py = if opt.show_previous_year {
@@ -295,6 +296,7 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
         end_cy: eng.fy_end,
         end_py: eng.fy_start.pred_opt().unwrap_or(eng.fy_start),
         warnings: Vec::new(),
+        blockers: Vec::new(),
     };
     if eng.entity_type.is_company()
         && !opt
@@ -305,6 +307,9 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
             "Schedule III rounding: '{}' is not a permitted unit for a company with this turnover (below ₹100 crore: hundreds, thousands, lakhs or millions; ₹100 crore or more: lakhs, millions or crores).",
             opt.unit.long()
         ));
+    }
+    for m in opt.disclosures.missing(eng.entity_type.is_company()) {
+        c.blockers.push(format!("Not answered yet: {m} (Notes and disclosures). Enter the particulars or mark it as nil."));
     }
     if pack.status.starts_with("draft") {
         c.warnings.push(format!(
@@ -327,10 +332,24 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
         let has_inv = !c.cy.head(Head::Inventories).is_zero();
         let has_emp = !c.cy.head(Head::EmployeeBenefits).is_zero();
         let mut blocks = Vec::new();
-        for (i, (t, body)) in policies::accounting_policies(eng, opt, has_inv, has_emp)
-            .into_iter()
-            .enumerate()
-        {
+        let d = &opt.disclosures;
+        let mut list = policies::accounting_policies(eng, opt, has_inv, has_emp);
+        for (t, body) in list.iter_mut() {
+            if let Some(own) = d
+                .policy_text
+                .get(t.as_str())
+                .filter(|x| !x.trim().is_empty())
+            {
+                *body = own.trim().to_string();
+            }
+        }
+        list.extend(
+            d.extra_policies
+                .iter()
+                .filter(|n| !n.title.trim().is_empty())
+                .map(|n| (n.title.trim().to_string(), n.text.trim().to_string())),
+        );
+        for (i, (t, body)) in list.into_iter().enumerate() {
             blocks.push(Block::Heading {
                 text: format!("2.{} {t}", i + 1),
                 level: 3,
@@ -341,10 +360,12 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
             .list
             .push((2, "Significant accounting policies".into(), blocks));
         notes.next = 3;
-        c.warnings.push(
-            "Accounting policies are standard wording: review and edit them for this entity."
-                .into(),
-        );
+        if d.policy_text.values().all(|x| x.trim().is_empty()) {
+            c.warnings.push(
+                "Accounting policies are standard wording: review and edit them for this entity (Notes and disclosures)."
+                    .into(),
+            );
+        }
     }
 
     let bs_rows = face(&mut c, &pack, &pack.balance_sheet, &mut notes, true);
@@ -466,6 +487,12 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
         ));
     }
 
+    for (title, blocks) in extra_notes(&mut c) {
+        let no = notes.next;
+        notes.next += 1;
+        notes.list.push((no, title, blocks));
+    }
+
     let mut note_blocks = Vec::new();
     for (no, title, blocks) in &notes.list {
         note_blocks.push(Block::Heading {
@@ -532,11 +559,23 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
         format_name: pack.name.clone(),
         format_status: pack.status.clone(),
         generator: format!("LedgerCraft {}", env!("CARGO_PKG_VERSION")),
+        draft_note: String::new(),
     };
+    let unresolved = a.count(crate::rules::Severity::Blocker) + c.blockers.len();
+    let mut meta = meta;
+    if opt.draft && unresolved > 0 {
+        meta.draft_note = format!(
+            "{unresolved} problem{} unresolved",
+            if unresolved == 1 { "" } else { "s" }
+        );
+    }
+    let mut warnings = c.blockers.clone();
+    warnings.extend(c.warnings);
     Report {
         meta,
         sections,
-        warnings: c.warnings,
+        warnings,
+        blockers: c.blockers,
     }
 }
 
@@ -795,6 +834,19 @@ fn note_content(c: &mut Ctx, pack: &FormatPack, h: Head, as_at: bool) -> Vec<Blo
     let total = |rows: &mut Vec<NRow>| rows.push(NRow::total("Total", tc, tp));
     match h {
         Head::Capital if !c.eng.entity_type.is_company() => capital_note(c),
+        Head::Capital if !c.opt.disclosures.share_classes.is_empty() => {
+            share_capital_note(c, tc, tp)
+        }
+        Head::Capital if c.eng.entity_type.is_company() => {
+            let mut rows = c.ledger_rows(h, &any, 0);
+            total(&mut rows);
+            vec![
+                Block::Table(c.two_col(rows, true)),
+                Block::Para {
+                    text: NOT_PROVIDED.into(),
+                },
+            ]
+        }
         Head::ReservesSurplus if pack.profit_to == Head::ReservesSurplus => {
             let mut rows = c.ledger_rows(h, &|cl, _| cl != Some(Class::ProfitLossAc), 0);
             let open_c = c.sum_where(&c.cy, h, &|cl, _| cl == Some(Class::ProfitLossAc));
@@ -862,7 +914,10 @@ fn note_content(c: &mut Ctx, pack: &FormatPack, h: Head, as_at: bool) -> Vec<Blo
                 }
             }
             total(&mut rows);
+            let msme_cy = rows.first().and_then(|r| r.cy).unwrap_or_default();
+            let msme_py = rows.first().and_then(|r| r.py);
             let mut blocks = vec![Block::Table(c.two_col(rows, true))];
+            blocks.extend(msme_block(c, msme_cy, msme_py));
             if c.opt.ageing {
                 blocks.extend(ageing_block(c, h));
             }
@@ -1555,3 +1610,417 @@ fn signature(eng: &Engagement, s: &SignOff) -> Signature {
     right.push(format!("Date: {}", blank(&s.date)));
     Signature { left, right }
 }
+
+// ---- disclosures entered by the user ---------------------------------------------
+
+fn text_table(cols: &[(&str, &str, Align)], rows: Vec<Row>) -> Table {
+    Table {
+        title: None,
+        columns: cols.iter().map(|(_, w, a)| col(w, *a)).collect(),
+        header: vec![cols.iter().map(|(t, _, a)| hc(*t, 1, 1, *a)).collect()],
+        keep_together: rows.len() <= 28,
+        rows,
+        landscape: false,
+        dense: false,
+    }
+}
+
+fn trow(style: RowStyle, cells: Vec<String>) -> Row {
+    let n = cells.len();
+    Row {
+        style,
+        indent: 0,
+        cells,
+        values: vec![None; n],
+    }
+}
+
+fn count(n: i64) -> String {
+    fmt_amount(Money(n * 100), crate::units::Unit::Rupees, 0)
+}
+
+fn pct(part: i64, whole: i64) -> String {
+    if whole == 0 {
+        "-".into()
+    } else {
+        format!("{:.2}%", part as f64 * 100.0 / whole as f64)
+    }
+}
+
+/// Share capital (Schedule III, Division I, Part I, note on share capital).
+fn share_capital_note(c: &mut Ctx, tc: Money, tp: Option<Money>) -> Vec<Block> {
+    let d = &c.opt.disclosures;
+    let g = c.f.g;
+    let r = |m: Money| round_to(m, g);
+    let mut rows = Vec::new();
+    let (mut auth, mut auth_p, mut paid, mut paid_p) =
+        (Money::ZERO, Money::ZERO, Money::ZERO, Money::ZERO);
+    rows.push(NRow::head("Authorised"));
+    for s in &d.share_classes {
+        let (a, b) = (r(s.amount(s.authorised)), r(s.amount(s.py_authorised)));
+        auth += a;
+        auth_p += b;
+        rows.push(NRow::item(
+            1,
+            format!("{} {}", count(s.authorised), s.name),
+            a,
+            Some(b),
+        ));
+    }
+    rows.push(NRow::sub("", auth, Some(auth_p)));
+    rows.push(NRow::head("Issued"));
+    for s in &d.share_classes {
+        rows.push(NRow::item(
+            1,
+            format!("{} {}", count(s.issued), s.name),
+            r(s.amount(s.issued)),
+            Some(r(s.amount(s.py_issued))),
+        ));
+    }
+    rows.push(NRow::head("Subscribed and paid up"));
+    for s in &d.share_classes {
+        let (a, b) = (
+            r(s.paid_amount(s.subscribed)),
+            r(s.paid_amount(s.py_subscribed)),
+        );
+        paid += a;
+        paid_p += b;
+        let tail = if s.paid() == s.face_value {
+            "fully paid up".to_string()
+        } else {
+            format!("{} paid up per share", c.f.s(s.paid()))
+        };
+        rows.push(NRow::item(
+            1,
+            format!("{} {}, {}", count(s.subscribed), s.name, tail),
+            a,
+            Some(b),
+        ));
+    }
+    rows.push(NRow::total("Total", paid, Some(paid_p)));
+    let rows: Vec<NRow> = rows
+        .into_iter()
+        .map(|mut x| {
+            if !c.has_py() {
+                x.py = None;
+            }
+            x
+        })
+        .collect();
+    if paid != tc || (c.has_py() && tp.is_some() && Some(paid_p) != tp) {
+        c.blockers.push(format!(
+            "Share capital entered ({}) does not agree with the books ({}). Check the share particulars in Notes and disclosures.",
+            c.f.s(paid),
+            c.f.s(tc)
+        ));
+    }
+    let mut blocks = vec![Block::Table(c.two_col(rows, true))];
+
+    // Reconciliation of shares outstanding.
+    let mut rec = Vec::new();
+    for s in &d.share_classes {
+        rec.push(trow(
+            RowStyle::Subheading,
+            vec![s.name.clone(), String::new()],
+        ));
+        rec.push(trow(
+            RowStyle::Item,
+            vec![
+                "Shares outstanding at the beginning of the year".into(),
+                count(s.opening()),
+            ],
+        ));
+        rec.push(trow(
+            RowStyle::Item,
+            vec!["Add: Shares issued during the year".into(), count(s.added)],
+        ));
+        rec.push(trow(
+            RowStyle::Item,
+            vec![
+                "Less: Shares bought back / reduced during the year".into(),
+                count(s.reduced),
+            ],
+        ));
+        rec.push(trow(
+            RowStyle::Subtotal,
+            vec![
+                "Shares outstanding at the end of the year".into(),
+                count(s.subscribed),
+            ],
+        ));
+    }
+    blocks.push(Block::Para {
+        text: "Reconciliation of the number of shares outstanding".into(),
+    });
+    blocks.push(Block::Table(text_table(
+        &[
+            ("Particulars", "1fr", Align::Left),
+            ("Number of shares", "40mm", Align::Right),
+        ],
+        rec,
+    )));
+    for s in d
+        .share_classes
+        .iter()
+        .filter(|s| !s.rights.trim().is_empty())
+    {
+        blocks.push(Block::Para {
+            text: format!(
+                "Rights, preferences and restrictions ({}): {}",
+                s.name,
+                s.rights.trim()
+            ),
+        });
+    }
+
+    let total_cy: i64 = d.share_classes.iter().map(|s| s.subscribed).sum();
+    let total_py: i64 = d.share_classes.iter().map(|s| s.py_subscribed).sum();
+    if !d.holders_5pct.is_empty() {
+        blocks.push(Block::Para {
+            text: "Shares held by shareholders holding more than 5% of the shares".into(),
+        });
+        let rows = d
+            .holders_5pct
+            .iter()
+            .map(|h| {
+                trow(
+                    RowStyle::Item,
+                    vec![
+                        h.name.clone(),
+                        count(h.shares),
+                        pct(h.shares, total_cy),
+                        count(h.py_shares),
+                        pct(h.py_shares, total_py),
+                    ],
+                )
+            })
+            .collect();
+        blocks.push(Block::Table(text_table(
+            &[
+                ("Name of shareholder", "1fr", Align::Left),
+                ("No. of shares (this year)", "30mm", Align::Right),
+                ("% held", "20mm", Align::Right),
+                ("No. of shares (last year)", "30mm", Align::Right),
+                ("% held", "20mm", Align::Right),
+            ],
+            rows,
+        )));
+    }
+    if !d.promoters.is_empty() {
+        blocks.push(Block::Para {
+            text: "Shares held by promoters at the end of the year".into(),
+        });
+        let rows = d
+            .promoters
+            .iter()
+            .map(|h| {
+                let change = if h.py_shares == 0 {
+                    "-".to_string()
+                } else {
+                    format!(
+                        "{:.2}%",
+                        (h.shares - h.py_shares) as f64 * 100.0 / h.py_shares as f64
+                    )
+                };
+                trow(
+                    RowStyle::Item,
+                    vec![
+                        h.name.clone(),
+                        count(h.shares),
+                        pct(h.shares, total_cy),
+                        change,
+                    ],
+                )
+            })
+            .collect();
+        blocks.push(Block::Table(text_table(
+            &[
+                ("Promoter name", "1fr", Align::Left),
+                ("No. of shares", "32mm", Align::Right),
+                ("% of total shares", "30mm", Align::Right),
+                ("% change during the year", "34mm", Align::Right),
+            ],
+            rows,
+        )));
+    }
+    blocks
+}
+
+/// MSMED Act, 2006, section 22 particulars, under trade payables.
+fn msme_block(c: &mut Ctx, principal_cy: Money, principal_py: Option<Money>) -> Vec<Block> {
+    use crate::report::disclosures::Answer;
+    let m = c.opt.disclosures.msme.clone();
+    match c.opt.disclosures.answer("msme") {
+        Answer::NotAnswered => {
+            return vec![Block::Para {
+                text: format!("Dues to micro and small enterprises: {NOT_PROVIDED}"),
+            }];
+        }
+        Answer::Nil => {
+            if !principal_cy.is_zero() {
+                c.blockers.push("MSME marked as nil, but creditors tagged MSME have a balance. Correct the tags or the MSME answer.".into());
+            }
+            return vec![Block::Para { text: "There are no amounts due to micro and small enterprises as defined in the Micro, Small and Medium Enterprises Development Act, 2006, on the basis of information available with the entity.".into() }];
+        }
+        Answer::Provided => {}
+    }
+    let g = c.f.g;
+    let r = |x: Money| round_to(x, g);
+    let py = |v: (Money, Money)| if c.has_py() { Some(r(v.1)) } else { None };
+    let rows = vec![
+        NRow::head("Dues to micro and small enterprises (Micro, Small and Medium Enterprises Development Act, 2006)"),
+        NRow::item(1, "Principal amount remaining unpaid at the end of the year", principal_cy, principal_py),
+        NRow::item(1, "Interest due on the above and remaining unpaid", r(m.interest_due_unpaid.0), py(m.interest_due_unpaid)),
+        NRow::item(1, "Interest paid in terms of section 16, along with payments made beyond the appointed day", r(m.interest_paid_s16.0), py(m.interest_paid_s16)),
+        NRow::item(1, "Payments made to suppliers beyond the appointed day during the year", r(m.paid_beyond_appointed_day.0), py(m.paid_beyond_appointed_day)),
+        NRow::item(1, "Interest due and payable for the period of delay (paid beyond the appointed day) without adding the interest under the Act", r(m.interest_due_for_delay.0), py(m.interest_due_for_delay)),
+        NRow::item(1, "Interest accrued and remaining unpaid at the end of the year", r(m.interest_accrued_unpaid.0), py(m.interest_accrued_unpaid)),
+        NRow::item(1, "Further interest remaining due and payable in succeeding years", r(m.further_interest.0), py(m.further_interest)),
+        NRow::remark("Micro and small enterprises have been identified on the basis of information available with the entity."),
+    ];
+    vec![Block::Table(c.two_col(rows, true))]
+}
+
+/// Contingent liabilities and commitments, related parties and free notes.
+fn extra_notes(c: &mut Ctx) -> Vec<(String, Vec<Block>)> {
+    let d = c.opt.disclosures.clone();
+    let g = c.f.g;
+    let r = |x: Money| round_to(x, g);
+    let mut out = Vec::new();
+    let lines = |c: &Ctx,
+                 title: &str,
+                 v: &[crate::report::disclosures::AmountLine],
+                 rows: &mut Vec<NRow>| {
+        let v: Vec<_> = v.iter().filter(|l| !l.nature.trim().is_empty()).collect();
+        if v.is_empty() {
+            return;
+        }
+        rows.push(NRow::head(title));
+        let (mut a, mut b) = (Money::ZERO, Money::ZERO);
+        for l in v {
+            a += r(l.cy);
+            b += r(l.py);
+            rows.push(NRow::item(
+                1,
+                l.nature.trim(),
+                r(l.cy),
+                c.has_py().then_some(r(l.py)),
+            ));
+        }
+        rows.push(NRow::sub("", a, c.has_py().then_some(b)));
+    };
+    use crate::report::disclosures::Answer;
+    let mut rows = Vec::new();
+    lines(
+        c,
+        "Contingent liabilities (not provided for)",
+        &d.contingent_liabilities,
+        &mut rows,
+    );
+    lines(c, "Commitments", &d.commitments, &mut rows);
+    let title = "Contingent liabilities and commitments".to_string();
+    match d.answer("contingent") {
+        Answer::Provided => out.push((title, vec![Block::Table(c.two_col(rows, true))])),
+        Answer::Nil => out.push((
+            title,
+            vec![Block::Para {
+                text: "There are no contingent liabilities or commitments.".into(),
+            }],
+        )),
+        Answer::NotAnswered => out.push((
+            title,
+            vec![Block::Para {
+                text: NOT_PROVIDED.into(),
+            }],
+        )),
+    }
+
+    let parties: Vec<_> = d
+        .related_parties
+        .iter()
+        .filter(|p| !p.name.trim().is_empty())
+        .collect();
+    if !parties.is_empty() {
+        let mut blocks = vec![Block::Para {
+            text: "Names of related parties and nature of relationship (Accounting Standard 18)"
+                .into(),
+        }];
+        let rows = parties
+            .iter()
+            .map(|p| {
+                trow(
+                    RowStyle::Item,
+                    vec![p.name.trim().into(), p.relationship.trim().into()],
+                )
+            })
+            .collect();
+        blocks.push(Block::Table(text_table(
+            &[
+                ("Name", "1fr", Align::Left),
+                ("Relationship", "1fr", Align::Left),
+            ],
+            rows,
+        )));
+        let txns: Vec<_> = d
+            .related_transactions
+            .iter()
+            .filter(|t| !t.party.trim().is_empty())
+            .collect();
+        if !txns.is_empty() {
+            blocks.push(Block::Para {
+                text: "Transactions and balances with related parties".into(),
+            });
+            let mut cols = vec![
+                ("Related party", "1fr", Align::Left),
+                ("Nature", "1fr", Align::Left),
+                ("This year", "32mm", Align::Right),
+            ];
+            if c.has_py() {
+                cols.push(("Last year", "32mm", Align::Right));
+            }
+            let rows = txns
+                .iter()
+                .map(|t| {
+                    let mut cells = vec![
+                        t.party.trim().to_string(),
+                        t.nature.trim().to_string(),
+                        c.f.s(r(t.cy)),
+                    ];
+                    if c.has_py() {
+                        cells.push(c.f.s(r(t.py)));
+                    }
+                    trow(RowStyle::Item, cells)
+                })
+                .collect();
+            blocks.push(Block::Table(text_table(&cols, rows)));
+        }
+        out.push(("Related party disclosures".to_string(), blocks));
+    } else {
+        let text = match d.answer("related_parties") {
+            Answer::Nil => "There are no related parties with whom transactions have taken place during the year, or with whom the entity has a relationship of control.",
+            _ => NOT_PROVIDED,
+        };
+        out.push((
+            "Related party disclosures".to_string(),
+            vec![Block::Para { text: text.into() }],
+        ));
+    }
+
+    for n in d.notes.iter().filter(|n| !n.title.trim().is_empty()) {
+        let blocks = n
+            .text
+            .split("\n\n")
+            .map(|p| p.trim())
+            .filter(|p| !p.is_empty())
+            .map(|p| Block::Para {
+                text: p.to_string(),
+            })
+            .collect();
+        out.push((n.title.trim().to_string(), blocks));
+    }
+    out
+}
+
+/// Printed (on drafts only; a final copy is refused) where a required
+/// disclosure has not been answered. Never printed as nil.
+const NOT_PROVIDED: &str = "[Information not yet provided]";

@@ -130,6 +130,13 @@ pub struct Engagement {
     /// Remembered mapping: normalised ledger name -> head id.
     #[serde(default)]
     pub mapping_memory: HashMap<String, String>,
+    /// For each remembered mapping: the group and balance side when it was
+    /// confirmed (`memory_context`). A change re-opens the mapping for review.
+    #[serde(default)]
+    pub mapping_context: HashMap<String, String>,
+    /// Format pack pinned to this client year (None: the built-in one).
+    #[serde(default)]
+    pub format_pack: Option<crate::statements::FormatPack>,
     /// Fixed asset register (optional).
     #[serde(default)]
     pub far: Option<crate::far::Register>,

@@ -40,7 +40,7 @@
   let p = counter(page).display()
   let total = counter(page).final().first()
   grid(columns: (1fr, auto, 1fr), align: (left, center, right),
-    if M.draft [Draft – for discussion only] else [],
+    if M.draft [Draft – for discussion only#if M.at("draft_note", default: "") != "" [ · #M.draft_note]] else [],
     [Page #p of #total],
     [])
 }

@@ -175,7 +175,7 @@ fn one_click_tally_import_reproduces_books() {
         ..orig.clone()
     };
     let a = analyse(&eng, &RulesPack::builtin());
-    let got: BTreeSet<String> = a.findings.iter().map(|f| f.key.clone()).collect();
+    let got: BTreeSet<String> = lc_testdata::problem_keys(&a);
     assert_eq!(got, s.expected.keys);
     assert_eq!(a.statements.profit.0, s.expected.profit_cy);
 }

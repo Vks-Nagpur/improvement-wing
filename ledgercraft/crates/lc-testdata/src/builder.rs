@@ -396,6 +396,8 @@ impl Builder {
             py,
             vouchers: self.vouchers,
             mapping_memory: HashMap::new(),
+            mapping_context: HashMap::new(),
+            format_pack: None,
             far: self.far.clone(),
             profit_sharing: Vec::new(),
         };

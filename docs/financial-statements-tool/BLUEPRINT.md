@@ -65,8 +65,8 @@ Source: indexed vendor/listing pages (computaxonline.com is blocked from our res
 |---|---|
 | 1 | **Free for all**, open-source |
 | 2 | **All entity types**: Company (Div I; Div II Ind AS later), LLP, Partnership, Proprietor/Individual, HUF, AOP, BOI, Trust/Society (later) |
-| 3 | **Auto-mapping target 90%+** using Tally group + ledger-name dictionary + "learns from your past mapping" |
-| 4 | **Self-updating format packs** (law changes pushed as versioned data, not new software) |
+| 3 | **Mapping by confidence, not by a % target**: *Rule* (only one line possible for the group), *Suggested* (by name, ambiguous group, balance side or AI: the user confirms), *Review* (earlier choice whose group or Dr/Cr side changed), *Unmapped* (blocks a final copy). Remembered choices carry the group and side they were confirmed with. See `ledgercraft/TRUTH-MODEL.md` |
+| 4 | **Versioned, pinned format and rule packs** (law changes shipped as versioned data with sources; each client year stays on its pack until the user reviews and moves it) |
 | 5 | **Both depreciation engines**: Companies Act Schedule II + Income-tax block WDV, with a single Fixed Asset Register |
 | 6 | **Error engine** that blocks printing until critical issues are fixed |
 | 7 | **Toggles for what to show and when** — with a plain, professional final output |
@@ -282,7 +282,7 @@ Every template change goes through the same CA-reviewed format-pack process (§1
 Inspired by the audit-trail principle in the proviso to **Rule 3(1), Companies (Accounts) Rules, 2014** (for FY from 1-4-2023: record audit trail of each transaction, edit log with dates, cannot be disabled). Our tool is a preparation tool, not the books, but we follow the same standard for every adjustment and change made inside it.
 
 - **Append-only event log**: who (user), when (timestamp), what (old value → new value), why (optional reason), source (import / manual / auto-fix).
-- **Tamper-evident**: each log entry hash-chained to the previous one; the app verifies the chain on open and warns if broken.
+- **Tamper-evident** (not tamper-proof): each log entry is hash-chained to the previous one; the app verifies the chain and warns if an entry was edited or removed. Someone controlling the files could still delete the whole history, so the trail is exported with the statements.
 - **Cannot be switched off.** No "delete history" option.
 - **Snapshots/versions**: automatic snapshot at import, at finalise, and before roll-forward; "Compare versions" shows what changed in figures.
 - **Audit trail report** (printable/exportable) for the auditor's file.
@@ -377,7 +377,7 @@ One button **"Start next year"**:
 
 ---
 
-## 11. Self-updating law ("format packs")
+## 11. Versioned law ("format packs"), pinned per client year
 
 ```
 format-packs/
@@ -388,9 +388,9 @@ format-packs/
   companies-sch2/      useful lives
 ```
 - Each pack = JSON/YAML: line items, mapping hints, notes, validations, display rules, **effective date range**, source citation (notification / ICAI GN).
-- Packs live in a **public GitHub repo**; the app checks for updates on start (works offline with last-downloaded pack).
-- Changes reviewed by a **CA panel** (pull requests) — community-maintained, transparent changelog.
-- The app picks the right pack automatically by **entity + financial year**.
+- Packs live in a **public GitHub repo**; changes reviewed by a **CA panel** (pull requests) with a transparent changelog.
+- A new pack is **never applied silently**. Each client year is **pinned** to the pack it started with; when a newer verified pack is available the app shows what changed and the user chooses to move the year (recorded in the audit trail). Earlier exports stay reproducible.
+- Each rule carries its source (authority, document, section), effective dates and verification status.
 
 ---
 

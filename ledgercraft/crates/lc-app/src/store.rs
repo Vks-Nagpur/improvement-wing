@@ -165,6 +165,94 @@ impl Project {
             .unwrap_or_default()
     }
 
+    // ---- pinned rule and format packs (TRUTH-MODEL §8) ------------------------
+    fn pins_dir(&self) -> PathBuf {
+        self.dir.join("pins")
+    }
+
+    /// Pin this client year to the packs shipped with this build, if not yet pinned.
+    pub fn ensure_pins(&self) -> Result<(), String> {
+        let d = self.pins_dir();
+        if d.join("rules.json").exists() && d.join("format.json").exists() {
+            return Ok(());
+        }
+        let s = self.load_settings()?;
+        let et = EntityType::parse(&s.entity_type).ok_or("unknown entity type")?;
+        write_atomic(
+            &d.join("rules.json"),
+            lc_core::rules::builtin_text().as_bytes(),
+        )?;
+        write_atomic(
+            &d.join("format.json"),
+            lc_core::statements::FormatPack::builtin_text(et).as_bytes(),
+        )?;
+        let r = lc_core::rules::RulesPack::builtin();
+        let f = lc_core::statements::FormatPack::for_entity(et);
+        self.log(
+            "system",
+            "rules_pinned",
+            serde_json::json!({"rules_version": r.version, "format_pack": f.id, "format_status": f.status}),
+        )?;
+        Ok(())
+    }
+
+    pub fn rules_pack(&self) -> Result<lc_core::rules::RulesPack, String> {
+        self.ensure_pins()?;
+        let t =
+            fs::read_to_string(self.pins_dir().join("rules.json")).map_err(|e| e.to_string())?;
+        lc_core::rules::RulesPack::from_json(&t).map_err(|e| format!("pinned rules pack: {e}"))
+    }
+
+    pub fn format_pack(&self) -> Result<lc_core::statements::FormatPack, String> {
+        self.ensure_pins()?;
+        let t =
+            fs::read_to_string(self.pins_dir().join("format.json")).map_err(|e| e.to_string())?;
+        serde_json::from_str(&t).map_err(|e| format!("pinned format pack: {e}"))
+    }
+
+    /// Move this year to the packs of this build. Returns what changed.
+    pub fn migrate_pins(&self) -> Result<serde_json::Value, String> {
+        let old_r = self.rules_pack()?;
+        let old_f = self.format_pack()?;
+        let s = self.load_settings()?;
+        let et = EntityType::parse(&s.entity_type).ok_or("unknown entity type")?;
+        let new_r = lc_core::rules::RulesPack::builtin();
+        let new_f = lc_core::statements::FormatPack::for_entity(et);
+        let changes = lc_core::rules::changed_rules(&old_r, &new_r);
+        let d = self.pins_dir();
+        write_atomic(
+            &d.join("rules.json"),
+            lc_core::rules::builtin_text().as_bytes(),
+        )?;
+        write_atomic(
+            &d.join("format.json"),
+            lc_core::statements::FormatPack::builtin_text(et).as_bytes(),
+        )?;
+        let v = serde_json::json!({
+            "rules_from": old_r.version, "rules_to": new_r.version, "rule_changes": changes,
+            "format_changed": old_f != new_f, "format_pack": new_f.id,
+        });
+        self.log("user", "rules_migrated", v.clone())?;
+        Ok(v)
+    }
+
+    /// Group and balance side at the time each mapping was confirmed.
+    pub fn mapping_context(&self) -> HashMap<String, String> {
+        fs::read_to_string(self.client_dir.join("mapping_context.json"))
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_default()
+    }
+
+    pub fn save_mapping_context(&self, m: &HashMap<String, String>) -> Result<(), String> {
+        write_atomic(
+            &self.client_dir.join("mapping_context.json"),
+            serde_json::to_string_pretty(m)
+                .map_err(|e| e.to_string())?
+                .as_bytes(),
+        )
+    }
+
     pub fn save_mapping(&self, m: &HashMap<String, String>) -> Result<(), String> {
         write_atomic(
             &self.client_dir.join("mapping.json"),
@@ -371,6 +459,8 @@ impl Project {
             py,
             vouchers,
             mapping_memory: self.mapping(),
+            mapping_context: self.mapping_context(),
+            format_pack: Some(self.format_pack()?),
             far,
             profit_sharing: s.profit_sharing.clone(),
         })
@@ -468,6 +558,7 @@ impl Store {
             "project_created",
             serde_json::json!({"entity": name, "type": entity_type, "fy": fy}),
         )?;
+        p.ensure_pins()?;
         Ok(id)
     }
 

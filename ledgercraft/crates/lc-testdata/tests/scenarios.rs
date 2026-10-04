@@ -9,15 +9,24 @@ fn run(s: &Scenario) -> Analysis {
     analyse(&s.engagement, &RulesPack::builtin())
 }
 
+/// The scenario after the user confirmed every placement.
+fn confirmed(s: &Scenario) -> Analysis {
+    let a = run(s);
+    analyse(
+        &lc_testdata::confirm_all(&s.engagement, &a),
+        &RulesPack::builtin(),
+    )
+}
+
 fn assert_exact(s: &Scenario, a: &Analysis) {
-    let got: BTreeSet<String> = a.findings.iter().map(|f| f.key.clone()).collect();
+    let got: BTreeSet<String> = lc_testdata::problem_keys(a);
     let missing: Vec<_> = s.expected.keys.difference(&got).collect();
     let extra: Vec<_> = got.difference(&s.expected.keys).collect();
     if !missing.is_empty() || !extra.is_empty() {
         let detail: Vec<String> = a
             .findings
             .iter()
-            .filter(|f| !s.expected.keys.contains(&f.key))
+            .filter(|f| !s.expected.keys.contains(&f.key) && !f.code.starts_with("MAPPING_"))
             .map(|f| format!("  {} | {}", f.key, f.message))
             .collect();
         panic!(
@@ -101,7 +110,11 @@ fn clean_firm_has_no_findings() {
     let a = run(&s);
     assert_exact(&s, &a);
     assert_statements(&s, &a);
-    assert!(a.printable);
+    assert!(!a.printable, "unconfirmed placements block a signing copy");
+    assert!(
+        confirmed(&s).printable,
+        "after confirming placements the clean books can be signed"
+    );
 }
 
 #[test]
@@ -145,7 +158,10 @@ fn every_planted_glitch_is_found() {
     let a = run(&s);
     assert_exact(&s, &a);
     assert_statements(&s, &a);
-    assert!(a.printable, "warnings alone must not block a signing copy");
+    assert!(
+        confirmed(&s).printable,
+        "warnings alone must not block a signing copy"
+    );
 }
 
 #[test]
@@ -221,4 +237,47 @@ fn findings_carry_legal_reference_by_year() {
         "FY 2026-27 uses the 2025 Act reference: {}",
         f2.legal_ref
     );
+}
+
+#[test]
+fn placements_need_confirmation_and_reopen_when_the_books_change() {
+    use lc_core::mapping::MapStatus;
+    let s = scenarios::clean(Kind::Company, 11, 8, 6, 3);
+    let a = run(&s);
+    // Fresh books: certain groups are placed by rule, ambiguous ones wait for the user.
+    assert!(a.mapping.iter().any(|m| m.status == MapStatus::Rule));
+    let pending: Vec<_> = a
+        .mapping
+        .iter()
+        .filter(|m| m.status == MapStatus::Suggested)
+        .collect();
+    assert!(!pending.is_empty());
+    assert!(a.findings.iter().any(|f| f.code == "MAPPING_UNCONFIRMED"));
+    // Every Suggested line is either from an ambiguous group, a name, or a side move.
+    for m in &pending {
+        assert!(!m.status_reason.is_empty());
+    }
+    // Confirmed: nothing pending, the year can be signed.
+    let e = lc_testdata::confirm_all(&s.engagement, &a);
+    let b = analyse(&e, &RulesPack::builtin());
+    assert!(b.mapping.iter().all(|m| m.status == MapStatus::Confirmed));
+    assert!(b.printable);
+    // Next year the same ledger sits in another group: the earlier choice is re-opened.
+    let mut e2 = e.clone();
+    let target = e2
+        .cy
+        .ledgers
+        .iter_mut()
+        .find(|l| l.group == "Sundry Creditors")
+        .unwrap();
+    target.group = "Current Liabilities".into();
+    let c = analyse(&e2, &RulesPack::builtin());
+    let m = c
+        .mapping
+        .iter()
+        .find(|m| m.group == "Current Liabilities" && m.status == MapStatus::Review)
+        .unwrap();
+    assert!(m.status_reason.contains("Group changed"));
+    assert!(c.findings.iter().any(|f| f.code == "MAPPING_REVIEW"));
+    assert!(!c.printable);
 }

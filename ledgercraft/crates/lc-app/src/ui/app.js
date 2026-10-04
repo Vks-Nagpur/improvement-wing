@@ -99,14 +99,21 @@ function stepStatus() {
   else {
     const s = a.summary;
     mark("check", s.must_fix ? `${s.must_fix} must fix, ${s.check} to check` : `Done, ${s.check} to check`, s.must_fix ? "bad" : "ok");
-    const un = a.mapping.filter(m => !m.head).length;
-    mark("map", un ? `${un} not placed` : "All placed", un ? "bad" : "ok");
+    const un = a.mapping.filter(m => !m.head).length, pend = a.mapping.filter(m => ["suggested", "review"].includes(m.status)).length;
+    mark("map", un ? `${un} not placed` : pend ? `${pend} to confirm` : "All confirmed", un ? "bad" : pend ? "todo" : "ok");
   }
   const adj = st.adjustments || [], on = adj.filter(x => x.active).length;
   mark("adjust", adj.length ? `${on} applied${adj.length > on ? `, ${adj.length - on} off` : ""}` : "Optional", adj.length ? "ok" : "");
   mark("present", `In ${st.options.unit}, ${st.options.layout}`);
+  const dd = st.options.disclosures || {};
+  const nd = ["share_classes", "contingent_liabilities", "commitments", "related_parties", "notes", "extra_policies"].reduce((n, k) => n + (dd[k] || []).length, 0) + Object.keys(dd.policy_text || {}).length;
+  const req = ["contingent", "related_parties", "msme"].concat(st.entity_type === "company" ? ["share_capital"] : []);
+  const has = { share_capital: (dd.share_classes || []).length, contingent: (dd.contingent_liabilities || []).length + (dd.commitments || []).length, related_parties: (dd.related_parties || []).length, msme: 0 };
+  const open = req.filter(k => !has[k] && !(dd.answers || {})[k]).length;
+  mark("disclose", open ? `${open} section${open === 1 ? "" : "s"} not answered` : `All answered${nd ? `, ${nd} items` : ""}`, open ? "todo" : "ok");
   mark("analysis", a ? `${a.ratios.length} ratios, ${a.loans.length} loans` : "", a ? "ok" : "");
-  mark("export", a ? (a.summary.must_fix ? "Draft only" : "Ready to sign") : "", a && !a.summary.must_fix ? "ok" : "");
+  const fb = a ? a.summary.must_fix + (a.blockers || []).length : 0;
+  mark("export", a ? (fb ? "Draft only" : "Ready to sign") : "", a && !fb ? "ok" : "");
 }
 function nextAction() {
   const L = lang().next, st = state.settings, a = state.analysis;
@@ -114,8 +121,8 @@ function nextAction() {
   if (!st) return [L.create, "projects"];
   if (!st.inputs.tb) return [L.tb, "import"];
   if (!a) return [L.run, "check"];
-  const un = a.mapping.filter(m => !m.head).length;
-  if (un) return [L.map(un), "map"];
+  const un = a.mapping.filter(m => !m.head || ["suggested", "review"].includes(m.status)).length;
+  if (un && state.intent === "statements") return [L.map(un), "map"];
   if (a.summary.must_fix) return [L.fix(a.summary.must_fix), "check"];
   if (state.intent !== "statements") return [L.analyse, "analysis"];
   return [L.ready, "present"];
@@ -124,7 +131,7 @@ function renderNext() {
   stepStatus();
   const st = state.settings;
   $("#sbClient").textContent = st ? `${st.entity_name} · ${TYPE_LABEL[st.entity_type] || ""} · FY ${st.fy}` : "No client open";
-  $("#sbRules").textContent = st ? (Number(st.fy.slice(0, 4)) >= 2026 ? "Income-tax Act, 2025 · Form 26" : "Income-tax Act, 1961 · Form 3CD") : "";
+  $("#sbRules").textContent = st ? (Number(st.fy.slice(0, 4)) >= 2026 ? "Income-tax Act, 2025 · Form 26" : "Income-tax Act, 1961 · Form 3CD") + (state.rules ? ` · Rules ${state.rules.pinned.rules}${state.rules.update ? " (newer available)" : ""}` : "") : "";
   const [text, view] = nextAction();
   $("#nextBox").hidden = false;
   $("#nextText").textContent = text;
@@ -134,7 +141,7 @@ function renderNext() {
 
 // ---- what the user wants to do (sets the steps) --------------------------------
 const FLOWS = {
-  statements: { name: "Financial statements", steps: ["projects", "import", "check", "map", "adjust", "present", "export", "audit"] },
+  statements: { name: "Financial statements", steps: ["projects", "import", "check", "map", "adjust", "disclose", "present", "export", "audit"] },
   analysis: { name: "Check and analyse", steps: ["projects", "import", "check", "analysis", "map", "adjust", "audit"] },
   taxaudit: { name: "Tax audit help", steps: ["projects", "import", "check", "analysis", "adjust", "export", "audit"] },
 };
@@ -152,7 +159,15 @@ function applyFlow() {
     n++;
   }
   $$(".intent").forEach(x => x.classList.toggle("on", x.dataset.intent === state.intent));
+  // "Next" buttons lead to the following step of the chosen path.
+  for (const b of $$("[data-next]")) {
+    const here = b.closest("section[data-panel]").dataset.panel;
+    const nx = f.steps[f.steps.indexOf(here) + 1];
+    b.hidden = !nx;
+    if (nx) { b.dataset.target = nx; b.textContent = `Next: ${$(`.steps button[data-view="${nx}"] .sn`).textContent.toLowerCase()}`; }
+  }
 }
+$$("[data-next]").forEach(b => b.addEventListener("click", () => b.dataset.target && show(b.dataset.target)));
 function chooseIntent(k) {
   state.intent = k; store.set("intent", k); applyFlow();
   show(state.id ? flowNext() : "projects");
@@ -191,7 +206,9 @@ function show(view) {
   if (view === "export") loadSign();
   if (view === "audit") loadAudit();
   if (view === "adjust") loadAdjustments();
+  if (view === "disclose") loadDisclosures();
   if ((view === "map" || view === "check") && !state.analysis && state.settings?.inputs.tb) runChecks();
+  if (view === "check") loadRules();
   renderNext();
   window.scrollTo(0, 0);
 }
@@ -378,7 +395,7 @@ function closeProject() {
   renderNext();
 }
 async function openProject(id) {
-  state.id = id; state.analysis = null; state.lastExport = null; state.adj = null;
+  state.id = id; state.analysis = null; state.lastExport = null; state.adj = null; state.rules = null;
   const st = await reloadSettings();
   $("#projectName").textContent = `${st.entity_name}  |  ${TYPE_LABEL[st.entity_type] || ""}  |  FY ${st.fy}`;
   $$(".steps button").forEach(b => (b.disabled = false));
@@ -389,6 +406,7 @@ async function openProject(id) {
   loadProjects();
   store.set("last", { id, name: st.entity_name, fy: st.fy, intent: state.intent });
   show(flowNext());
+  loadRules();
 }
 
 // ---- 2. import ------------------------------------------------------------
@@ -454,6 +472,25 @@ $("#tImport").addEventListener("click", async () => {
 
 // ---- 3. check -------------------------------------------------------------
 const SEV = { blocker: "Must fix", warning: "Check", info: "Note" };
+// Rule and format packs pinned to this year (TRUTH-MODEL §8).
+async function loadRules() {
+  if (!state.id) return;
+  try { state.rules = await api("GET", `/api/projects/${pid()}/rules`); } catch { state.rules = null; return; }
+  const r = state.rules, bar = $("#rulesBar");
+  bar.hidden = false;
+  bar.classList.toggle("update", r.update);
+  bar.innerHTML = `<span>This year uses rule pack <b>${esc(r.pinned.rules)}</b> and the format <b>${esc(r.pinned.format)}</b> (${esc(r.pinned.format_status)}). ${r.pinned.unverified_rules} legal reference${r.pinned.unverified_rules === 1 ? " is" : "s are"} not yet verified against the official text.</span>` +
+    (r.update ? `<span class="spacer"></span><button type="button" class="small primary" id="rulesReview">Newer rules available: review</button>` : "");
+  $("#rulesReview")?.addEventListener("click", async () => {
+    const list = r.changes.length ? r.changes.slice(0, 20).join(", ") + (r.changes.length > 20 ? ", …" : "") : "no rule changes";
+    const ok = await confirmBox(`Move this year to rule pack ${r.available.rules}?`,
+      `Now: ${r.pinned.rules}. New: ${r.available.rules}.\nChanged rules: ${list}.\nFormat changed: ${r.format_changed ? "yes" : "no"}.\n\nEarlier exports stay as they were. The move is recorded in the audit trail.`, "Move to new rules");
+    if (!ok) return;
+    try { await api("POST", `/api/projects/${pid()}/rules/migrate`); toast("Moved to the new rules."); state.analysis = null; await loadRules(); runChecks(); }
+    catch (e) { toast(e.message, true); }
+  });
+  renderNext();
+}
 async function runChecks() {
   const b = $("#runChecks"); b.disabled = true; b.textContent = "Checking...";
   try {
@@ -488,10 +525,11 @@ function renderCheck() {
   for (const f of list) {
     const li = document.createElement("li"); li.className = "finding";
     li.innerHTML = `<span class="badge ${f.severity}">${SEV[f.severity]}</span><span class="t">${esc(f.title)}</span>
-      <span class="fa">${f.ledger ? '<button class="small" type="button" data-a="map">Map this ledger</button>' : ""}<button class="small" type="button" data-a="ai">Explain</button></span>
+      <span class="fa">${f.ledger ? '<button class="small" type="button" data-a="map">Map this ledger</button>' : f.code.startsWith("MAPPING_") ? '<button class="small primary" type="button" data-a="maps">Open Map ledgers</button>' : ""}<button class="small" type="button" data-a="ai">Explain</button></span>
       <div class="m">${esc(f.message)}</div>
       ${f.suggestion ? `<div class="s"><b>What to do:</b> ${esc(f.suggestion)}</div>` : ""}
       ${expert() && f.legal_ref ? `<div class="ref">Reference: ${esc(f.legal_ref)}</div>` : ""}`;
+    li.querySelector('[data-a="maps"]')?.addEventListener("click", () => { $("#mapSearch").value = ""; $("#mapAttention").checked = true; show("map"); renderMap(); });
     li.querySelector('[data-a="map"]')?.addEventListener("click", () => {
       $("#mapSearch").value = f.ledger; $("#mapAttention").checked = false; show("map"); renderMap();
     });
@@ -523,7 +561,7 @@ function reasons(m) {
 }
 function needsAttention(m) {
   const keys = new Set((state.analysis?.findings || []).filter(f => f.ledger === m.name).map(f => f.code));
-  return !m.head || !m.standard_group || m.reclassified || [...keys].some(k => k.startsWith("MISGROUP") || k === "UNKNOWN_GROUP" || k === "CAPITAL_IN_EXPENSE" || k === "ABNORMAL_BALANCE");
+  return !m.head || !m.standard_group || m.reclassified || ["suggested", "review", "unmapped"].includes(m.status) || [...keys].some(k => k.startsWith("MISGROUP") || k === "UNKNOWN_GROUP" || k === "CAPITAL_IN_EXPENSE" || k === "ABNORMAL_BALANCE");
 }
 async function setHead(m, head, ai) {
   try {
@@ -532,13 +570,29 @@ async function setHead(m, head, ai) {
     await runChecks();
   } catch (err) { toast(err.message, true); }
 }
+const STATUS = { rule: ["Certain", "info"], suggested: ["Confirm", "warning"], review: ["Review", "warning"], confirmed: ["Your choice", "okb"], unmapped: ["Not placed", "blocker"] };
+async function confirmMap(body) {
+  try {
+    const r = await api("POST", `/api/projects/${pid()}/mapping/confirm`, body);
+    toast(`${r.confirmed} placement${r.confirmed === 1 ? "" : "s"} confirmed and remembered.`);
+    await runChecks();
+  } catch (e) { toast(e.message, true); }
+}
+$("#mapConfirmAll").addEventListener("click", async () => {
+  const n = (state.analysis?.mapping || []).filter(m => ["suggested", "review"].includes(m.status)).length;
+  if (await confirmBox(`Confirm ${n} placement${n === 1 ? "" : "s"}?`, "Each ledger stays where it is shown now. You confirm that you have looked at them. This is recorded in the audit trail with the full list.", "Confirm all")) confirmMap({ all: true });
+});
 async function renderMap() {
   await loadHeads();
   const a = state.analysis; if (!a) return;
   const q = $("#mapSearch").value.toLowerCase(), only = $("#mapAttention").checked;
   const tb = $("#mapTable tbody"); tb.innerHTML = "";
   const rows = a.mapping.filter(m => (!only || needsAttention(m)) && (!q || m.name.toLowerCase().includes(q) || m.group.toLowerCase().includes(q)));
-  if (!rows.length) tb.innerHTML = `<tr><td colspan="6" class="empty">${only ? "Nothing needs attention. Untick the box to see every ledger." : "No ledger matches."}</td></tr>`;
+  const pend = a.mapping.filter(m => ["suggested", "review"].includes(m.status)).length;
+  const rule = a.mapping.filter(m => m.status === "rule").length, conf = a.mapping.filter(m => m.status === "confirmed").length, un = a.mapping.filter(m => !m.head).length;
+  $("#mapSummary").innerHTML = `<span class="badge okb">${conf} confirmed by you</span> <span class="badge info">${rule} certain by group</span> <span class="badge warning">${pend} waiting for your confirmation</span>${un ? ` <span class="badge blocker">${un} not placed</span>` : ""}`;
+  $("#mapConfirmAll").disabled = !pend;
+  if (!rows.length) tb.innerHTML = `<tr><td colspan="7" class="empty">${only ? "Nothing needs attention. Untick the box to see every ledger." : "No ledger matches."}</td></tr>`;
   const LIMIT = state.mapLimit || 300;
   for (const m of rows.slice(0, LIMIT)) {
     const tr = document.createElement("tr");
@@ -550,9 +604,10 @@ async function renderMap() {
       <td>${esc(m.group)}${m.standard_group ? "" : ' <span class="badge blocker">group not recognised</span>'}</td>
       <td class="num">${esc(m.amount)}</td>
       <td><select class="head" aria-label="Shown under for ${esc(m.name)}">${m.head ? "" : '<option value="" selected>Not placed: choose a line</option>'}${opts}</select>
-        <div class="src">${mine ? "Your choice (remembered)" : m.source === "name_rule" ? "By ledger name" : m.source ? "By group" : ""}${m.reclassified ? ", moved by balance side" : ""}</div></td>
+</td>
+      <td><span class="badge ${STATUS[m.status]?.[1] || ""}">${STATUS[m.status]?.[0] || ""}</span><div class="src">${esc(m.status_reason || "")}</div></td>
       <td><div class="tags">${TAGS.map(t => `<button type="button" class="tag ${m.tags.includes(t) ? "on" : ""}" data-t="${t}" title="${TAG_TIP[t]}">${t}</button>`).join("")}</div></td>
-      <td class="act"><button class="small" type="button" data-a="ai">Suggest</button>${mine ? `<button class="small" type="button" data-a="reset" title="Go back to LedgerCraft's own choice">Reset</button>` : ""}</td>`;
+      <td class="act">${["suggested", "review"].includes(m.status) ? '<button class="small primary" type="button" data-a="ok">Confirm</button>' : ""}<button class="small" type="button" data-a="ai">Suggest</button>${mine ? `<button class="small" type="button" data-a="reset" title="Go back to LedgerCraft's own choice">Reset</button>` : ""}</td>`;
     const sel = tr.querySelector("select");
     const fill = () => {
       if (sel.dataset.full) return; sel.dataset.full = "1";
@@ -561,6 +616,7 @@ async function renderMap() {
     sel.addEventListener("mousedown", fill); sel.addEventListener("focus", fill); sel.addEventListener("keydown", fill);
     sel.addEventListener("change", e => e.target.value && e.target.value !== m.head && setHead(m, e.target.value));
     tr.querySelector('[data-a="reset"]')?.addEventListener("click", () => setHead(m, ""));
+    tr.querySelector('[data-a="ok"]')?.addEventListener("click", () => confirmMap({ ledgers: [m.name] }));
     tr.querySelectorAll(".tag").forEach(b => b.addEventListener("click", async () => {
       b.classList.toggle("on");
       const tags = [...tr.querySelectorAll(".tag.on")].map(x => x.dataset.t);
@@ -579,7 +635,7 @@ async function renderMap() {
   }
   if (rows.length > LIMIT) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="6" class="empty">Showing ${LIMIT} of ${rows.length}. <button type="button" class="small">Show all</button> or search above.</td>`;
+    tr.innerHTML = `<td colspan="7" class="empty">Showing ${LIMIT} of ${rows.length}. <button type="button" class="small">Show all</button> or search above.</td>`;
     tr.querySelector("button").onclick = () => { state.mapLimit = 1e9; renderMap(); };
     tb.appendChild(tr);
   }
@@ -756,6 +812,136 @@ $("#anWorkbook").addEventListener("click", async () => {
   b.disabled = false; b.textContent = "Save auditor workbook";
 });
 
+// ---- notes and disclosures --------------------------------------------------------
+const MONEY = v => (v ? (v / 100).toFixed(2) : "");
+const FIELDS = {
+  holders_5pct: [["name", "Name of shareholder", "text"], ["shares", "Shares this year", "int"], ["py_shares", "Shares last year", "int"]],
+  promoters: [["name", "Promoter name", "text"], ["shares", "Shares this year", "int"], ["py_shares", "Shares last year", "int"]],
+  contingent_liabilities: [["nature", "Nature", "text"], ["cy", "This year (₹)", "money"], ["py", "Last year (₹)", "money"]],
+  commitments: [["nature", "Nature", "text"], ["cy", "This year (₹)", "money"], ["py", "Last year (₹)", "money"]],
+  related_parties: [["name", "Name", "text"], ["relationship", "Relationship", "text", "rpRel"]],
+  related_transactions: [["party", "Related party", "text", "rpParties"], ["nature", "Nature", "text", "rpNature"], ["cy", "This year (₹)", "money"], ["py", "Last year (₹)", "money"]],
+  extra_policies: [["title", "Title", "text"], ["text", "Wording", "area"]],
+  notes: [["title", "Title of the note", "text"], ["text", "Text", "area"]],
+  share_classes: [["name", "Class (e.g. Equity shares of ₹10 each)", "text"], ["face_value", "Face value per share (₹)", "money"], ["paid_per_share", "Paid up per share (₹, if partly paid)", "money"],
+    ["authorised", "Authorised: this year", "int"], ["py_authorised", "Authorised: last year", "int"], ["issued", "Issued: this year", "int"], ["py_issued", "Issued: last year", "int"],
+    ["subscribed", "Subscribed and paid up: this year", "int"], ["py_subscribed", "Subscribed and paid up: last year", "int"], ["added", "Shares issued during the year", "int"], ["reduced", "Shares bought back / reduced", "int"], ["rights", "Rights, preferences and restrictions", "area"]],
+};
+const MSME_ROWS = [["interest_due_unpaid", "Interest due and remaining unpaid"], ["interest_paid_s16", "Interest paid under section 16"], ["paid_beyond_appointed_day", "Payments made beyond the appointed day"],
+  ["interest_due_for_delay", "Interest due for the period of delay (paid late)"], ["interest_accrued_unpaid", "Interest accrued and remaining unpaid at year end"], ["further_interest", "Further interest due in succeeding years"]];
+function fieldHtml([k, label, type, list], v) {
+  const val = type === "money" ? MONEY(v) : v ?? "";
+  const input = type === "area" ? `<textarea data-k="${k}" rows="3">${esc(val)}</textarea>`
+    : `<input data-k="${k}" data-t="${type}" value="${esc(val)}" ${type === "text" ? "" : 'inputmode="decimal" class="num"'} ${list ? `list="${list}"` : ""}>`;
+  return `<div class="field ${type === "area" ? "wide" : ""}"><label>${esc(label)}</label>${input}</div>`;
+}
+function addItem(key, item = {}) {
+  const box = key === "share_classes" ? $("#dShareClasses") : $(`[data-list="${key}"]`);
+  const d = document.createElement("div");
+  d.className = "item-row" + (key === "share_classes" || FIELDS[key].some(f => f[2] === "area") ? " card" : "");
+  d.dataset.key = key;
+  d.innerHTML = `<div class="item-fields">${FIELDS[key].map(f => fieldHtml(f, item[f[0]])).join("")}</div><button type="button" class="small danger-ghost" aria-label="Remove">Remove</button>`;
+  d.querySelector("button").addEventListener("click", () => { d.remove(); emptyHints(); });
+  box.appendChild(d); emptyHints();
+}
+function emptyHints() {
+  for (const box of [...$$("[data-list]"), $("#dShareClasses")]) {
+    let hint = box.querySelector(".list-empty");
+    const has = box.querySelector(".item-row");
+    if (!has && !hint) { hint = document.createElement("p"); hint.className = "list-empty muted small"; hint.textContent = "Nothing entered."; box.appendChild(hint); }
+    if (has && hint) hint.remove();
+  }
+}
+function readItems(key) {
+  return $$(`.item-row[data-key="${key}"]`).map(row => {
+    const o = {};
+    for (const [k, , type] of FIELDS[key]) {
+      const el = row.querySelector(`[data-k="${k}"]`); const v = el.value.trim();
+      o[k] = type === "money" ? paise(v) : type === "int" ? (parseInt(v.replace(/,/g, ""), 10) || 0) : v;
+      if (type === "money" && isNaN(o[k])) throw new Error(`"${v}" is not an amount.`);
+    }
+    return o;
+  }).filter(o => Object.values(o).some(v => v !== "" && v !== 0));
+}
+// Every required section has three states (TRUTH-MODEL §2): never assume nil.
+const ANSWER_TEXT = {
+  share_capital: ["Not answered yet", null, "Particulars entered below"],
+  contingent: ["Not answered yet", "None: there are no contingent liabilities or commitments", "Details entered below"],
+  related_parties: ["Not answered yet", "None: no related parties with transactions or control", "Details entered below"],
+  msme: ["Not answered yet", "None: no amounts due to micro or small enterprises", "Checked: MSME suppliers are tagged on Map ledgers; interest below"],
+};
+function renderAnswers(d) {
+  for (const bar of $$("[data-answer]")) {
+    const sec = bar.dataset.answer, t = ANSWER_TEXT[sec];
+    const cur = (d.answers || {})[sec] || "";
+    bar.innerHTML = `<p class="ab-q">Your answer for this section</p>` + [["", t[0]], ["nil", t[1]], ["provided", t[2]]].filter(x => x[1])
+      .map(([v, l]) => `<label class="radio"><input type="radio" name="ans-${sec}" value="${v}" ${cur === v ? "checked" : ""}> ${esc(l)}</label>`).join("");
+    bar.classList.toggle("unanswered", !cur);
+    $$("input", bar).forEach(r => r.addEventListener("change", () => bar.classList.toggle("unanswered", !r.value)));
+  }
+}
+function readAnswers() {
+  const out = {};
+  for (const bar of $$("[data-answer]")) { const v = ($$("input", bar).find(r => r.checked) || {}).value; if (v) out[bar.dataset.answer] = v; }
+  return out;
+}
+let policyStd = [];
+async function loadDisclosures() {
+  const st = await reloadSettings();
+  const d = st.options.disclosures || {};
+  $$(".co-only").forEach(b => (b.hidden = st.entity_type !== "company"));
+  const first = st.entity_type === "company" ? "capital" : "contingent";
+  showTab(state.dTab && !(state.dTab === "capital" && st.entity_type !== "company") ? state.dTab : first);
+  $("#dShareClasses").innerHTML = ""; $$("[data-list]").forEach(b => (b.innerHTML = ""));
+  for (const key of Object.keys(FIELDS)) for (const it of d[key] || []) addItem(key, it);
+  if (st.entity_type === "company" && !(d.share_classes || []).length) addItem("share_classes", { name: "Equity shares of ₹10 each", face_value: 1000 });
+  emptyHints();
+  renderAnswers(d);
+  const m = d.msme || {};
+  $("#dMsme tbody").innerHTML = MSME_ROWS.map(([k, l]) => `<tr><td>${l}</td><td class="num"><input class="num" data-m="${k}" data-i="0" value="${MONEY((m[k] || [0, 0])[0])}" inputmode="decimal" aria-label="${l}, this year"></td><td class="num"><input class="num" data-m="${k}" data-i="1" value="${MONEY((m[k] || [0, 0])[1])}" inputmode="decimal" aria-label="${l}, last year"></td></tr>`).join("");
+  try { policyStd = await api("GET", `/api/projects/${pid()}/policies`); } catch (e) { policyStd = []; }
+  const own = d.policy_text || {};
+  $("#dPolicies").innerHTML = policyStd.map((p, i) => `<div class="policy"><div class="title-row"><h2>${i + 1}. ${esc(p.title)}</h2><span>${own[p.title] ? '<span class="badge okb">Your wording</span> ' : ""}<button type="button" class="small" data-reset="${i}">Use standard wording</button></span></div><textarea rows="4" data-policy="${i}">${esc(own[p.title] || p.text)}</textarea></div>`).join("");
+  $$("[data-reset]").forEach(b => b.addEventListener("click", () => { $(`[data-policy="${b.dataset.reset}"]`).value = policyStd[+b.dataset.reset].text; }));
+  $("#rpParties").innerHTML = (d.related_parties || []).map(p => `<option value="${esc(p.name)}">`).join("");
+  setStatus($("#dStatus"), "");
+}
+function showTab(t) {
+  state.dTab = t;
+  $$(".tabs [data-tab]").forEach(b => { b.classList.toggle("on", b.dataset.tab === t); b.setAttribute("aria-selected", String(b.dataset.tab === t)); });
+  $$("[data-tabpanel]").forEach(p => (p.hidden = p.dataset.tabpanel !== t));
+}
+$$(".tabs [data-tab]").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+$$("[data-add]").forEach(b => b.addEventListener("click", () => addItem(b.dataset.add)));
+$("#dSave").addEventListener("click", async () => {
+  try {
+    const d = {};
+    for (const key of Object.keys(FIELDS)) d[key] = readItems(key);
+    d.msme = {};
+    for (const [k] of MSME_ROWS) {
+      const v = [0, 1].map(i => paise($(`[data-m="${k}"][data-i="${i}"]`).value));
+      if (v.some(isNaN)) throw new Error("MSME interest: use numbers only.");
+      d.msme[k] = v;
+    }
+    d.answers = readAnswers();
+    // Particulars entered count as an answer; "details below" with nothing entered does not.
+    const LIST_OF = { share_capital: ["share_classes"], contingent: ["contingent_liabilities", "commitments"], related_parties: ["related_parties"] };
+    for (const [sec, keys] of Object.entries(LIST_OF)) {
+      const has = keys.some(k => d[k].length);
+      if (has) d.answers[sec] = "provided";
+      else if (d.answers[sec] === "provided") throw new Error(`${$(`[data-answer="${sec}"]`).closest("[data-tabpanel]").dataset.tabpanel.replace(/^./, c => c.toUpperCase())}: you chose "details below" but nothing is entered. Enter the details or choose "None".`);
+    }
+    d.policy_text = {};
+    policyStd.forEach((p, i) => { const t = $(`[data-policy="${i}"]`).value.trim(); if (t && t !== p.text.trim()) d.policy_text[p.title] = t; });
+    const options = { ...state.settings.options, disclosures: d };
+    await api("POST", `/api/projects/${pid()}/settings`, { options });
+    state.settings.options = options; state.analysis = null;
+    setStatus($("#dStatus"), "Saved."); toast("Disclosures saved.");
+    $("#rpParties").innerHTML = d.related_parties.map(p => `<option value="${esc(p.name)}">`).join("");
+    renderNext();
+  } catch (e) { setStatus($("#dStatus"), e.message, true); toast(e.message, true); }
+});
+
 // ---- 6. presentation ----------------------------------------------------------
 const isCo = () => state.settings?.entity_type === "company";
 const toggleOn = v => v === "on" || (v === "auto" && isCo());
@@ -862,10 +1048,14 @@ async function loadSign() {
   const files = store.get("files", null);
   if (files) $$("[data-file]").forEach(c => (c.checked = files[c.dataset.file] ?? c.checked));
   if (!state.analysis) { try { state.analysis = await api("POST", `/api/projects/${pid()}/analyse`); } catch {} }
-  const blocked = state.analysis && state.analysis.summary.must_fix > 0;
-  $("#modeFinal").disabled = !!blocked;
+  const a = state.analysis;
+  const reasons = a ? [...(a.summary.must_fix ? [`${a.summary.must_fix} "Must fix" item(s) on the Check screen`] : []), ...(a.blockers || [])] : [];
+  const blocked = reasons.length > 0;
+  $("#modeFinal").disabled = blocked;
   if (blocked) $$('input[name=mode]').forEach(r => (r.checked = r.value === "draft"));
-  setStatus($("#eStatus"), blocked ? `Final copy is locked until ${state.analysis.summary.must_fix} "Must fix" item(s) are cleared. Draft export is available.` : "");
+  $("#finalWhy").hidden = !blocked;
+  $("#finalWhy").innerHTML = blocked ? `<p class="k">Final copy is locked until these are done. A draft can be exported now.</p><ul>${reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : "";
+  setStatus($("#eStatus"), "");
   form.inert = false; form.removeAttribute("aria-busy"); form.dataset.ready = "1";
   renderNext();
 }
@@ -911,6 +1101,9 @@ function describe(e) {
       const lbl = id => (state.heads.find(h => h.id === id) || {}).label || id;
       return `${d.ledger}: ${d.from ? lbl(d.from) : "automatic"} to ${d.to ? lbl(d.to) : "automatic"}${d.ai_suggested ? " (AI suggestion accepted)" : ""}`;
     }
+    case "mapping_confirmed": return `${d.count} placement(s) confirmed: ${(d.ledgers || []).slice(0, 6).map(x => x.ledger).join(", ")}${(d.ledgers || []).length > 6 ? ", …" : ""}`;
+    case "rules_pinned": return `Pinned to rule pack ${d.rules_version} and format ${d.format_pack} (${d.format_status})`;
+    case "rules_migrated": return `Moved from rule pack ${d.rules_from} to ${d.rules_to}; ${(d.rule_changes || []).length} rule(s) changed${d.format_changed ? ", format changed" : ""}`;
     case "tags_changed": return `${d.ledger}: tags ${(d.to || []).join(", ") || "removed"}`;
     case "adjustment_added": case "adjustment_changed": {
       const a = d.to || {};
@@ -938,7 +1131,7 @@ async function loadAudit() {
   const r = await api("GET", `/api/projects/${pid()}/audit`);
   const c = $("#chain");
   c.className = "chain " + (r.status.intact ? "ok" : "bad");
-  c.textContent = r.status.intact ? `Audit trail intact: ${r.status.events} events, each sealed with the fingerprint of the one before.` : `Audit trail damaged: ${r.status.problem}.`;
+  c.textContent = r.status.intact ? `Audit trail intact: ${r.status.events} events, each sealed with the fingerprint of the one before. Any change or removal in between would show here.` : `Audit trail damaged: ${r.status.problem}.`;
   const tb = $("#auditTable tbody"); tb.innerHTML = "";
   for (const e of r.events.slice().reverse()) {
     const tr = document.createElement("tr");

@@ -8,6 +8,7 @@
 
 pub mod build;
 pub mod cashflow;
+pub mod disclosures;
 pub mod policies;
 
 pub use build::build;
@@ -63,6 +64,8 @@ pub struct ReportOptions {
     /// Statements left out of the output by the user ("balance_sheet",
     /// "profit_and_loss", "cash_flow", "notes", "tax_depreciation").
     pub hidden_sections: Vec<String>,
+    /// Particulars entered by the user (share capital, related parties …).
+    pub disclosures: disclosures::Disclosures,
 }
 
 impl Default for ReportOptions {
@@ -87,6 +90,7 @@ impl Default for ReportOptions {
             inventory_cost_formula: "first-in, first-out (FIFO)".into(),
             ratio_explanations: BTreeMap::new(),
             hidden_sections: Vec::new(),
+            disclosures: Default::default(),
         }
     }
 }
@@ -121,6 +125,9 @@ pub struct Report {
     pub sections: Vec<Section>,
     /// Things the preparer must still do (shown in the app, not printed).
     pub warnings: Vec<String>,
+    /// Conditions that refuse a final (signing) copy (TRUTH-MODEL.md §7).
+    #[serde(default)]
+    pub blockers: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -140,6 +147,9 @@ pub struct Meta {
     pub format_name: String,
     pub format_status: String,
     pub generator: String,
+    /// Printed on drafts: how many problems are still unresolved.
+    #[serde(default)]
+    pub draft_note: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

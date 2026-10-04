@@ -47,7 +47,7 @@ fn every_scenario_survives_excel_and_csv() {
         }
 
         let a = analyse(&back, &RulesPack::builtin());
-        let got: BTreeSet<String> = a.findings.iter().map(|f| f.key.clone()).collect();
+        let got: BTreeSet<String> = lc_testdata::problem_keys(&a);
         assert_eq!(
             got, s.expected.keys,
             "{}: findings after round trip",
@@ -61,17 +61,28 @@ fn every_scenario_survives_excel_and_csv() {
 #[test]
 fn export_is_versioned_and_signing_copy_needs_no_blockers() {
     let root = tmp("export");
-    let ok = lc_testdata::scenarios::clean(lc_testdata::scenarios::Kind::Firm, 3, 6, 4, 2);
+    let mut ok = lc_testdata::scenarios::clean(lc_testdata::scenarios::Kind::Firm, 3, 6, 4, 2);
+    let pending = analyse(&ok.engagement, &RulesPack::builtin());
+    ok.engagement = lc_testdata::confirm_all(&ok.engagement, &pending);
     let a = analyse(&ok.engagement, &RulesPack::builtin());
     let signoff = SignOff {
         udin: "26123456ABCDEF1234".into(),
         place: "Nagpur".into(),
         ..Default::default()
     };
-    let opt = ExportOptions {
+    let mut opt = ExportOptions {
         mode: Mode::Signing,
         ..Default::default()
     };
+    // Unanswered disclosures refuse a final copy; they are never assumed nil.
+    let err = export(&root, &ok.engagement, &a, &signoff, &opt).unwrap_err();
+    assert!(err.contains("Not answered yet: Related parties"), "{err}");
+    for k in ["contingent", "related_parties", "msme"] {
+        opt.report
+            .disclosures
+            .answers
+            .insert(k.into(), "nil".into());
+    }
     let d1 = export(&root, &ok.engagement, &a, &signoff, &opt)
         .unwrap()
         .dir;

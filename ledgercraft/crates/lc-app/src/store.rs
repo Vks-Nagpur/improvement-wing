@@ -447,6 +447,15 @@ impl Project {
             }
         }
         let far = match &s.inputs.far {
+            // Carried forward from last year by LedgerCraft.
+            Some(f) if f.ends_with(".json") => {
+                let mut r: lc_core::far::Register = serde_json::from_str(
+                    &fs::read_to_string(inp.join(f)).map_err(|e| e.to_string())?,
+                )
+                .map_err(|e| e.to_string())?;
+                r.basis = s.depreciation_basis;
+                Some(r)
+            }
             Some(f) => Some(lc_io::read::read_far(&inp.join(f), s.depreciation_basis)?),
             None => None,
         };
@@ -543,6 +552,9 @@ impl Store {
         .load_settings()
         {
             s.options = prev.options;
+            // Disclosures move one year: this year's figures become last year's,
+            // and every section has to be answered again.
+            s.options.disclosures = s.options.disclosures.roll_forward();
             s.signoff = SignOff {
                 udin: String::new(),
                 date: String::new(),
@@ -646,6 +658,56 @@ impl Store {
             serde_json::json!({"from": "Recycle Bin"}),
         )?;
         Ok(id)
+    }
+
+    /// Start the next financial year of a client from this one: settings,
+    /// tags and disclosures carry over (see `create`), this year's final
+    /// balances (with adjustments) become last year's trial balance, and the
+    /// fixed asset register is carried forward.
+    pub fn roll_forward(&self, id: &str) -> Result<String, String> {
+        let p = self.project(id)?;
+        let st = p.load_settings()?;
+        let (start, _) =
+            lc_core::date::parse_fy(&st.fy).ok_or("financial year must look like 2025-26")?;
+        let next = lc_core::date::fy_label(start.with_year_safe(1));
+        let (eng, _) = p.engagement_adjusted()?;
+        let nid = self.create(&st.entity_name, &st.entity_type, &next)?;
+        let np = self.project(&nid)?;
+        let mut ns = np.load_settings()?;
+        write_atomic(
+            &np.inputs_dir().join("py_tb.json"),
+            serde_json::to_string(&eng.cy)
+                .map_err(|e| e.to_string())?
+                .as_bytes(),
+        )?;
+        ns.inputs.py_tb = Some("py_tb.json".into());
+        let mut far_assets = 0;
+        if let Some(reg) = &eng.far {
+            let res = lc_core::far::compute(
+                reg,
+                &lc_core::far::DepPack::builtin(),
+                eng.fy_start,
+                eng.fy_end,
+            );
+            let next_reg = lc_core::far::roll_forward(reg, &res, eng.fy_end);
+            far_assets = next_reg.assets.len();
+            write_atomic(
+                &np.inputs_dir().join("far.json"),
+                serde_json::to_string(&next_reg)
+                    .map_err(|e| e.to_string())?
+                    .as_bytes(),
+            )?;
+            ns.inputs.far = Some("far.json".into());
+        }
+        np.save_settings(&ns)?;
+        np.log(
+            "user",
+            "rolled_forward",
+            serde_json::json!({"from_fy": st.fy, "previous_year_ledgers": eng.cy.ledgers.len(),
+                "adjustments_included": st.adjustments.iter().filter(|a| a.active).count(), "fixed_assets": far_assets}),
+        )?;
+        p.log("user", "next_year_started", serde_json::json!({"fy": next}))?;
+        Ok(nid)
     }
 
     pub fn list(&self) -> Vec<ProjectSummary> {

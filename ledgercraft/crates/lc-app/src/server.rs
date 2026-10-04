@@ -210,6 +210,7 @@ impl App {
                 self.store.create(&s(&b, "name"), &s(&b, "entity_type"), &s(&b, "fy")).map(|id| json!({"id": id}))
             }
             ("GET", ["api", "projects", id]) => self.project_info(id),
+            ("POST", ["api", "projects", id, "roll-forward"]) => self.store.roll_forward(id).map(|n| json!({"id": n})),
             ("POST", ["api", "projects", id, "delete"]) => {
                 self.invalidate(id);
                 self.store.delete(id).map(|to| json!({"ok": true, "moved_to": to}))

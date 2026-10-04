@@ -132,6 +132,10 @@ pub struct FarResult {
     pub book_dep_total: Money,
     /// Problems found in the register itself (unknown class/block etc.).
     pub errors: Vec<String>,
+    /// Books depreciation for the year of each asset, in register order
+    /// (zero for assets outside the year).
+    #[serde(default)]
+    pub asset_dep: Vec<Money>,
 }
 
 fn paise(x: f64) -> Money {
@@ -167,7 +171,8 @@ pub fn compute(
         r.opening_wdv += *v;
     }
 
-    for a in &reg.assets {
+    res.asset_dep = vec![Money::ZERO; reg.assets.len()];
+    for (ai, a) in reg.assets.iter().enumerate() {
         if a.sold_on.map(|d| d < fy_start).unwrap_or(false) || a.put_to_use > fy_end {
             continue;
         }
@@ -242,6 +247,7 @@ pub fn compute(
             }
         };
         row.dep_for_year += dep;
+        res.asset_dep[ai] = dep;
         if let Some(sold) = a.sold_on {
             if sold <= fy_end {
                 row.deletions += a.cost;
@@ -407,5 +413,80 @@ mod tests {
         let dep = wdv.ppe[0].dep_for_year.paise();
         assert!((2_589_000..=2_590_500).contains(&dep), "{dep}");
         assert!(wdv.ppe[0].net_closing >= Money::rupees(3_000));
+    }
+}
+
+/// The register for the next year: assets sold during this year drop out,
+/// accumulated depreciation and Income-tax WDV carry forward.
+pub fn roll_forward(reg: &Register, res: &FarResult, fy_end: NaiveDate) -> Register {
+    let mut assets = Vec::new();
+    for (i, a) in reg.assets.iter().enumerate() {
+        if a.sold_on.map(|d| d <= fy_end).unwrap_or(false) {
+            continue;
+        }
+        let mut n = a.clone();
+        n.opening_acc_dep += res.asset_dep.get(i).copied().unwrap_or_default();
+        assets.push(n);
+    }
+    let it_opening = res
+        .it
+        .iter()
+        .filter(|r| !r.closing_wdv.is_zero())
+        .map(|r| (r.block.clone(), r.closing_wdv))
+        .collect();
+    Register {
+        assets,
+        it_opening,
+        basis: reg.basis,
+    }
+}
+
+#[cfg(test)]
+mod roll_tests {
+    use super::*;
+
+    fn d(y: i32, m: u32, dd: u32) -> NaiveDate {
+        NaiveDate::from_ymd_opt(y, m, dd).unwrap()
+    }
+
+    #[test]
+    fn roll_forward_carries_depreciation_and_drops_sold_assets() {
+        let pack = DepPack::builtin();
+        let a = |name: &str, put: NaiveDate, sold: Option<NaiveDate>| Asset {
+            name: name.into(),
+            ledger: "Plant & Machinery".into(),
+            book_class: "plant_general".into(),
+            it_block: "plant_general".into(),
+            put_to_use: put,
+            cost: Money::rupees(100_000),
+            opening_acc_dep: Money::rupees(10_000),
+            sold_on: sold,
+            sale_value: Money::rupees(50_000),
+            useful_life_years: None,
+        };
+        let reg = Register {
+            assets: vec![
+                a("Kept", d(2023, 4, 1), None),
+                a("Sold", d(2023, 4, 1), Some(d(2025, 12, 1))),
+            ],
+            it_opening: [("plant_general".to_string(), Money::rupees(150_000))].into(),
+            basis: BookBasis::IncomeTaxRates,
+        };
+        let res = compute(&reg, &pack, d(2025, 4, 1), d(2026, 3, 31));
+        let next = roll_forward(&reg, &res, d(2026, 3, 31));
+        assert_eq!(next.assets.len(), 1);
+        assert_eq!(next.assets[0].name, "Kept");
+        assert_eq!(
+            next.assets[0].opening_acc_dep,
+            Money::rupees(10_000) + res.asset_dep[0]
+        );
+        assert!(res.asset_dep[0] > Money::ZERO);
+        let closing = res
+            .it
+            .iter()
+            .find(|r| r.block == "plant_general")
+            .unwrap()
+            .closing_wdv;
+        assert_eq!(next.it_opening["plant_general"], closing);
     }
 }

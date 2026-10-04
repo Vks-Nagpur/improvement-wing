@@ -109,7 +109,7 @@ function stepStatus() {
   const nd = ["share_classes", "contingent_liabilities", "commitments", "related_parties", "notes", "extra_policies"].reduce((n, k) => n + (dd[k] || []).length, 0) + Object.keys(dd.policy_text || {}).length;
   const req = ["contingent", "related_parties", "msme"].concat(st.entity_type === "company" ? ["share_capital"] : []);
   const has = { share_capital: (dd.share_classes || []).length, contingent: (dd.contingent_liabilities || []).length + (dd.commitments || []).length, related_parties: (dd.related_parties || []).length, msme: 0 };
-  const open = req.filter(k => !has[k] && !(dd.answers || {})[k]).length;
+  const open = req.filter(k => (dd.pending_review || []).includes(k) || (!has[k] && !(dd.answers || {})[k])).length;
   mark("disclose", open ? `${open} section${open === 1 ? "" : "s"} not answered` : `All answered${nd ? `, ${nd} items` : ""}`, open ? "todo" : "ok");
   mark("analysis", a ? `${a.ratios.length} ratios, ${a.loans.length} loans` : "", a ? "ok" : "");
   const fb = a ? a.summary.must_fix + (a.blockers || []).length : 0;
@@ -291,6 +291,8 @@ async function loadProjects() {
   state.projects = await api("GET", "/api/projects");
   renderProjects();
 }
+function nextFy(fy) { const y = Number(fy.slice(0, 4)) + 1; return `${y}-${String((y + 1) % 100).padStart(2, "0")}`; }
+function hasNext(p) { return (state.projects || []).some(x => x.entity_name === p.entity_name && x.fy === nextFy(p.fy)); }
 function renderProjects() {
   const all = state.projects || [];
   const q = $("#plSearch").value.trim().toLowerCase(), ty = $("#plType").value;
@@ -307,8 +309,14 @@ function renderProjects() {
     const same = prev === p.entity_name; prev = p.entity_name;
     if (same) tr.classList.add("same");
     tr.innerHTML = `<td>${same ? '<span class="muted small">same client</span>' : `<b>${esc(p.entity_name)}</b>`}</td><td>${esc(TYPE_LABEL[p.entity_type] || p.entity_type)}</td><td><span class="chip">FY ${esc(p.fy)}</span></td><td class="muted">${when(p.modified)}</td>
-      <td class="act"><button class="small ${cur ? "" : "primary"}" data-a="open">${cur ? "Open now" : "Open"}</button><button class="small danger-ghost" data-a="del">Delete</button></td>`;
+      <td class="act"><button class="small ${cur ? "" : "primary"}" data-a="open">${cur ? "Open now" : "Open"}</button>${hasNext(p) ? "" : '<button class="small" data-a="next" title="Create the next financial year from this one">Start next year</button>'}<button class="small danger-ghost" data-a="del">Delete</button></td>`;
     tr.querySelector('[data-a="open"]').addEventListener("click", () => openProject(p.id));
+    tr.querySelector('[data-a="next"]')?.addEventListener("click", async () => {
+      const ny = nextFy(p.fy);
+      if (!(await confirmBox(`Start FY ${ny} for ${p.entity_name}?`, `FY ${p.fy}'s final balances (with its adjustments) become last year's figures. The fixed asset register, settings, signing details, tags and disclosures are carried forward; every disclosure section must be answered again. Then import FY ${ny}'s books.`, "Start next year"))) return;
+      try { const r = await api("POST", `/api/projects/${encodeURIComponent(p.id)}/roll-forward`); toast(`FY ${ny} created.`); await loadProjects(); openProject(r.id); }
+      catch (e) { toast(e.message, true); }
+    });
     tr.querySelector('[data-a="del"]').addEventListener("click", async () => {
       if (!(await confirmBox(`Delete ${p.entity_name}, FY ${p.fy}?`, "It moves to the Recycle Bin with its imports, settings and audit trail. You can restore it later. The remembered mapping for this client stays."))) return;
       try {
@@ -874,7 +882,8 @@ function renderAnswers(d) {
   for (const bar of $$("[data-answer]")) {
     const sec = bar.dataset.answer, t = ANSWER_TEXT[sec];
     const cur = (d.answers || {})[sec] || "";
-    bar.innerHTML = `<p class="ab-q">Your answer for this section</p>` + [["", t[0]], ["nil", t[1]], ["provided", t[2]]].filter(x => x[1])
+    const carried = (d.pending_review || []).includes(sec);
+    bar.innerHTML = `<p class="ab-q">${carried ? "Carried from last year: check the particulars and choose your answer again" : "Your answer for this section"}</p>` + [["", t[0]], ["nil", t[1]], ["provided", t[2]]].filter(x => x[1])
       .map(([v, l]) => `<label class="radio"><input type="radio" name="ans-${sec}" value="${v}" ${cur === v ? "checked" : ""}> ${esc(l)}</label>`).join("");
     bar.classList.toggle("unanswered", !cur);
     $$("input", bar).forEach(r => r.addEventListener("change", () => bar.classList.toggle("unanswered", !r.value)));
@@ -924,11 +933,13 @@ $("#dSave").addEventListener("click", async () => {
       d.msme[k] = v;
     }
     d.answers = readAnswers();
+    // Sections carried from last year stay open until you choose an answer.
+    d.pending_review = ((state.settings.options.disclosures || {}).pending_review || []).filter(sec => !d.answers[sec]);
     // Particulars entered count as an answer; "details below" with nothing entered does not.
     const LIST_OF = { share_capital: ["share_classes"], contingent: ["contingent_liabilities", "commitments"], related_parties: ["related_parties"] };
     for (const [sec, keys] of Object.entries(LIST_OF)) {
       const has = keys.some(k => d[k].length);
-      if (has) d.answers[sec] = "provided";
+      if (has && !d.pending_review.includes(sec)) d.answers[sec] = "provided";
       else if (d.answers[sec] === "provided") throw new Error(`${$(`[data-answer="${sec}"]`).closest("[data-tabpanel]").dataset.tabpanel.replace(/^./, c => c.toUpperCase())}: you chose "details below" but nothing is entered. Enter the details or choose "None".`);
     }
     d.policy_text = {};
@@ -1104,6 +1115,8 @@ function describe(e) {
     case "mapping_confirmed": return `${d.count} placement(s) confirmed: ${(d.ledgers || []).slice(0, 6).map(x => x.ledger).join(", ")}${(d.ledgers || []).length > 6 ? ", …" : ""}`;
     case "rules_pinned": return `Pinned to rule pack ${d.rules_version} and format ${d.format_pack} (${d.format_status})`;
     case "rules_migrated": return `Moved from rule pack ${d.rules_from} to ${d.rules_to}; ${(d.rule_changes || []).length} rule(s) changed${d.format_changed ? ", format changed" : ""}`;
+    case "rolled_forward": return `Started from FY ${d.from_fy}: ${d.previous_year_ledgers} ledgers as last year's figures (${d.adjustments_included} adjustment(s) included), ${d.fixed_assets} fixed assets carried forward`;
+    case "next_year_started": return `Next year FY ${d.fy} started from this year`;
     case "tags_changed": return `${d.ledger}: tags ${(d.to || []).join(", ") || "removed"}`;
     case "adjustment_added": case "adjustment_changed": {
       const a = d.to || {};

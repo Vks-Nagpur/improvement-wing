@@ -31,6 +31,9 @@ pub struct Disclosures {
     /// A section with no answer and no particulars is *not answered*; it is
     /// never treated as nil (TRUTH-MODEL.md §2).
     pub answers: BTreeMap<String, String>,
+    /// Sections carried from last year that the user has not looked at yet;
+    /// they count as not answered until confirmed.
+    pub pending_review: Vec<String>,
 }
 
 /// The three states of a required disclosure.
@@ -60,6 +63,9 @@ pub const SECTIONS: [(&str, &str, bool); 4] = [
 
 impl Disclosures {
     pub fn answer(&self, section: &str) -> Answer {
+        if self.pending_review.iter().any(|x| x == section) {
+            return Answer::NotAnswered;
+        }
         let has = match section {
             "share_capital" => !self.share_classes.is_empty(),
             "contingent" => {
@@ -83,6 +89,51 @@ impl Disclosures {
             Some("provided") if section == "msme" => Answer::Provided,
             _ => Answer::NotAnswered,
         }
+    }
+
+    /// Particulars for the next year: this year's figures become last year's,
+    /// lists are kept to be updated, and every section must be answered again.
+    pub fn roll_forward(&self) -> Disclosures {
+        let mut d = self.clone();
+        for c in d.share_classes.iter_mut() {
+            c.py_authorised = c.authorised;
+            c.py_issued = c.issued;
+            c.py_subscribed = c.subscribed;
+            c.added = 0;
+            c.reduced = 0;
+        }
+        for h in d.holders_5pct.iter_mut().chain(d.promoters.iter_mut()) {
+            h.py_shares = h.shares;
+        }
+        for l in d
+            .contingent_liabilities
+            .iter_mut()
+            .chain(d.commitments.iter_mut())
+        {
+            l.py = l.cy;
+            l.cy = Money::ZERO;
+        }
+        for t in d.related_transactions.iter_mut() {
+            t.py = t.cy;
+            t.cy = Money::ZERO;
+        }
+        let roll = |v: &mut (Money, Money)| *v = (Money::ZERO, v.0);
+        let m = &mut d.msme;
+        for v in [
+            &mut m.interest_due_unpaid,
+            &mut m.paid_beyond_appointed_day,
+            &mut m.interest_paid_s16,
+            &mut m.interest_due_for_delay,
+            &mut m.interest_accrued_unpaid,
+            &mut m.further_interest,
+        ] {
+            roll(v);
+        }
+        // Year-specific notes (events after the balance sheet date …) are not carried.
+        d.notes.clear();
+        d.answers.clear();
+        d.pending_review = SECTIONS.iter().map(|(id, _, _)| id.to_string()).collect();
+        d
     }
 
     /// Required sections still not answered for this kind of entity.

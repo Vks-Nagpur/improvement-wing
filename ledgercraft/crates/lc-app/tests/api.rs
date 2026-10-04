@@ -474,6 +474,60 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         .unwrap_err()
         .contains("at least one"));
 
+    // Roll forward: this year's adjusted balances become next year's comparatives.
+    let mut o2 = c
+        .call("GET", &format!("/api/projects/{pid}"), None)
+        .unwrap()["settings"]["options"]
+        .clone();
+    o2["disclosures"]["contingent_liabilities"] =
+        json!([{"nature": "Bank guarantee", "cy": 5000000, "py": 0}]);
+    o2["disclosures"]["answers"] =
+        json!({"contingent": "provided", "related_parties": "nil", "msme": "nil"});
+    c.call(
+        "POST",
+        &format!("/api/projects/{pid}/settings"),
+        Some(json!({"options": o2})),
+    )
+    .unwrap();
+    let next = c
+        .call("POST", &format!("/api/projects/{pid}/roll-forward"), None)
+        .unwrap()["id"]
+        .as_str()
+        .unwrap()
+        .to_string();
+    assert_eq!(next, "Adjust-Co~2026-27");
+    let nid = next.replace('~', "%7E");
+    let np = c
+        .call("GET", &format!("/api/projects/{nid}"), None)
+        .unwrap();
+    assert_eq!(np["settings"]["inputs"]["py_tb"], "py_tb.json");
+    let d = &np["settings"]["options"]["disclosures"];
+    assert_eq!(d["contingent_liabilities"][0]["py"], 5000000);
+    assert_eq!(d["contingent_liabilities"][0]["cy"], 0);
+    assert!(
+        d["answers"].as_object().unwrap().is_empty(),
+        "must be answered again"
+    );
+    assert!(d["pending_review"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|x| x == "contingent"));
+    let py: lc_core::TrialBalance = serde_json::from_str(
+        &std::fs::read_to_string(dir.join("data/clients/Adjust-Co/2026-27/inputs/py_tb.json"))
+            .unwrap(),
+    )
+    .unwrap();
+    assert!(
+        py.ledgers.iter().any(|l| l.name == "Audit Fees Payable"),
+        "adjustments are part of last year's figures"
+    );
+    assert!(
+        c.call("POST", &format!("/api/projects/{pid}/roll-forward"), None)
+            .is_err(),
+        "next year already exists"
+    );
+
     c.call(
         "POST",
         &format!("/api/projects/{pid}/adjustments/1/delete"),
@@ -541,12 +595,13 @@ fn adjustments_hiding_removal_and_recycle_bin() {
     // Delete → Recycle Bin → restore, with the audit trail intact.
     c.call("POST", &format!("/api/projects/{pid}/delete"), None)
         .unwrap();
-    assert!(c
+    assert!(!c
         .call("GET", "/api/projects", None)
         .unwrap()
         .as_array()
         .unwrap()
-        .is_empty());
+        .iter()
+        .any(|p| p["id"] == id));
     let bin = c.call("GET", "/api/recycle-bin", None).unwrap();
     let item = bin[0]["id"].as_str().unwrap().replace('~', "%7E");
     c.call("POST", &format!("/api/recycle-bin/{item}/restore"), None)
@@ -562,6 +617,7 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         .map(|e| e["action"].as_str().unwrap().to_string())
         .collect();
     for want in [
+        "next_year_started",
         "adjustment_added",
         "adjustment_switched",
         "adjustment_deleted",

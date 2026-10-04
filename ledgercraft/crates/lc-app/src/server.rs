@@ -359,11 +359,11 @@ impl App {
         if body.is_empty() {
             return Err("The file is empty.".into());
         }
-        let file = if kind.starts_with("branch_") {
+        let file = if let Some(part) = kind.strip_prefix("branch_") {
             if !st.inputs.branches.iter().any(|b| b.name == branch) {
                 return Err("Add the branch first.".into());
             }
-            format!("branch-{}-{}.{ext}", crate::store::slug(branch), &kind[7..])
+            format!("branch-{}-{part}.{ext}", crate::store::slug(branch))
         } else {
             format!("{kind}.{ext}")
         };

@@ -20,6 +20,7 @@ pub mod mapping;
 pub mod model;
 pub mod money;
 pub mod ratios;
+pub mod recon;
 pub mod report;
 pub mod rounding;
 pub mod rules;

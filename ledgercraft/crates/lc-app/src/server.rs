@@ -219,6 +219,7 @@ impl App {
             ("GET", ["api", "recycle-bin"]) => Ok(json!(self.store.deleted())),
             ("POST", ["api", "recycle-bin", item, "restore"]) => self.store.restore(item).map(|id| json!({"id": id})),
             ("GET", ["api", "projects", id, "policies"]) => self.policies(id),
+            ("GET", ["api", "projects", id, "portal"]) => self.portal_recons(id).map(|(g, t)| json!({"gst": g, "tds": t})),
             ("GET", ["api", "projects", id, "bankrec"]) => self.bank_recs(id).map(|(ledgers, recs)| json!({"ledgers": ledgers, "recs": recs})),
             ("GET", ["api", "projects", id, "rules"]) => self.rules_info(id),
             ("POST", ["api", "projects", id, "rules", "migrate"]) => {
@@ -354,8 +355,18 @@ impl App {
             .and_then(|e| e.to_str())
             .unwrap_or("")
             .to_ascii_lowercase();
-        if !matches!(ext.as_str(), "xlsx" | "xls" | "csv" | "xlsm" | "ods") {
-            return Err("Please choose an Excel (.xlsx/.xls) or CSV file.".into());
+        let portal_ok = (kind == "gstr2b" && ext == "json") || (kind == "form26as" && ext == "txt");
+        if !portal_ok && !matches!(ext.as_str(), "xlsx" | "xls" | "csv" | "xlsm" | "ods") {
+            return Err(match kind {
+                "gstr2b" => {
+                    "Choose the GSTR-2B file downloaded from the GST portal (JSON or Excel).".into()
+                }
+                "form26as" => {
+                    "Choose Form 26AS downloaded from TRACES (text file) or its Excel conversion."
+                        .into()
+                }
+                _ => "Please choose an Excel (.xlsx/.xls) or CSV file.".to_string(),
+            });
         }
         if body.is_empty() {
             return Err("The file is empty.".into());
@@ -386,6 +397,8 @@ impl App {
                     .as_deref(),
             )
             .map(|t| format!("{} ledgers", t.ledgers.len())),
+            "gstr2b" => lc_io::portal::read_gstr2b(&tmp).map(|v| format!("{} suppliers", v.len())),
+            "form26as" => lc_io::portal::read_26as(&tmp).map(|v| format!("{} deductors", v.len())),
             "bank" => {
                 lc_io::read::read_bank_statement(&tmp).map(|v| format!("{} bank entries", v.len()))
             }
@@ -411,6 +424,8 @@ impl App {
             "py_tb" => st.inputs.py_tb = Some(file.clone()),
             "vouchers" => st.inputs.vouchers = Some(file.clone()),
             "far" => st.inputs.far = Some(file.clone()),
+            "gstr2b" => st.inputs.gstr2b = Some(file.clone()),
+            "form26as" => st.inputs.form26as = Some(file.clone()),
             "bank" => {
                 st.inputs.bank_statements.retain(|(l, _)| l != branch);
                 st.inputs
@@ -749,6 +764,33 @@ impl App {
         Ok(json!({"ok": true}))
     }
 
+    /// Books against GSTR-2B (input tax credit) and Form 26AS (TDS), per party.
+    fn portal_recons(
+        &self,
+        id: &str,
+    ) -> Result<(Option<lc_core::recon::Recon>, Option<lc_core::recon::Recon>), String> {
+        let p = self.store.project(id)?;
+        let st = p.load_settings()?;
+        let (eng, _) = self.analysis(id)?;
+        let gst = match &st.inputs.gstr2b {
+            Some(f) => Some(lc_core::recon::reconcile(
+                "gstr2b",
+                &lc_core::recon::books_itc(&eng),
+                &lc_io::portal::read_gstr2b(&p.inputs_dir().join(f))?,
+            )),
+            None => None,
+        };
+        let tds = match &st.inputs.form26as {
+            Some(f) => Some(lc_core::recon::reconcile(
+                "26as",
+                &lc_core::recon::books_tds(&eng),
+                &lc_io::portal::read_26as(&p.inputs_dir().join(f))?,
+            )),
+            None => None,
+        };
+        Ok((gst, tds))
+    }
+
     /// Bank ledgers of the year and the reconciliation of each one that has a
     /// statement.
     fn bank_recs(
@@ -1004,6 +1046,10 @@ impl App {
                 adjustments: st.adjustments.clone(),
                 adjustment_effects: p.engagement_adjusted().map(|x| x.1).unwrap_or_default(),
                 bank_recs: self.bank_recs(id).map(|x| x.1).unwrap_or_default(),
+                portal_recons: self
+                    .portal_recons(id)
+                    .map(|(g, t)| g.into_iter().chain(t).collect())
+                    .unwrap_or_default(),
             };
             if !(o.pdf
                 || o.statements_xlsx

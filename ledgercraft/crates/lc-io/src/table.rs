@@ -33,12 +33,23 @@ fn cell_text(c: &Data) -> String {
     }
 }
 
+/// All cells of a sheet (by preferred names, else the first sheet) or a CSV
+/// file, as text, without header detection.
+pub fn raw_rows(path: &Path, prefer_sheets: &[&str]) -> Result<Vec<Vec<String>>, String> {
+    read_table_raw(path, prefer_sheets)
+}
+
 /// Read a sheet (by preferred names, else the first sheet) or a CSV file.
 pub fn read_table(
     path: &Path,
     prefer_sheets: &[&str],
     header_hint: &[&str],
 ) -> Result<Table, String> {
+    let raw = read_table_raw(path, prefer_sheets)?;
+    table_from_raw(path, raw, header_hint)
+}
+
+fn read_table_raw(path: &Path, prefer_sheets: &[&str]) -> Result<Vec<Vec<String>>, String> {
     let ext = path
         .extension()
         .and_then(|e| e.to_str())
@@ -72,6 +83,14 @@ pub fn read_table(
             .map(|r| r.iter().map(cell_text).collect())
             .collect()
     };
+    Ok(raw)
+}
+
+fn table_from_raw(
+    path: &Path,
+    raw: Vec<Vec<String>>,
+    header_hint: &[&str],
+) -> Result<Table, String> {
     let header_idx = raw
         .iter()
         .position(|r| {

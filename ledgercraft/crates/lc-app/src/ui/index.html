@@ -41,6 +41,7 @@
     <button data-view="check" disabled><b>3</b><span><span class="sn">Check</span><small class="ss" data-ss="check"></small></span></button>
     <button data-view="map" disabled><b>4</b><span><span class="sn">Map ledgers</span><small class="ss" data-ss="map"></small></span></button>
     <button data-view="bank" disabled><b>5</b><span><span class="sn">Bank reconciliation</span><small class="ss" data-ss="bank">Optional</small></span></button>
+    <button data-view="portal" disabled><b>5</b><span><span class="sn">GST and TDS (2B, 26AS)</span><small class="ss" data-ss="portal">Optional</small></span></button>
     <button data-view="adjust" disabled><b>5</b><span><span class="sn">Adjustments</span><small class="ss" data-ss="adjust">Optional</small></span></button>
     <button data-view="analysis" disabled><b>5</b><span><span class="sn">Analysis</span><small class="ss" data-ss="analysis"></small></span></button>
     <button data-view="disclose" disabled><b>6</b><span><span class="sn">Notes and disclosures</span><small class="ss" data-ss="disclose"></small></span></button>
@@ -204,6 +205,23 @@
       </header>
       <div class="guide" data-guide="bank"></div>
       <div id="bankBody"><p class="empty">Run the checks first.</p></div>
+    </section>
+
+    <!-- GST 2B and 26AS -->
+    <section data-panel="portal" hidden>
+      <header class="screen-head">
+        <div><h1>GST and TDS</h1><p class="lead">Compare the books with GSTR-2B (input tax credit) and Form 26AS (tax deducted by customers), party by party.</p></div>
+        <div class="actions"><button class="primary" type="button" data-next>Next</button></div>
+      </header>
+      <div class="guide" data-guide="portal"></div>
+      <div class="box">
+        <div class="title-row"><h2>GSTR-2B: input tax credit</h2><label class="btnlike small"><input type="file" data-portal="gstr2b" accept=".json,.xlsx,.xls" hidden><span tabindex="0" role="button">Upload GSTR-2B (JSON or Excel)</span></label></div>
+        <div id="gstBody"><p class="muted small">Download GSTR-2B for each month (or the year) from the GST portal: Returns, GSTR-2B, Download (JSON or Excel).</p></div>
+      </div>
+      <div class="box">
+        <div class="title-row"><h2>Form 26AS: tax deducted by customers</h2><label class="btnlike small"><input type="file" data-portal="form26as" accept=".txt,.xlsx,.xls,.csv" hidden><span tabindex="0" role="button">Upload Form 26AS (text file)</span></label></div>
+        <div id="tdsBody"><p class="muted small">Download from TRACES: View Tax Credit (Form 26AS), export as Text.</p></div>
+      </div>
     </section>
 
     <!-- 5. Adjustments -->

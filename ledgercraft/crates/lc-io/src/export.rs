@@ -42,6 +42,8 @@ pub struct ExportOptions {
     pub adjustment_effects: Vec<lc_core::adjust::Applied>,
     /// Bank reconciliations (one sheet each in the auditor workbook).
     pub bank_recs: Vec<lc_core::bankrec::Reconciliation>,
+    /// GSTR-2B and Form 26AS reconciliations.
+    pub portal_recons: Vec<lc_core::recon::Recon>,
 }
 
 impl Default for ExportOptions {
@@ -59,6 +61,7 @@ impl Default for ExportOptions {
             adjustments: Vec::new(),
             adjustment_effects: Vec::new(),
             bank_recs: Vec::new(),
+            portal_recons: Vec::new(),
         }
     }
 }
@@ -574,7 +577,95 @@ fn write_auditor_workbook(
     for (k, r) in opt.bank_recs.iter().enumerate() {
         bank_sheet(&mut wb, &f, k, r)?;
     }
+    for r in &opt.portal_recons {
+        portal_sheet(&mut wb, &f, r)?;
+    }
     x(wb.save(path))
+}
+
+fn portal_sheet(wb: &mut Workbook, f: &Fmts, r: &lc_core::recon::Recon) -> Result<(), String> {
+    let gst = r.kind == "gstr2b";
+    let ws = x(wb
+        .add_worksheet()
+        .set_name(if gst { "GST 2B recon" } else { "26AS recon" }))?;
+    x(ws.write_string_with_format(
+        0,
+        0,
+        if gst {
+            "Input tax credit: books against GSTR-2B, supplier by supplier"
+        } else {
+            "TDS: books against Form 26AS (Part I), deductor by deductor"
+        },
+        &f.title,
+    ))?;
+    x(ws.write_string(
+        1,
+        0,
+        "Parties are matched by name: 'close' matches must be checked. A party in the books but not on the portal may not have filed its return.",
+    ))?;
+    let heads = [
+        "Ledger in the books",
+        if gst { "GSTIN" } else { "TAN" },
+        "Name on the portal",
+        "Matched by",
+        if gst {
+            "Purchases (books)"
+        } else {
+            "Sales (books)"
+        },
+        if gst { "ITC in books" } else { "TDS in books" },
+        if gst {
+            "Taxable value (2B)"
+        } else {
+            "Amount paid / credited (26AS)"
+        },
+        if gst { "ITC in 2B" } else { "TDS in 26AS" },
+        "Difference (portal - books)",
+    ];
+    for (c, h) in heads.iter().enumerate() {
+        x(ws.write_string_with_format(3, c as u16, *h, &f.head))?;
+    }
+    let mut row = 4u32;
+    for x_ in &r.rows {
+        x(ws.write_string(row, 0, x_.ledger.as_deref().unwrap_or("(not in the books)")))?;
+        x(ws.write_string(row, 1, x_.portal_id.as_deref().unwrap_or("")))?;
+        x(ws.write_string(
+            row,
+            2,
+            x_.portal_name.as_deref().unwrap_or("(not on the portal)"),
+        ))?;
+        x(ws.write_string(row, 3, &x_.matched_by))?;
+        for (c, m) in [
+            x_.books_base,
+            x_.books_tax,
+            x_.portal_base,
+            x_.portal_tax,
+            x_.difference,
+        ]
+        .iter()
+        .enumerate()
+        {
+            x(ws.write_number_with_format(row, 4 + c as u16, m.as_f64(), &f.num))?;
+        }
+        row += 1;
+    }
+    x(ws.write_string_with_format(row, 0, "Total", &f.bold))?;
+    x(ws.write_number_with_format(row, 5, r.books_total.as_f64(), &f.num_total))?;
+    x(ws.write_number_with_format(row, 7, r.portal_total.as_f64(), &f.num_total))?;
+    x(ws.write_number_with_format(
+        row,
+        8,
+        (r.portal_total - r.books_total).as_f64(),
+        &f.num_total,
+    ))?;
+    for (c, w) in [32.0, 18.0, 32.0, 10.0, 16.0, 16.0, 18.0, 16.0, 18.0]
+        .iter()
+        .enumerate()
+    {
+        ws.set_column_width(c as u16, *w).ok();
+    }
+    ws.set_freeze_panes(4, 1).ok();
+    Ok(())
 }
 
 /// (title, items (date, what, amount), sign) of one block of a reconciliation.

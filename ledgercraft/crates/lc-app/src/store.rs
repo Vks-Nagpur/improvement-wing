@@ -61,6 +61,10 @@ pub struct Inputs {
     pub branches: Vec<BranchInput>,
     /// Bank statements for reconciliation: (bank ledger, file).
     pub bank_statements: Vec<(String, String)>,
+    /// GSTR-2B downloaded from the GST portal (JSON or Excel).
+    pub gstr2b: Option<String>,
+    /// Form 26AS from TRACES (text file or its Excel conversion).
+    pub form26as: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

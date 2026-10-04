@@ -141,9 +141,9 @@ function renderNext() {
 
 // ---- what the user wants to do (sets the steps) --------------------------------
 const FLOWS = {
-  statements: { name: "Financial statements", steps: ["projects", "import", "check", "map", "bank", "adjust", "disclose", "present", "export", "audit"] },
-  analysis: { name: "Check and analyse", steps: ["projects", "import", "check", "analysis", "bank", "map", "adjust", "audit"] },
-  taxaudit: { name: "Tax audit help", steps: ["projects", "import", "check", "analysis", "bank", "adjust", "export", "audit"] },
+  statements: { name: "Financial statements", steps: ["projects", "import", "check", "map", "bank", "portal", "adjust", "disclose", "present", "export", "audit"] },
+  analysis: { name: "Check and analyse", steps: ["projects", "import", "check", "analysis", "bank", "portal", "map", "adjust", "audit"] },
+  taxaudit: { name: "Tax audit help", steps: ["projects", "import", "check", "analysis", "bank", "portal", "adjust", "export", "audit"] },
 };
 state.intent = store.get("intent", "statements");
 function applyFlow() {
@@ -208,6 +208,7 @@ function show(view) {
   if (view === "adjust") loadAdjustments();
   if (view === "disclose") loadDisclosures();
   if (view === "bank") loadBank();
+  if (view === "portal") loadPortal();
   if ((view === "map" || view === "check") && !state.analysis && state.settings?.inputs.tb) runChecks();
   if (view === "check") loadRules();
   renderNext();
@@ -733,6 +734,35 @@ async function loadBank() {
     box.appendChild(card);
   }
 }
+
+// ---- GST 2B and 26AS ------------------------------------------------------------
+function reconTable(r, gst) {
+  const m = p => (p < 0 ? `(${rupees(-p)})` : rupees(p));
+  const off = r.rows.filter(x => x.difference !== 0).length;
+  const head = gst ? ["Ledger in the books", "Supplier on 2B (GSTIN)", "ITC in books", "ITC in 2B", "Difference"] : ["Ledger in the books", "Deductor on 26AS (TAN)", "TDS in books", "TDS in 26AS", "Difference"];
+  const rows = r.rows.map(x => `<tr class="${x.difference ? "flag" : ""}"><td>${x.ledger ? esc(x.ledger) : '<span class="muted">not in the books</span>'}${x.matched_by === "close" ? ' <span class="badge warning">name looks alike: check</span>' : ""}</td>
+    <td>${x.portal_name ? `${esc(x.portal_name)} <span class="muted small">${esc(x.portal_id || "")}</span>` : `<span class="badge warning">${gst ? "not in 2B: supplier may not have filed" : "not in 26AS"}</span>`}</td>
+    <td class="num">${m(x.books_tax)}</td><td class="num">${m(x.portal_tax)}</td><td class="num">${x.difference ? m(x.difference) : "-"}</td></tr>`).join("");
+  return `<p class="${off ? "errt" : "okt"} small">${off ? `${off} part${off === 1 ? "y differs" : "ies differ"}.` : "Books agree with the portal for every party."} Books ${m(r.books_total)}, portal ${m(r.portal_total)}.</p>
+    <div class="scroll"><table class="grid dense"><thead><tr>${head.map((h, i) => `<th class="${i > 1 ? "num" : ""}">${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+async function loadPortal() {
+  try {
+    const d = await api("GET", `/api/projects/${pid()}/portal`);
+    if (d.gst) $("#gstBody").innerHTML = reconTable(d.gst, true);
+    if (d.tds) $("#tdsBody").innerHTML = reconTable(d.tds, false);
+  } catch (e) { toast(e.message, true); }
+}
+$$("[data-portal]").forEach(input => {
+  input.parentElement.querySelector("[role=button]").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  input.addEventListener("change", async () => {
+    const f = input.files[0]; if (!f) return;
+    try {
+      const r = await api("POST", `/api/projects/${pid()}/upload?kind=${input.dataset.portal}&name=${encodeURIComponent(f.name)}`, undefined, await f.arrayBuffer());
+      toast(`${f.name}: ${r.contents} read.`); loadPortal();
+    } catch (e) { toast(e.message, true); }
+  });
+});
 
 // ---- 5. adjustments --------------------------------------------------------
 // Amounts typed in rupees ("1,23,456.50") become exact paise.

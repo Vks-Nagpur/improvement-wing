@@ -59,6 +59,11 @@ const HELP = {
       "LedgerCraft matches each entry with the day book (same amount, nearby date, cheque number when present).",
       "What is left is the reconciliation: cheques not presented, deposits not cleared, bank charges and interest not in the books. It goes into the auditor workbook.",
     ],
+    portal: [
+      "Upload GSTR-2B (from the GST portal) and Form 26AS (from TRACES). Nothing is sent anywhere; the files are read on this computer.",
+      "Each supplier's input tax credit in the books is compared with 2B, and each customer's TDS with 26AS. Parties are matched by name; check the ones marked <b>name looks alike</b>.",
+      "<b>Not in 2B</b> usually means the supplier has not filed; that credit is at risk. Both comparisons go into the auditor workbook.",
+    ],
     audit: [
       "This list shows who did what and when, newest first.",
       "The green line means no entry was edited or removed in between. A red line means the record was changed. Keep the exported files as your outside copy.",
@@ -130,6 +135,11 @@ const HELP = {
       "LedgerCraft हर प्रविष्टि को डे बुक से मिलाता है (समान राशि, पास की तारीख, चेक नंबर हो तो वह भी)।",
       "जो बचता है वही समाधान है: न भुनाए गए चेक, जमा पर क्रेडिट न हुए, बैंक शुल्क और ब्याज जो किताबों में नहीं। यह ऑडिटर वर्कबुक में जाता है।",
     ],
+    portal: [
+      "GSTR-2B (GST पोर्टल से) और Form 26AS (TRACES से) अपलोड करें। कुछ भी कहीं नहीं भेजा जाता; फ़ाइलें इसी कंप्यूटर पर पढ़ी जाती हैं।",
+      "किताबों में हर सप्लायर का इनपुट टैक्स क्रेडिट 2B से, और हर ग्राहक का TDS 26AS से मिलाया जाता है। पक्ष नाम से मिलाए जाते हैं; <b>name looks alike</b> वाले जाँचें।",
+      "<b>Not in 2B</b> का अर्थ अक्सर है कि सप्लायर ने रिटर्न नहीं भरा; वह क्रेडिट जोखिम में है। दोनों तुलनाएँ ऑडिटर वर्कबुक में जाती हैं।",
+    ],
     audit: [
       "यह सूची बताती है किसने क्या और कब किया, नया सबसे ऊपर।",
       "हरी पंक्ति का अर्थ है बाद में कुछ बदला या हटाया नहीं गया। लाल पंक्ति का अर्थ है रिकॉर्ड से छेड़छाड़ हुई।",
@@ -200,6 +210,11 @@ const HELP = {
       "नेट बँकिंगमधून वर्षाचे बँक स्टेटमेंट (Excel किंवा CSV) डाउनलोड करा आणि बँक लेजरसमोर <b>Upload bank statement</b> दाबा.",
       "LedgerCraft प्रत्येक नोंद डे बुकशी जुळवते (समान रक्कम, जवळची तारीख, चेक क्रमांक असल्यास तोही).",
       "जे उरते तेच जुळवणी: न वटलेले चेक, जमा पण क्रेडिट न झालेले, पुस्तकांत नसलेले बँक शुल्क आणि व्याज. हे ऑडिटर वर्कबुकमध्ये जाते.",
+    ],
+    portal: [
+      "GSTR-2B (GST पोर्टलवरून) आणि Form 26AS (TRACES वरून) अपलोड करा. काहीही कुठेही पाठवले जात नाही; फाइल्स याच संगणकावर वाचल्या जातात.",
+      "पुस्तकांतील प्रत्येक पुरवठादाराचे इनपुट टॅक्स क्रेडिट 2B शी, आणि प्रत्येक ग्राहकाचा TDS 26AS शी जुळवला जातो. पक्ष नावाने जुळवले जातात; <b>name looks alike</b> असलेले तपासा.",
+      "<b>Not in 2B</b> म्हणजे बहुधा पुरवठादाराने रिटर्न भरलेले नाही; ते क्रेडिट धोक्यात आहे. दोन्ही तुलना ऑडिटर वर्कबुकमध्ये जातात.",
     ],
     audit: [
       "ही यादी कोणी काय आणि केव्हा केले ते दाखवते, नवीन सर्वात वर.",

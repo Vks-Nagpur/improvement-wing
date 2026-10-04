@@ -1000,5 +1000,142 @@ pub fn all() -> Vec<Scenario> {
         clean(Kind::Company, 2, 25, 15, 12),
         firm_with_glitches(),
         excel_import_errors(),
+        clean_llp(),
+        clean_huf(),
     ]
+}
+
+/// Rename ledgers everywhere (both trial balances and the day book).
+fn rename_ledgers(e: &mut Engagement, renames: &[(&str, &str)]) {
+    let new = |n: &str| {
+        renames
+            .iter()
+            .find(|(o, _)| *o == n)
+            .map(|(_, x)| x.to_string())
+    };
+    for tb in std::iter::once(&mut e.cy).chain(e.py.iter_mut()) {
+        for l in tb.ledgers.iter_mut() {
+            if let Some(x) = new(&l.name) {
+                l.name = x;
+            }
+        }
+    }
+    for v in e.vouchers.iter_mut() {
+        for l in v.lines.iter_mut() {
+            if let Some(x) = new(&l.ledger) {
+                l.ledger = x;
+            }
+        }
+    }
+}
+
+/// Clean LLP books: partners' contribution instead of capital.
+pub fn clean_llp() -> Scenario {
+    let mut s = clean(Kind::Firm, 3, 8, 5, 3);
+    s.engagement.entity_type = EntityType::Llp;
+    s.engagement.entity_name = "Clean Ventures LLP".into();
+    rename_ledgers(
+        &mut s.engagement,
+        &[
+            ("Partner A - Capital", "Designated Partner A - Contribution"),
+            ("Partner B - Capital", "Designated Partner B - Contribution"),
+        ],
+    );
+    s.name = "clean_llp".into();
+    s.description = "Clean LLP books, partners' contribution, no planted errors".into();
+    s
+}
+
+/// Clean HUF books: the Karta's capital account, no partners.
+pub fn clean_huf() -> Scenario {
+    let mut s = clean(Kind::Firm, 4, 6, 4, 2);
+    s.engagement.entity_type = EntityType::Huf;
+    s.engagement.entity_name = "Ramesh Kumar Sharma (HUF)".into();
+    rename_ledgers(
+        &mut s.engagement,
+        &[
+            ("Partner A - Capital", "HUF Capital Account"),
+            ("Partner B - Capital", "HUF Corpus Account"),
+            ("Partners' Remuneration", "Salary to Karta"),
+            ("Interest on Partners' Capital", "Interest on Karta Capital"),
+        ],
+    );
+    s.name = "clean_huf".into();
+    s.description = "Clean HUF books, Karta's capital, no planted errors".into();
+    s
+}
+
+/// A head office and one branch, each with its own books. The inter-branch
+/// accounts ("Pune Branch A/c" in the head office, "Head Office A/c" in the
+/// branch) must cancel out when the books are combined.
+pub struct BranchBooks {
+    pub name: String,
+    pub description: String,
+    pub head_office: Engagement,
+    pub branches: Vec<(String, Engagement)>,
+    /// Profit of the combined books (head office + branches).
+    pub profit_cy: Money,
+}
+
+pub fn branch_books() -> BranchBooks {
+    const SENT: i64 = 200_000;
+    let mut b = Builder::new("Branch Traders (Partnership Firm)", EntityType::Firm, 2025);
+    let mut rng = Rng::new(5);
+    let mut sim = base_ledgers(&mut b, &mut rng, Kind::Firm, 8, 5);
+    sim.ops_per_day = 3;
+    b.far = Some(base_far(&b, vec![]));
+    b.ledger("Pune Branch A/c", "Branch / Divisions", Money::ZERO);
+    b.not_in_py("Pune Branch A/c");
+    balance_capital(&mut b, Kind::Firm);
+    let mut hook = |b: &mut Builder, dn: i64, ph: Phase| {
+        if ph == Phase::Start && dn == 10 {
+            let d = b.day(dn);
+            b.v(
+                d,
+                "Payment",
+                &[("Pune Branch A/c", r(SENT)), (BANK, r(-SENT))],
+            );
+        }
+    };
+    simulate(&mut b, &mut rng, &mut sim, &mut hook);
+    top_up_bank(&mut b, Kind::Firm);
+    let (ho, ho_exp) = b.finish();
+
+    // The branch: started this year with funds from the head office.
+    let mut br = Builder::new("Pune Branch", EntityType::Firm, 2025);
+    br.with_py = false;
+    br.ledger("Head Office A/c", "Branch / Divisions", Money::ZERO);
+    br.ledger(PLAC, "Profit & Loss A/c", Money::ZERO);
+    br.ledger("Cash", "Cash-in-Hand", Money::ZERO);
+    br.ledger("SBI Pune Current A/c", "Bank Accounts", Money::ZERO);
+    br.ledger(SALES, "Sales Accounts", Money::ZERO);
+    br.ledger(PURCHASES, "Purchase Accounts", Money::ZERO);
+    br.ledger("Rent", "Indirect Expenses", Money::ZERO);
+    br.ledger("Salary", "Indirect Expenses", Money::ZERO);
+    let bank = "SBI Pune Current A/c";
+    let d = br.day(10);
+    br.v(
+        d,
+        "Receipt",
+        &[(bank, r(SENT)), ("Head Office A/c", r(-SENT))],
+    );
+    let mut rng = Rng::new(55);
+    for m in 0..12 {
+        let d = br.day(15 + m * 30);
+        let s = rng.money(60_000, 90_000);
+        post_unique(&mut br, d, "Sales", s, |a| two(bank, SALES, a));
+        let p = rng.money(30_000, 50_000);
+        post_unique(&mut br, d, "Purchase", p, |a| two(PURCHASES, bank, a));
+        post_unique(&mut br, d, "Payment", r(8_000), |a| two("Rent", bank, a));
+        post_unique(&mut br, d, "Payment", r(12_000), |a| two("Salary", bank, a));
+    }
+    let (branch, br_exp) = br.finish();
+    BranchBooks {
+        name: "branch_books".into(),
+        description:
+            "Head office and Pune branch: combine them; the inter-branch accounts cancel out".into(),
+        head_office: ho,
+        branches: vec![("Pune Branch".into(), branch)],
+        profit_cy: ho_exp.profit_cy + br_exp.profit_cy,
+    }
 }

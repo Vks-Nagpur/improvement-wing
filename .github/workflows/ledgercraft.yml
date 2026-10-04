@@ -45,6 +45,19 @@ jobs:
           Copy-Item target/release/ledgercraft.exe dist/ledgercraft-cli.exe
           Copy-Item README.md dist/
           Copy-Item crates/lc-io/fonts/LICENSE-*.txt dist/
+          New-Item -ItemType Directory -Force dist/docs | Out-Null
+          Copy-Item docs/GUIDE-*.md dist/docs/
+          Copy-Item README.md dist/docs/GUIDE-en.md
+          Copy-Item -Recurse samples/practice dist/practice
+      - name: Installer
+        shell: pwsh
+        run: |
+          $nsis = "${env:ProgramFiles(x86)}\NSIS\makensis.exe"
+          if (-not (Test-Path $nsis)) { choco install nsis -y --no-progress; }
+          $ver = (Select-String -Path Cargo.toml -Pattern '^version = "(.+)"').Matches[0].Groups[1].Value
+          & $nsis /V2 "/DVERSION=$ver" "/DDIST=$PWD\dist" installer\ledgercraft.nsi
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Remove-Item -Recurse dist/docs, dist/practice
       - uses: actions/upload-artifact@v4
         with:
           name: LedgerCraft-windows

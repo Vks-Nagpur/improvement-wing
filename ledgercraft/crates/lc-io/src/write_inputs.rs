@@ -194,3 +194,64 @@ pub fn write_far(reg: &lc_core::far::Register, path: &Path) -> Result<(), String
     }
     wb.save(path).map_err(|e| e.to_string())
 }
+
+/// The same trial balance as a typical hand-made Excel: title lines above the
+/// table, amounts typed as text with Indian commas in separate Debit and
+/// Credit columns, untidy spaces in names, blank lines and a Total row.
+/// Used as practice data for the importer.
+pub fn write_trial_balance_messy(
+    tb: &TrialBalance,
+    title: &str,
+    as_on: &str,
+    path: &Path,
+) -> Result<(), String> {
+    let mut wb = Workbook::new();
+    let bold = Format::new().set_bold();
+    let ws = wb
+        .add_worksheet()
+        .set_name("Sheet1")
+        .map_err(|e| e.to_string())?;
+    let e = |r: Result<&mut rust_xlsxwriter::Worksheet, rust_xlsxwriter::XlsxError>| {
+        r.map(|_| ()).map_err(|e| e.to_string())
+    };
+    e(ws.write_string_with_format(0, 0, title, &bold))?;
+    e(ws.write_string(1, 0, format!("Trial Balance as on {as_on}")))?;
+    for (c, h) in ["Sr", "Particulars", "Group", "Debit", "Credit"]
+        .iter()
+        .enumerate()
+    {
+        e(ws.write_string_with_format(3, c as u16, *h, &bold))?;
+    }
+    let mut r = 4u32;
+    let (mut dr, mut cr) = (lc_core::Money::ZERO, lc_core::Money::ZERO);
+    for (i, l) in tb.ledgers.iter().enumerate() {
+        if i > 0 && i % 15 == 0 {
+            r += 1; // a blank line now and then
+        }
+        e(ws.write_number(r, 0, (i + 1) as f64))?;
+        let name = if i % 4 == 1 {
+            format!("  {}  ", l.name)
+        } else {
+            l.name.clone()
+        };
+        e(ws.write_string(r, 1, name))?;
+        e(ws.write_string(r, 2, &l.group))?;
+        let amt = l.closing.abs().fmt_indian();
+        if l.closing.is_cr() {
+            cr += l.closing.abs();
+            e(ws.write_string(r, 4, amt))?;
+        } else if !l.closing.is_zero() {
+            dr += l.closing;
+            e(ws.write_string(r, 3, amt))?;
+        }
+        r += 1;
+    }
+    e(ws.write_string_with_format(r, 1, "Total", &bold))?;
+    e(ws.write_string_with_format(r, 3, dr.fmt_indian(), &bold))?;
+    e(ws.write_string_with_format(r, 4, cr.fmt_indian(), &bold))?;
+    ws.set_column_width(1, 40).ok();
+    ws.set_column_width(2, 28).ok();
+    ws.set_column_width(3, 16).ok();
+    ws.set_column_width(4, 16).ok();
+    wb.save(path).map_err(|e| e.to_string())
+}

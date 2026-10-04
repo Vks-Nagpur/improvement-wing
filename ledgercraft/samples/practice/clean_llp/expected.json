@@ -1,0 +1,9 @@
+{
+  "description": "Clean LLP books, partners' contribution, no planted errors",
+  "entity": "llp",
+  "entity_name": "Clean Ventures LLP",
+  "expected_findings": [],
+  "expected_profit": "1,58,54,690.54",
+  "fy": "2025-26",
+  "scenario": "clean_llp"
+}

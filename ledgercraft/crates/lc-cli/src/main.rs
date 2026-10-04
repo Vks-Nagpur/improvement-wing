@@ -333,6 +333,72 @@ fn cmd_practice(a: &HashMap<String, String>) -> Result<(), String> {
             dir.display()
         );
     }
+    // Head office and branch, each with its own books.
+    let bb = lc_testdata::scenarios::branch_books();
+    let dir = out.join(&bb.name);
+    let units = std::iter::once(("head_office".to_string(), &bb.head_office)).chain(
+        bb.branches
+            .iter()
+            .map(|(n, e)| (n.to_lowercase().replace(' ', "_"), e)),
+    );
+    for (sub, e) in units {
+        let d = dir.join(sub);
+        std::fs::create_dir_all(&d).map_err(|e| e.to_string())?;
+        lc_io::write_inputs::write_trial_balance(&e.cy, &d.join("trial_balance.xlsx"))?;
+        if let Some(py) = &e.py {
+            lc_io::write_inputs::write_trial_balance(
+                py,
+                &d.join("previous_year_trial_balance.xlsx"),
+            )?;
+        }
+        lc_io::write_inputs::write_vouchers_csv(&e.vouchers, &d.join("vouchers.csv"))?;
+        if let Some(far) = &e.far {
+            lc_io::write_inputs::write_far(far, &d.join("fixed_assets.xlsx"))?;
+        }
+    }
+    let info = serde_json::json!({
+        "scenario": bb.name,
+        "description": bb.description,
+        "how": "Import head_office as the main books, then add pune_branch under Import > Branches.",
+        "expected_findings": [],
+        "expected_profit_combined": bb.profit_cy.fmt_indian(),
+    });
+    std::fs::write(
+        dir.join("expected.json"),
+        serde_json::to_string_pretty(&info).unwrap(),
+    )
+    .map_err(|e| e.to_string())?;
+    println!(
+        "{:<24} head office + 1 branch          -> {}",
+        bb.name,
+        dir.display()
+    );
+
+    // A hand-made Excel trial balance (titles, text amounts, blank lines, total row).
+    let s = lc_testdata::scenarios::clean(lc_testdata::scenarios::Kind::Firm, 1, 10, 6, 4);
+    let dir = out.join("messy_excel_export");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    lc_io::write_inputs::write_trial_balance_messy(
+        &s.engagement.cy,
+        &s.engagement.entity_name,
+        &s.engagement.fy_end.format("%d-%m-%Y").to_string(),
+        &dir.join("trial_balance.xlsx"),
+    )?;
+    let info = serde_json::json!({
+        "scenario": "messy_excel_export",
+        "description": "Same books as clean_firm_1, typed by hand in Excel: title lines, amounts as text, Debit/Credit columns, a Total row. No opening balances and no group tree, so LedgerCraft asks where the firm's own groups belong.",
+        "expected_profit": s.expected.profit_cy.fmt_indian(),
+    });
+    std::fs::write(
+        dir.join("expected.json"),
+        serde_json::to_string_pretty(&info).unwrap(),
+    )
+    .map_err(|e| e.to_string())?;
+    println!(
+        "{:<24} hand-made Excel trial balance  -> {}",
+        "messy_excel_export",
+        dir.display()
+    );
     Ok(())
 }
 

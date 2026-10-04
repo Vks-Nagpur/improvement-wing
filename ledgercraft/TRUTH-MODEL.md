@@ -90,6 +90,9 @@ are unresolved. A final copy is refused while any of these is true:
 2. A ledger's placement is **Suggested** or **Review** and not confirmed.
 3. A required disclosure is **Not answered**.
 4. Share capital entered does not agree with the books (companies).
+5. Branch books are combined and the inter-branch accounts do not cancel out.
+   (When they do cancel, they are shown as one nil ledger, *Inter-branch
+   accounts (eliminated)*, so every voucher still balances and ties to the books.)
 
 ## 8. Rules and formats are versioned and pinned
 

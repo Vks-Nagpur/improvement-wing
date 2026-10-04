@@ -437,6 +437,25 @@ Later: optional web version (with file upload only) for Zoho/Excel users.
 | **3** | Zoho API, BUSY auto-detect, Cash Flow auto, ratios & ageing, deferred tax | Feature parity+ with paid tools |
 | **4** | Ind AS (Div II), XBRL export, ITR schedule export, community mapping dictionary | Advanced |
 
+### Build status (October 2026)
+
+**Built and tested:** Tally one-click, Zoho, BUSY, Excel (including hand-made
+sheets) import; error engine; confidence-based mapping with confirmation and
+memory; Company Div I, Firm, LLP, Proprietor, HUF, AOP, BOI formats; notes,
+ageing, MSME, ratios, Cash Flow (AS 3); FAR with Schedule II and tax
+depreciation; manual adjustments; three-state disclosures (share capital,
+promoters, contingent liabilities, related parties, MSME, policies); draft vs
+final copy; roll forward; branch consolidation; monthly/quarterly/custom
+periods; PDF, Excel, Word, HTML; charts annexure; auditor workbook; tax audit
+helper (Form 3CD to FY 2025-26, Form 26 from Tax Year 2026-27); bank, GSTR-2B
+and 26AS reconciliation; pinned rule and format packs; tamper-evident audit
+trail; optional local AI; Windows installer; Hindi and Marathi guides; practice
+books with known answers.
+
+**Not built yet:** Ind AS (Div II/III), XBRL, ITR schedule export, deferred tax
+computation (only the policy text), Form 26 clause-by-clause mapping (waits for
+the official form text), code signing of the installer (needs a certificate).
+
 ---
 
 ## 15. Keeping it free (non-commercial by design)

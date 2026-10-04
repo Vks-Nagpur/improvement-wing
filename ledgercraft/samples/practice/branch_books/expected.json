@@ -1,0 +1,7 @@
+{
+  "description": "Head office and Pune branch: combine them; the inter-branch accounts cancel out",
+  "expected_findings": [],
+  "expected_profit_combined": "1,44,64,417.58",
+  "how": "Import head_office as the main books, then add pune_branch under Import > Branches.",
+  "scenario": "branch_books"
+}

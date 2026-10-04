@@ -1,0 +1,5 @@
+{
+  "description": "Same books as clean_firm_1, typed by hand in Excel: title lines, amounts as text, Debit/Credit columns, a Total row. No opening balances and no group tree, so LedgerCraft asks where the firm's own groups belong.",
+  "expected_profit": "1,79,13,008.55",
+  "scenario": "messy_excel_export"
+}

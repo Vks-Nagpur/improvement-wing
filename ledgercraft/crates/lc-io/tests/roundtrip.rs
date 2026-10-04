@@ -177,3 +177,32 @@ fn tax_audit_helper_lists_the_planted_cases() {
     assert!(loans.rows().any(|r| r[0].to_string().contains("Loan from")));
     let _ = std::fs::remove_dir_all(&root);
 }
+
+#[test]
+fn messy_hand_made_trial_balance_is_read() {
+    let s = lc_testdata::scenarios::clean(lc_testdata::scenarios::Kind::Firm, 1, 10, 6, 4);
+    let d = tmp("messy");
+    let p = d.join("messy.xlsx");
+    lc_io::write_inputs::write_trial_balance_messy(
+        &s.engagement.cy,
+        "Clean Traders",
+        "31-03-2026",
+        &p,
+    )
+    .unwrap();
+    let tb = read_trial_balance(&p).unwrap();
+    let want: Vec<(String, String, lc_core::Money)> = s
+        .engagement
+        .cy
+        .ledgers
+        .iter()
+        .map(|l| (l.name.clone(), l.group.clone(), l.closing))
+        .collect();
+    let got: Vec<(String, String, lc_core::Money)> = tb
+        .ledgers
+        .iter()
+        .map(|l| (l.name.clone(), l.group.clone(), l.closing))
+        .collect();
+    assert_eq!(got, want);
+    let _ = std::fs::remove_dir_all(&d);
+}

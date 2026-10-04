@@ -9,6 +9,9 @@ use crate::money::Money;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+/// Ledger that replaces inter-branch accounts once they cancel out.
+pub const ELIMINATED: &str = "Inter-branch accounts (eliminated)";
+
 /// One set of books: head office or a branch.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Unit {
@@ -103,7 +106,18 @@ pub fn merge(units: &[Unit]) -> (TrialBalance, Vec<Voucher>, MergeNotes) {
     if net.is_zero() && open_net.is_zero() && units.len() > 1 {
         notes.eliminated = branch.iter().map(|&i| tb.ledgers[i].name.clone()).collect();
         let drop: Vec<String> = notes.eliminated.iter().map(|n| norm_name(n)).collect();
+        let group = tb.ledgers[branch[0]].group.clone();
         tb.ledgers.retain(|l| !drop.contains(&norm_name(&l.name)));
+        // One ledger stands in for them (nil balance) so that the vouchers
+        // which moved money between units still balance and tie to the books.
+        tb.ledgers.push(Ledger {
+            name: ELIMINATED.into(),
+            group,
+            opening: Money::ZERO,
+            closing: Money::ZERO,
+            closing_stock: None,
+            tags: vec![],
+        });
     }
     // Day books: kept unit by unit; voucher numbers carry the unit name so
     // duplicates are not reported across branches.
@@ -114,15 +128,16 @@ pub fn merge(units: &[Unit]) -> (TrialBalance, Vec<Voucher>, MergeNotes) {
             if k > 0 {
                 v.number = format!("{}/{}", u.name, v.number);
             }
-            v.lines.retain(|l| {
-                !notes
+            for l in v.lines.iter_mut() {
+                if notes
                     .eliminated
                     .iter()
                     .any(|e| norm_name(e) == norm_name(&l.ledger))
-            });
-            if !v.lines.is_empty() {
-                vouchers.push(v);
+                {
+                    l.ledger = ELIMINATED.into();
+                }
             }
+            vouchers.push(v);
         }
     }
     (tb, vouchers, notes)
@@ -176,7 +191,10 @@ mod tests {
         let (tb, _, notes) = merge(&[ho, br]);
         assert!(notes.inter_branch_difference.is_zero());
         assert_eq!(notes.eliminated.len(), 2);
-        assert!(!tb.ledgers.iter().any(|l| l.group == "Branch / Divisions"));
+        assert!(!tb
+            .ledgers
+            .iter()
+            .any(|l| l.group == "Branch / Divisions" && l.name != ELIMINATED));
         let cash = tb.ledgers.iter().find(|l| l.name == "Cash").unwrap();
         assert_eq!(cash.closing, Money(3000));
         let total: Money = tb.ledgers.iter().map(|l| l.closing).sum();

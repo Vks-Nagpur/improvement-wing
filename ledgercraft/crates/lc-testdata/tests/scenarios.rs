@@ -281,3 +281,47 @@ fn placements_need_confirmation_and_reopen_when_the_books_change() {
     assert!(c.findings.iter().any(|f| f.code == "MAPPING_REVIEW"));
     assert!(!c.printable);
 }
+
+#[test]
+fn clean_llp_and_huf_have_no_findings() {
+    for s in [scenarios::clean_llp(), scenarios::clean_huf()] {
+        let a = run(&s);
+        assert_exact(&s, &a);
+        assert_statements(&s, &a);
+        assert!(
+            confirmed(&s).printable,
+            "{}: after confirming placements the books can be signed",
+            s.name
+        );
+    }
+}
+
+#[test]
+fn branch_books_combine_and_cancel_out() {
+    use lc_core::consolidate::{merge, Unit};
+    let bb = scenarios::branch_books();
+    let mut units = vec![Unit {
+        name: "Head office".into(),
+        tb: bb.head_office.cy.clone(),
+        vouchers: bb.head_office.vouchers.clone(),
+    }];
+    for (n, e) in &bb.branches {
+        units.push(Unit {
+            name: n.clone(),
+            tb: e.cy.clone(),
+            vouchers: e.vouchers.clone(),
+        });
+    }
+    let (tb, vouchers, notes) = merge(&units);
+    assert_eq!(notes.inter_branch_difference, Money::ZERO);
+    assert_eq!(notes.eliminated.len(), 2, "{:?}", notes.eliminated);
+    let mut eng = bb.head_office.clone();
+    eng.cy = tb;
+    eng.vouchers = vouchers;
+    eng.consolidation = Some(notes);
+    let a = analyse(&eng, &RulesPack::builtin());
+    let other: Vec<_> = lc_testdata::problem_keys(&a).into_iter().collect();
+    assert!(other.is_empty(), "unexpected findings: {other:?}");
+    assert_eq!(a.statements.profit.0, bb.profit_cy);
+    assert_eq!(a.statements.total_assets, a.statements.total_liabilities);
+}

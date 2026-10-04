@@ -77,8 +77,8 @@
       </div>
       <div class="box continue" id="continueBox" hidden></div>
       <div class="soon">
-        <p class="k">Being built next</p>
-        <p class="muted small">GST reconciliation (GSTR-2B), 26AS / AIS matching, bank reconciliation, branch consolidation, monthly and quarterly statements, Word output. They will appear here when ready.</p>
+        <p class="k">Also inside every route</p>
+        <p class="muted small">Bank reconciliation, GSTR-2B and 26AS matching, branch consolidation (Import), monthly or quarterly statements and a charts annexure (Presentation), Word output (Export). Practice books with known answers are in the <b>samples/practice</b> folder.</p>
       </div>
     </section>
 
@@ -112,12 +112,12 @@
           <select id="plType" aria-label="Type of entity"><option value="">All types</option><option value="firm">Partnership firm</option><option value="llp">LLP</option><option value="company">Company</option><option value="proprietor">Proprietorship</option><option value="huf">HUF</option><option value="aop">AOP</option><option value="boi">BOI</option></select>
           <span class="spacer"></span><span class="muted small" id="plCount"></span>
         </div>
-        <table class="grid" id="projectList"><thead><tr><th>Business</th><th>Type</th><th>Year</th><th>Last changed</th><th class="act">Actions</th></tr></thead><tbody></tbody></table>
+        <div class="scroll"><table class="grid" id="projectList"><thead><tr><th>Business</th><th>Type</th><th>Year</th><th>Last changed</th><th class="act">Actions</th></tr></thead><tbody></tbody></table></div>
       </div>
       <div id="binWrap" hidden>
         <h2 class="mt">Recycle Bin</h2>
         <p class="muted small">Deleted years are kept here and can be restored. Nothing is erased.</p>
-        <table class="grid" id="binList"><thead><tr><th>Business</th><th>Type</th><th>Year</th><th>Deleted on</th><th class="act">Actions</th></tr></thead><tbody></tbody></table>
+        <div class="scroll"><table class="grid" id="binList"><thead><tr><th>Business</th><th>Type</th><th>Year</th><th>Deleted on</th><th class="act">Actions</th></tr></thead><tbody></tbody></table></div>
       </div>
       <p class="muted small" id="dataDir"></p>
     </section>
@@ -194,7 +194,7 @@
         <input id="mapSearch" type="search" placeholder="Search ledger or group" aria-label="Search ledgers">
         <label class="check"><input type="checkbox" id="mapAttention" checked> Only lines that need attention</label>
       </div>
-      <table class="grid dense" id="mapTable"><thead><tr><th>Ledger</th><th>Group in books</th><th class="num">Balance</th><th>Shown under</th><th>Status</th><th>Tags</th><th class="act">Actions</th></tr></thead><tbody></tbody></table>
+      <div class="scroll"><table class="grid dense" id="mapTable"><thead><tr><th>Ledger</th><th>Group in books</th><th class="num">Balance</th><th>Shown under</th><th>Status</th><th>Tags</th><th class="act">Actions</th></tr></thead><tbody></tbody></table></div>
     </section>
 
     <!-- Bank reconciliation -->
@@ -241,8 +241,8 @@
             <select id="adjKind"><option value="provision">Provision / accrual</option><option value="rectification">Rectification</option><option value="audit">Audit adjustment</option><option value="reclassification">Reclassification</option><option value="closing_stock">Closing stock</option></select></div>
           <div class="field grow"><label for="adjNarr">Narration (why)</label><input id="adjNarr" required placeholder="e.g. Audit fee for FY payable"></div>
         </div>
-        <table class="grid dense" id="adjLines"><thead><tr><th>Ledger</th><th class="num">Debit (₹)</th><th class="num">Credit (₹)</th><th>Group (only for a new ledger)</th><th class="act"></th></tr></thead><tbody></tbody>
-          <tfoot><tr><td><button type="button" class="small" id="adjAddLine">Add line</button></td><td class="num" id="adjDr"></td><td class="num" id="adjCr"></td><td colspan="2" id="adjDiff"></td></tr></tfoot></table>
+        <div class="scroll"><table class="grid dense" id="adjLines"><thead><tr><th>Ledger</th><th class="num">Debit (₹)</th><th class="num">Credit (₹)</th><th>Group (only for a new ledger)</th><th class="act"></th></tr></thead><tbody></tbody>
+          <tfoot><tr><td><button type="button" class="small" id="adjAddLine">Add line</button></td><td class="num" id="adjDr"></td><td class="num" id="adjCr"></td><td colspan="2" id="adjDiff"></td></tr></tfoot></table></div>
         <datalist id="ledgerList"></datalist>
         <div class="form-actions">
           <p class="status" id="adjStatus" role="status"></p>
@@ -250,7 +250,7 @@
           <button class="primary" type="submit">Save adjustment</button>
         </div>
       </form>
-      <table class="grid" id="adjTable"><thead><tr><th>No.</th><th>Type</th><th>Narration</th><th>Entries</th><th>Status</th><th class="act">Actions</th></tr></thead><tbody></tbody></table>
+      <div class="scroll"><table class="grid" id="adjTable"><thead><tr><th>No.</th><th>Type</th><th>Narration</th><th>Entries</th><th>Status</th><th class="act">Actions</th></tr></thead><tbody></tbody></table></div>
       <p class="muted small" id="adjNote"></p>
     </section>
 
@@ -452,7 +452,7 @@
       </header>
       <div class="guide" data-guide="audit"></div>
       <p id="chain" class="chain"></p>
-      <table class="grid dense" id="auditTable"><thead><tr><th>#</th><th>When</th><th>By</th><th>What</th><th>Details</th></tr></thead><tbody></tbody></table>
+      <div class="scroll"><table class="grid dense" id="auditTable"><thead><tr><th>#</th><th>When</th><th>By</th><th>What</th><th>Details</th></tr></thead><tbody></tbody></table></div>
     </section>
   </main>
 

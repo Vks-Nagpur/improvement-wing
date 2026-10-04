@@ -1,0 +1,9 @@
+{
+  "description": "Clean HUF books, Karta's capital, no planted errors",
+  "entity": "huf",
+  "entity_name": "Ramesh Kumar Sharma (HUF)",
+  "expected_findings": [],
+  "expected_profit": "95,77,371.28",
+  "fy": "2025-26",
+  "scenario": "clean_huf"
+}

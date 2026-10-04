@@ -17,14 +17,16 @@
   </div>
   <div class="project-name" id="projectName">No client open</div>
   <div class="top-actions">
-    <label class="lang" title="Language of the help on each screen">Help in
-      <select id="helpLang"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select>
-    </label>
-    <button type="button" id="helpBtn" aria-pressed="true">Help on</button>
-    <button type="button" data-tour>How it works</button>
-    <label class="mode" title="Expert mode shows legal references and every option">
-      <input type="checkbox" id="expert"> <span>Expert mode</span>
-    </label>
+    <button type="button" id="helpMenuBtn" popovertarget="helpMenu" aria-haspopup="true">Help</button>
+    <div id="helpMenu" popover class="menu" role="menu" aria-label="Help">
+      <div class="menu-row"><label for="helpLang">Help language</label>
+        <select id="helpLang"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></div>
+      <label class="switch menu-row"><input type="checkbox" id="helpBtn" checked> Show help on each screen</label>
+      <label class="switch menu-row" title="Shows legal references and every option"><input type="checkbox" id="expert"> Expert mode (legal references)</label>
+      <hr>
+      <button type="button" class="menu-item" data-tour>How LedgerCraft works (tour)</button>
+      <p class="menu-keys">Ctrl+K search client · Alt+1 to 9 go to a step · Alt+0 start screen</p>
+    </div>
     <button class="pill" id="aiPill" type="button" aria-controls="aiPanel">Local AI: checking</button>
     <button class="ghost" id="quitBtn" type="button">Quit</button>
   </div>

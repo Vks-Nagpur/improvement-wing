@@ -57,8 +57,7 @@ function confirmBox(title, text, yes = "Delete") {
 const lang = () => HELP[$("#helpLang").value] || HELP.en;
 function renderGuides() {
   const on = store.get("help", true);
-  $("#helpBtn").textContent = on ? "Help: on" : "Help: off";
-  $("#helpBtn").setAttribute("aria-pressed", String(on));
+  $("#helpBtn").checked = on;
   for (const g of $$(".guide")) {
     const steps = lang()[g.dataset.guide] || [];
     g.hidden = !on || !steps.length;
@@ -67,7 +66,7 @@ function renderGuides() {
 }
 $("#helpLang").value = store.get("lang", "en");
 $("#helpLang").addEventListener("change", () => { store.set("lang", $("#helpLang").value); renderGuides(); renderNext(); });
-$("#helpBtn").addEventListener("click", () => { store.set("help", !store.get("help", true)); renderGuides(); });
+$("#helpBtn").addEventListener("change", () => { store.set("help", $("#helpBtn").checked); renderGuides(); });
 
 let tourAt = 0;
 function showTour(i) {
@@ -79,7 +78,7 @@ function showTour(i) {
   $("#tourBack").disabled = tourAt === 0;
   $("#tourNext").textContent = tourAt === t.length - 1 ? "Start" : "Next";
 }
-function openTour() { $("#tourHide").checked = store.get("tourSeen", false); showTour(0); $("#tourDlg").showModal(); }
+function openTour() { try { $("#helpMenu").hidePopover(); } catch {} $("#tourHide").checked = store.get("tourSeen", false); showTour(0); $("#tourDlg").showModal(); }
 $$("[data-tour]").forEach(b => b.addEventListener("click", openTour));
 $("#tourBack").addEventListener("click", () => showTour(tourAt - 1));
 $("#tourNext").addEventListener("click", () => {
@@ -135,8 +134,8 @@ function renderNext() {
 
 // ---- what the user wants to do (sets the steps) --------------------------------
 const FLOWS = {
-  statements: { name: "Make financial statements", steps: ["projects", "import", "check", "map", "adjust", "present", "export", "audit"] },
-  analysis: { name: "Check and analyse books", steps: ["projects", "import", "check", "analysis", "map", "adjust", "audit"] },
+  statements: { name: "Financial statements", steps: ["projects", "import", "check", "map", "adjust", "present", "export", "audit"] },
+  analysis: { name: "Check and analyse", steps: ["projects", "import", "check", "analysis", "map", "adjust", "audit"] },
   taxaudit: { name: "Tax audit help", steps: ["projects", "import", "check", "analysis", "adjust", "export", "audit"] },
 };
 state.intent = store.get("intent", "statements");

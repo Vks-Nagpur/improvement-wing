@@ -109,4 +109,6 @@ cargo build --release --target x86_64-pc-windows-gnu -p lc-app   # Windows build
 ### Licence
 No licence is granted (all rights reserved by the owner). Free to use.
 Bundled fonts: Liberation Serif (SIL OFL 1.1) and DejaVu Serif (Bitstream Vera
-licence); see `crates/lc-io/fonts/LICENSE-*.txt`.
+licence) for printed statements, see `crates/lc-io/fonts/LICENSE-*.txt`; IBM Plex
+Sans and IBM Plex Sans Devanagari (SIL OFL 1.1) for the app screens, see
+`crates/lc-app/src/ui/fonts/LICENSE-IBM-Plex-OFL.txt`.

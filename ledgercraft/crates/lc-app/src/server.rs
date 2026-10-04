@@ -18,6 +18,41 @@ const INDEX: &str = include_str!("ui/index.html");
 const APP_JS: &str = include_str!("ui/app.js");
 const APP_CSS: &str = include_str!("ui/app.css");
 const HELP_JS: &str = include_str!("ui/help.js");
+/// IBM Plex Sans (SIL OFL 1.1), bundled so the app looks the same offline.
+const FONTS: &[(&str, &[u8])] = &[
+    (
+        "plex-latin-400.woff2",
+        include_bytes!("ui/fonts/plex-latin-400.woff2"),
+    ),
+    (
+        "plex-latin-500.woff2",
+        include_bytes!("ui/fonts/plex-latin-500.woff2"),
+    ),
+    (
+        "plex-latin-600.woff2",
+        include_bytes!("ui/fonts/plex-latin-600.woff2"),
+    ),
+    (
+        "plex-latinext-400.woff2",
+        include_bytes!("ui/fonts/plex-latinext-400.woff2"),
+    ),
+    (
+        "plex-latinext-600.woff2",
+        include_bytes!("ui/fonts/plex-latinext-600.woff2"),
+    ),
+    (
+        "plex-deva-400.woff2",
+        include_bytes!("ui/fonts/plex-deva-400.woff2"),
+    ),
+    (
+        "plex-deva-500.woff2",
+        include_bytes!("ui/fonts/plex-deva-500.woff2"),
+    ),
+    (
+        "plex-deva-600.woff2",
+        include_bytes!("ui/fonts/plex-deva-600.woff2"),
+    ),
+];
 
 #[derive(Default, Clone, serde::Serialize)]
 pub struct PullState {
@@ -159,6 +194,12 @@ impl App {
         let r = match (method, p.as_slice()) {
             ("GET", [""]) | ("GET", ["index.html"]) => return Reply { status: 200, content_type: "text/html; charset=utf-8", body: INDEX.replace("__LC_TOKEN__", &self.token).into_bytes() },
             ("GET", ["app.js"]) => return Reply { status: 200, content_type: "text/javascript; charset=utf-8", body: APP_JS.as_bytes().to_vec() },
+            ("GET", ["fonts", name]) => {
+                return match FONTS.iter().find(|(n, _)| n == name) {
+                    Some((_, b)) => Reply { status: 200, content_type: "font/woff2", body: b.to_vec() },
+                    None => Reply { status: 404, content_type: "text/plain", body: b"not found".to_vec() },
+                }
+            }
             ("GET", ["help.js"]) => return Reply { status: 200, content_type: "text/javascript; charset=utf-8", body: HELP_JS.as_bytes().to_vec() },
             ("GET", ["app.css"]) => return Reply { status: 200, content_type: "text/css; charset=utf-8", body: APP_CSS.as_bytes().to_vec() },
             ("GET", ["api", "status"]) => Ok(self.status()),

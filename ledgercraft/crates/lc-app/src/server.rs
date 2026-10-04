@@ -603,6 +603,7 @@ impl App {
             "ratios": a.ratios,
             "key": {"cy": key(&a.facts_cy), "py": a.facts_py.as_ref().map(key)},
             "ageing": {"receivables": a.ageing_receivables, "payables": a.ageing_payables},
+            "charts": lc_core::report::charts::build(&eng, &a, "Plex, Segoe UI, sans-serif").into_iter().map(|(t, svg)| json!({"title": t, "svg": svg})).collect::<Vec<_>>(),
             "loans": a.loans,
             "warnings": rep.warnings,
             "blockers": rep.blockers,

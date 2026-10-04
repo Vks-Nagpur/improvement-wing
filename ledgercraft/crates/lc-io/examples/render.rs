@@ -33,6 +33,7 @@ fn main() {
             decimals: dec,
             layout,
             cash_flow: Toggle::On,
+            charts_annexure: true,
             ratios: Toggle::On,
             entity_details: vec![
                 "12, Civil Lines, Nagpur 440001".into(),

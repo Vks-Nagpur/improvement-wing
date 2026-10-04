@@ -391,6 +391,16 @@ tr.off .jl { text-decoration: line-through; }
 #bankBody details table { margin-top: var(--s2); }
 
 /* Analysis */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--s3); margin-bottom: var(--s4); }
+.kpi { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--s3) var(--s4); }
+.kpi .kk { font-size: 12px; color: var(--ink-2); }
+.kpi .kv { font-size: 22px; font-weight: 600; margin: 2px 0; }
+.kpi .kd { font-size: 12px; }
+.kpi .kd.up, .kpi .kd.down { color: var(--ink-2); }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(520px, 1fr)); gap: var(--s4); margin-bottom: var(--s4); }
+.chart { margin: 0; }
+.chart svg { width: 100%; height: auto; display: block; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 tr.nil td { color: var(--muted); }
 tr.flag td { background: var(--warn-soft); }
 td.hl { color: var(--blocker); font-weight: 600; }

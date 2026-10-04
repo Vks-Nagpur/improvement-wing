@@ -879,6 +879,7 @@ const TAX_ITEMS = [
   ["NEGATIVE_CASH", "Cash balance below zero", "", ""],
 ];
 const newAct = () => Number(String(state.settings?.fy || "").slice(0, 4)) >= 2026;
+const compactRs = p => { const r = p / 100, a = Math.abs(r); return "₹ " + (a >= 1e7 ? (r / 1e7).toFixed(2) + " Cr" : a >= 1e5 ? (r / 1e5).toFixed(2) + " L" : r.toLocaleString("en-IN", { maximumFractionDigits: 0 })); };
 const pct = (c, p) => (p ? (((c - p) / Math.abs(p)) * 100).toFixed(1) + "%" : "");
 function renderAnalysis() {
   const a = state.analysis, box = $("#anBody");
@@ -887,7 +888,15 @@ function renderAnalysis() {
   const KEY = [["revenue", "Revenue from operations"], ["other_income", "Other income"], ["profit", "Profit / (loss) for the year"], ["employee", "Employee costs"], ["finance_costs", "Interest and finance costs"], ["depreciation", "Depreciation"],
     ["total_assets", "Total assets"], ["ppe", "Fixed assets (net)"], ["inventories", "Stock"], ["receivables", "Debtors"], ["cash_bank", "Cash and bank"], ["payables", "Creditors"], ["borrowings", "Borrowings"]];
   const money = p => (p < 0 ? `(${rupees(-p)})` : rupees(p));
-  let h = `<div class="two"><div class="box"><h2>Key figures (₹)</h2><table class="grid dense"><thead><tr><th>Item</th><th class="num">This year</th>${py ? '<th class="num">Last year</th><th class="num">Change</th>' : ""}</tr></thead><tbody>` +
+  const KPIS = [["revenue", "Revenue"], ["profit", "Profit / (loss)"], ["total_assets", "Total assets"], ["cash_bank", "Cash and bank"], ["receivables", "Debtors"], ["payables", "Creditors"]];
+  const delta = (c, p) => {
+    if (!py || !p) return '<span class="kd muted">no last year</span>';
+    const ch = ((c - p) / Math.abs(p)) * 100;
+    return `<span class="kd ${ch >= 0 ? "up" : "down"}">${ch >= 0 ? "▲" : "▼"} ${Math.abs(ch).toFixed(1)}% on last year</span>`;
+  };
+  let h = `<div class="kpis">${KPIS.map(([k, l]) => `<div class="kpi"><div class="kk">${l}</div><div class="kv">${esc(compactRs(cy[k]))}</div>${delta(cy[k], py && py[k])}</div>`).join("")}</div>`;
+  if ((a.charts || []).length) h += `<div class="charts">${a.charts.map(c => `<figure class="box chart">${c.svg}<figcaption class="sr">${esc(c.title)}: figures are in the tables below.</figcaption></figure>`).join("")}</div>`;
+  h += `<div class="two"><div class="box"><h2>Key figures (₹)</h2><table class="grid dense"><thead><tr><th>Item</th><th class="num">This year</th>${py ? '<th class="num">Last year</th><th class="num">Change</th>' : ""}</tr></thead><tbody>` +
     KEY.map(([k, l]) => `<tr><td>${l}</td><td class="num">${money(cy[k])}</td>${py ? `<td class="num">${money(py[k])}</td><td class="num">${pct(cy[k], py[k])}</td>` : ""}</tr>`).join("") + "</tbody></table></div>";
   // Tax-audit sensitive items, from the findings.
   h += `<div class="box"><h2>Items for tax audit</h2><table class="grid dense"><thead><tr><th>Item</th><th>Section</th><th class="num">Cases</th><th class="num">Amount (₹)</th><th class="act"></th></tr></thead><tbody>`;
@@ -1114,7 +1123,7 @@ function fillOpts(o) {
   $$('input[name=layout]').forEach(r => (r.checked = r.value === o.layout));
   $("#oPy").checked = o.show_previous_year; $("#oNil").checked = o.hide_nil_lines; $("#oRel").checked = o.reletter;
   $("#oCover").checked = o.cover_page; $("#oPol").checked = o.accounting_policies; $("#oAge").checked = o.ageing; $("#oParty").checked = o.party_wise_details;
-  $("#oPpe").checked = o.ppe_schedule; $("#oItDep").checked = o.tax_depreciation_annexure;
+  $("#oPpe").checked = o.ppe_schedule; $("#oItDep").checked = o.tax_depreciation_annexure; $("#oCharts").checked = !!o.charts_annexure;
   $("#oCfOn").checked = toggleOn(o.cash_flow); $("#oRatiosOn").checked = toggleOn(o.ratios);
   const hidden = new Set(o.hidden_sections || []);
   $$("[data-sec]").forEach(c => (c.checked = !hidden.has(c.dataset.sec)));
@@ -1148,7 +1157,7 @@ function readOpts() {
     layout: ($$('input[name=layout]').find(r => r.checked) || {}).value || "boxed",
     show_previous_year: $("#oPy").checked, hide_nil_lines: $("#oNil").checked, reletter: $("#oRel").checked,
     cover_page: $("#oCover").checked, accounting_policies: $("#oPol").checked, ageing: $("#oAge").checked, party_wise_details: $("#oParty").checked,
-    ppe_schedule: $("#oPpe").checked, tax_depreciation_annexure: $("#oItDep").checked,
+    ppe_schedule: $("#oPpe").checked, tax_depreciation_annexure: $("#oItDep").checked, charts_annexure: $("#oCharts").checked,
     cash_flow: $("#oCfOn").checked ? "on" : "off", ratios: $("#oRatiosOn").checked ? "on" : "off",
     hidden_sections: $$("[data-sec]").filter(c => !c.checked).map(c => c.dataset.sec),
     entity_details: $("#oDetails").value.split("\n").map(x => x.trim()).filter(Boolean),
@@ -1171,7 +1180,7 @@ $("#resetOpts").addEventListener("click", async () => {
   if (!(await confirmBox("Reset to the standard choices?", "Units, table style and what to print go back to the usual settings. Address lines and ratio reasons are kept.", "Reset"))) return;
   const o = state.settings.options;
   const std = { ...o, unit: "rupees", decimals: 2, layout: "boxed", show_previous_year: true, hide_nil_lines: true, reletter: true, cover_page: true,
-    accounting_policies: true, cash_flow: "auto", ratios: "auto", ageing: true, ppe_schedule: true, tax_depreciation_annexure: true, party_wise_details: false, hidden_sections: [] };
+    accounting_policies: true, cash_flow: "auto", ratios: "auto", ageing: true, ppe_schedule: true, tax_depreciation_annexure: true, charts_annexure: false, party_wise_details: false, hidden_sections: [] };
   fillOpts(std); renderRatioBox(); saveOpts(std);
 });
 

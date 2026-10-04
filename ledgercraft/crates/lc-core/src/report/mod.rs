@@ -8,6 +8,7 @@
 
 pub mod build;
 pub mod cashflow;
+pub mod charts;
 pub mod disclosures;
 pub mod policies;
 
@@ -66,6 +67,8 @@ pub struct ReportOptions {
     pub hidden_sections: Vec<String>,
     /// Particulars entered by the user (share capital, related parties …).
     pub disclosures: disclosures::Disclosures,
+    /// Add an annexure with analytical charts (not part of the statements).
+    pub charts_annexure: bool,
 }
 
 impl Default for ReportOptions {
@@ -91,6 +94,7 @@ impl Default for ReportOptions {
             ratio_explanations: BTreeMap::new(),
             hidden_sections: Vec::new(),
             disclosures: Default::default(),
+            charts_annexure: false,
         }
     }
 }
@@ -181,6 +185,11 @@ pub enum Block {
         text: String,
     },
     Table(Table),
+    /// A chart as self-contained SVG (analytical annexure).
+    Chart {
+        title: String,
+        svg: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

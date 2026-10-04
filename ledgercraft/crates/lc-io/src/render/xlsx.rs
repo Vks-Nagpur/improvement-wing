@@ -285,6 +285,10 @@ pub fn render(r: &Report) -> Result<Vec<u8>, String> {
                     row += 2;
                 }
                 Block::Table(t) => table(ws, &st, t, &mut row, ncols)?,
+                Block::Chart { title, .. } => {
+                    x(ws.write_string(row, 0, format!("{title} (chart: see the PDF)")))?;
+                    row += 2;
+                }
             }
         }
         if let Some(n) = &s.closing_note {

@@ -419,6 +419,9 @@ pub fn render(r: &Report) -> Result<Vec<u8>, String> {
                 Block::Para { text } => {
                     d = d.add_paragraph(para(text, 10.0));
                 }
+                Block::Chart { title, .. } => {
+                    d = d.add_paragraph(para(&format!("{title} (chart: see the PDF)"), 10.0));
+                }
                 Block::Table(t) if t.landscape => {
                     // Close the portrait section, put the schedule on landscape pages.
                     d = d.add_paragraph(Paragraph::new().section_property(page(false)));

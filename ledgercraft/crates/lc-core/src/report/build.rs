@@ -539,6 +539,23 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
         }
     }
 
+    if opt.charts_annexure {
+        let charts = super::charts::build(eng, a, "Liberation Serif, DejaVu Serif");
+        if !charts.is_empty() {
+            sections.push(Section {
+                id: "charts".into(),
+                title: "Annexure: Analytical review (charts; not part of the financial statements)"
+                    .into(),
+                contents: true,
+                blocks: charts
+                    .into_iter()
+                    .map(|(title, svg)| Block::Chart { title, svg })
+                    .collect(),
+                closing_note: None,
+                signature: None,
+            });
+        }
+    }
     if !opt.hidden_sections.is_empty() {
         sections.retain(|s| {
             let hide = opt.hidden_sections.iter().any(|h| h == &s.id);

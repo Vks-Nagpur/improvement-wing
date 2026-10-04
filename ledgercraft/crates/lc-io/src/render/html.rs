@@ -143,6 +143,11 @@ pub fn render(r: &Report) -> String {
                 )),
                 Block::Para { text } => h.push_str(&format!("<p class=\"para\">{}</p>", esc(text))),
                 Block::Table(t) => table(t, &mut h),
+                Block::Chart { svg, .. } => {
+                    h.push_str("<div class=\"chart\">");
+                    h.push_str(svg);
+                    h.push_str("</div>");
+                }
             }
         }
         if let Some(n) = &s.closing_note {
@@ -203,6 +208,7 @@ tr.remark td{font-style:italic;font-size:9pt}
 .closing{font-style:italic;font-size:9pt;margin-top:6px}
 .sig{display:grid;grid-template-columns:1fr 1fr;gap:16mm;margin-top:16px;font-size:9.5pt;break-inside:avoid}
 .draftnote{max-width:210mm;margin:12px auto 0;padding:8px 12px;background:#fff4dc;border:1px solid #e8c77a;border-radius:6px;font:13px/1.4 sans-serif;color:#6b4a00}
+.chart{margin:8px 0 16px}.chart svg{max-width:100%;height:auto}
 .draft .page::before{content:"DRAFT";position:absolute;top:40%;left:18%;font-size:90pt;font-weight:bold;color:rgba(0,0,0,.06);transform:rotate(-38deg);pointer-events:none}
 @media print{body{background:#fff}.page{margin:0;width:auto;min-height:auto;padding:0;break-after:page}.wide{}}
 @media (max-width:820px){.page{width:auto;padding:16px}.sig{grid-template-columns:1fr}}

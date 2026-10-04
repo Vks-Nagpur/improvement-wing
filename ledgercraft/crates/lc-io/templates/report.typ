@@ -147,6 +147,8 @@
     }
   } else if b.kind == "para" {
     block(above: 4pt, below: 6pt, text(9.5pt, b.text))
+  } else if b.kind == "chart" {
+    block(breakable: false, above: 8pt, below: 12pt, image(bytes(b.svg), format: "svg", width: 100%, alt: b.title))
   } else {
     block(above: 4pt, below: 8pt, render-table(b))
   }

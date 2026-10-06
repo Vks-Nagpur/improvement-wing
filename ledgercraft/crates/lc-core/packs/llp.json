@@ -1,6 +1,8 @@
 {
   "id": "llp",
   "name": "ICAI Guidance Note on Financial Statements of Limited Liability Partnerships",
+  "authority": "ICAI",
+  "document": "Guidance Note on Financial Statements of Limited Liability Partnerships",
   "status": "draft – line items to be verified against the ICAI Guidance Note on Financial Statements of LLPs",
   "bs_title": "Balance Sheet as at {end}",
   "pl_title": "Statement of Profit and Loss for the year ended {end}",

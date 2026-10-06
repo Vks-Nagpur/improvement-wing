@@ -5,8 +5,10 @@
 //!
 //! Up to FY 2025-26: Form 3CA/3CB with Form 3CD (Income-tax Act, 1961).
 //! From Tax Year 2026-27: Form 26 (section 63 of the Income-tax Act, 2025,
-//! Rule 47). Form 26 clause numbers are not yet mapped; the sheets carry the
-//! Form 3CD subject and the new-Act section.
+//! Rule 47). The two forms are separate schemas (schemas/form3cd.json and
+//! schemas/form26.json). Form 26 has no mapped clause yet: its workbook says so
+//! and carries supporting schedules without clause numbers; a Form 3CD clause
+//! number is never shown as a Form 26 clause.
 
 use lc_core::engine::Analysis;
 use lc_core::groups::Class;
@@ -49,6 +51,8 @@ fn fmts() -> F {
             .set_font_color("7F4F00"),
     }
 }
+
+pub use lc_core::taxaudit::{schema_for, Clause, TaxAuditSchema};
 
 /// Which form and Act apply to the year.
 pub fn form_for(eng: &Engagement) -> (&'static str, bool) {
@@ -108,8 +112,9 @@ type RatioRow<'a> = (&'a str, Box<dyn Fn(&Figures) -> f64>);
 
 pub fn write(path: &Path, eng: &Engagement, a: &Analysis) -> Result<(), String> {
     let f = fmts();
-    let (form, new_act) = form_for(eng);
-    let sec = |old: &'static str, new: &'static str| if new_act { new } else { old };
+    let (form, _) = form_for(eng);
+    let schema = schema_for(eng);
+    let sections = lc_core::rules::Sections::builtin();
     let mut wb = Workbook::new();
 
     // Index
@@ -129,35 +134,56 @@ pub fn write(path: &Path, eng: &Engagement, a: &Analysis) -> Result<(), String> 
                 eng.period_phrase()
             ),
         ))?;
-        x(ws.write_string_with_format(2, 0, if new_act {
-            "Form 26 clause numbers are not yet mapped in LedgerCraft: each sheet names the Form 3CD subject and the Income-tax Act, 2025 section. Verify every figure and complete the blank columns."
-        } else {
-            "Clause numbers follow published summaries of Form 3CD and are not yet verified against the official form text. Verify every figure and complete the blank columns."
-        }, &f.note))?;
+        x(ws.write_string_with_format(2, 0, &schema.note, &f.note))?;
         ws.set_column_width(0, 120).ok();
-        let rows = [
-            "18  Depreciation as per the Income-tax Act (block-wise)",
-            "21(d)  Payments otherwise than by account payee cheque / draft / electronic mode above the limit",
-            "26  Statutory dues (allowed only on actual payment): balances to check",
-            "31(a)/(b)/(c)  Loans and deposits taken and repaid: principal by mode",
-            "31(ba)/(bc)  Receipts of Rs 2 lakh or more otherwise than by banking channel",
-            "34  Payments on which tax is to be deducted: expense ledgers to check",
-            "40  Turnover, gross profit and net profit ratios",
-            "44  Break-up of expenditure (GST registration status to be filled)",
-        ];
-        for (i, r) in rows.iter().enumerate() {
-            x(ws.write_string(4 + i as u32, 0, *r))?;
+        let mut r = 4;
+        if schema.clauses.is_empty() {
+            x(ws.write_string_with_format(
+                r,
+                0,
+                format!("{}: no clause mapped. Supporting schedules:", schema.form),
+                &f.head,
+            ))?;
+            r += 1;
+            for c in &schema.supporting {
+                x(ws.write_string(r, 0, format!("{}: {}", c.short, c.title)))?;
+                r += 1;
+            }
+        } else {
+            for c in &schema.clauses {
+                x(ws.write_string(r, 0, format!("{}  {}  [{}]", c.number, c.title, c.status)))?;
+                x(ws.write_string_with_format(
+                    r + 1,
+                    0,
+                    format!(
+                        "From the books: {}  Your input: {}  Your judgement: {}",
+                        c.derivable,
+                        if c.user_input.is_empty() {
+                            "-"
+                        } else {
+                            &c.user_input
+                        },
+                        if c.judgement.is_empty() {
+                            "-"
+                        } else {
+                            &c.judgement
+                        }
+                    ),
+                    &f.sub,
+                ))?;
+                r += 2;
+            }
         }
     }
 
     // 18 Depreciation (Income-tax)
-    {
-        let ws = x(wb.add_worksheet().set_name("18 Depreciation"))?;
+    if let Some((name, title, refs)) = schema.slot("depreciation", &sections) {
+        let ws = x(wb.add_worksheet().set_name(&name))?;
         let mut r = header(
             ws,
             &f,
-            "Clause 18: Depreciation as per the Income-tax Act",
-            sec("s.32, Income-tax Act, 1961", "s.33, Income-tax Act, 2025"),
+            &title,
+            &refs,
             &[
                 ("Block", 34.0),
                 ("Rate %", 8.0),
@@ -204,11 +230,23 @@ pub fn write(path: &Path, eng: &Engagement, a: &Analysis) -> Result<(), String> 
     }
 
     // 21(d) cash payments
-    {
-        let ws = x(wb.add_worksheet().set_name("21(d) Cash payments"))?;
-        let mut r = header(ws, &f, "Clause 21(d): Payments above the limit otherwise than by account payee cheque / draft / electronic mode", sec("s.40A(3) and (3A), Rule 6DD", "s.36 (corresponds to s.40A(3))"), &[
-            ("Date", 12.0), ("Voucher", 26.0), ("Paid to / ledger", 30.0), ("Amount", 16.0), ("Details", 60.0), ("Rule 6DD exception? (auditor)", 22.0), ("Disallowed amount (auditor)", 18.0),
-        ])?;
+    if let Some((name, title, refs)) = schema.slot("cash_payments", &sections) {
+        let ws = x(wb.add_worksheet().set_name(&name))?;
+        let mut r = header(
+            ws,
+            &f,
+            &title,
+            &refs,
+            &[
+                ("Date", 12.0),
+                ("Voucher", 26.0),
+                ("Paid to / ledger", 30.0),
+                ("Amount", 16.0),
+                ("Details", 60.0),
+                ("Rule 6DD exception? (auditor)", 22.0),
+                ("Disallowed amount (auditor)", 18.0),
+            ],
+        )?;
         for fd in findings(a, &["CASH_PAYMENT_LIMIT", "CASH_ASSET_PURCHASE"]) {
             text(
                 ws,
@@ -233,16 +271,13 @@ pub fn write(path: &Path, eng: &Engagement, a: &Analysis) -> Result<(), String> 
     }
 
     // 26 statutory dues
-    {
-        let ws = x(wb.add_worksheet().set_name("26 Statutory dues"))?;
+    if let Some((name, title, refs)) = schema.slot("statutory_dues", &sections) {
+        let ws = x(wb.add_worksheet().set_name(&name))?;
         let mut r = header(
             ws,
             &f,
-            "Clause 26: Sums allowed only on actual payment: closing balances to check",
-            sec(
-                "s.43B",
-                "corresponding provision of the Income-tax Act, 2025",
-            ),
+            &title,
+            &refs,
             &[
                 ("Ledger", 34.0),
                 ("Group", 22.0),
@@ -301,13 +336,13 @@ pub fn write(path: &Path, eng: &Engagement, a: &Analysis) -> Result<(), String> 
     }
 
     // 31 loans
-    {
-        let ws = x(wb.add_worksheet().set_name("31 Loans"))?;
+    if let Some((name, title, refs)) = schema.slot("loans", &sections) {
+        let ws = x(wb.add_worksheet().set_name(&name))?;
         let mut r = header(
             ws,
             &f,
-            "Clause 31(a), (b), (c): Loans and deposits taken and repaid (principal only)",
-            sec("ss.269SS and 269T", "ss.185 and 188"),
+            &title,
+            &refs,
             &[
                 ("Lender", 30.0),
                 ("Address (auditor)", 22.0),
@@ -353,13 +388,13 @@ pub fn write(path: &Path, eng: &Engagement, a: &Analysis) -> Result<(), String> 
     }
 
     // 31(ba)/(bc) receipts
-    {
-        let ws = x(wb.add_worksheet().set_name("31(ba) Cash receipts"))?;
+    if let Some((name, title, refs)) = schema.slot("cash_receipts", &sections) {
+        let ws = x(wb.add_worksheet().set_name(&name))?;
         let mut r = header(
             ws,
             &f,
-            "Clause 31(ba)/(bc): Receipts of Rs 2 lakh or more otherwise than by banking channel",
-            sec("s.269ST", "s.186"),
+            &title,
+            &refs,
             &[
                 ("Date", 12.0),
                 ("Voucher", 26.0),
@@ -392,9 +427,9 @@ pub fn write(path: &Path, eng: &Engagement, a: &Analysis) -> Result<(), String> 
     }
 
     // 34 TDS
-    {
-        let ws = x(wb.add_worksheet().set_name("34 TDS check"))?;
-        let mut r = header(ws, &f, "Clause 34: Expenses on which tax may have to be deducted: list to check against TDS returns", "Sections are indicative; confirm the section, deduction and deposit from the TDS records.", &[
+    if let Some((name, title, refs)) = schema.slot("tds", &sections) {
+        let ws = x(wb.add_worksheet().set_name(&name))?;
+        let mut r = header(ws, &f, &title, format!("{refs} Sections are indicative; confirm the section, deduction and deposit from the TDS records.").trim(), &[
             ("Ledger", 34.0), ("Shown under", 26.0), ("Amount for the year", 16.0), ("Likely section (indicative)", 26.0), ("TDS deducted (auditor)", 16.0), ("TDS deposited in time? (auditor)", 18.0),
         ])?;
         let tds: &[(&str, &str)] = &[
@@ -434,13 +469,13 @@ pub fn write(path: &Path, eng: &Engagement, a: &Analysis) -> Result<(), String> 
     }
 
     // 40 ratios
-    {
-        let ws = x(wb.add_worksheet().set_name("40 Ratios"))?;
+    if let Some((name, title, refs)) = schema.slot("ratios", &sections) {
+        let ws = x(wb.add_worksheet().set_name(&name))?;
         header(
             ws,
             &f,
-            "Clause 40: Turnover, gross profit and net profit",
-            "Gross profit = turnover less purchases, change in inventories and direct expenses.",
+            &title,
+            format!("{refs} Gross profit = turnover less purchases, change in inventories and direct expenses.").trim(),
             &[
                 ("Particulars", 40.0),
                 ("This year", 18.0),
@@ -507,9 +542,9 @@ pub fn write(path: &Path, eng: &Engagement, a: &Analysis) -> Result<(), String> 
     }
 
     // 44 GST break-up of expenditure
-    {
-        let ws = x(wb.add_worksheet().set_name("44 GST break-up"))?;
-        let mut r = header(ws, &f, "Clause 44: Break-up of total expenditure by GST registration of the supplier", "LedgerCraft lists the expenditure; split each amount by the suppliers' GST status from the purchase records.", &[
+    if let Some((name, title, refs)) = schema.slot("gst_breakup", &sections) {
+        let ws = x(wb.add_worksheet().set_name(&name))?;
+        let mut r = header(ws, &f, &title, format!("{refs} LedgerCraft lists the expenditure; split each amount by the suppliers' GST status from the purchase records.").trim(), &[
             ("Ledger", 34.0), ("Shown under", 26.0), ("Total expenditure", 16.0), ("Registered: relating to exempt goods/services", 16.0),
             ("Registered: composition scheme", 16.0), ("Registered: others", 16.0), ("Total to registered entities", 16.0), ("Unregistered entities", 16.0),
         ])?;

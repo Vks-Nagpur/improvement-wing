@@ -1,0 +1,19 @@
+{
+  "id": "form26",
+  "form": "Form 26",
+  "act_section": "s.63, Income-tax Act, 2025",
+  "effective_from": "2026-04-01",
+  "status": "unknown",
+  "note": "Form 26 helper not fully mapped: no Form 26 clause has been mapped from the official form. The sheets below are supporting schedules without clause numbers; Form 3CD clause numbers are deliberately not used.",
+  "clauses": [],
+  "supporting": [
+    {"key": "depreciation", "short": "Depreciation (IT)", "title": "Depreciation as per the Income-tax Act (block-wise)", "statutory": ["it2025.depreciation"]},
+    {"key": "cash_payments", "short": "Cash payments", "title": "Payments above the limit otherwise than by account payee cheque / draft / electronic mode", "statutory": ["it2025.s36"]},
+    {"key": "statutory_dues", "short": "Statutory dues", "title": "Sums allowable only on actual payment: closing balances to check", "statutory": ["it2025.actual_payment"]},
+    {"key": "loans", "short": "Loans", "title": "Loans and deposits taken and repaid (principal only)", "statutory": ["it2025.s185", "it2025.s188"]},
+    {"key": "cash_receipts", "short": "Cash receipts", "title": "Receipts of Rs 2 lakh or more otherwise than by banking channel", "statutory": ["it2025.s186"]},
+    {"key": "tds", "short": "TDS check", "title": "Expenses on which tax may have to be deducted: list to check against TDS returns", "statutory": []},
+    {"key": "ratios", "short": "Ratios", "title": "Turnover, gross profit and net profit", "statutory": []},
+    {"key": "gst_breakup", "short": "GST break-up", "title": "Break-up of total expenditure by GST registration of the supplier", "statutory": []}
+  ]
+}

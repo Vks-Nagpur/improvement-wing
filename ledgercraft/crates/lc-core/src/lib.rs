@@ -26,6 +26,7 @@ pub mod report;
 pub mod rounding;
 pub mod rules;
 pub mod statements;
+pub mod taxaudit;
 pub mod units;
 
 pub use engine::{analyse, Analysis};

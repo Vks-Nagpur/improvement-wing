@@ -1,0 +1,27 @@
+{
+  "id": "form3cd",
+  "form": "Form 3CD (with Form 3CA / 3CB)",
+  "act_section": "s.44AB, Income-tax Act, 1961",
+  "effective_until": "2026-03-31",
+  "status": "secondary",
+  "note": "Clause numbers and titles follow published summaries of Form 3CD; not yet verified against the official form text.",
+  "clauses": [
+    {"key": "depreciation", "number": "18", "short": "Depreciation", "title": "Depreciation allowable as per the Income-tax Act", "statutory": ["it1961.s32", "form3cd.cl18"],
+     "derivable": "Block-wise depreciation from the fixed asset register (rates from the depreciation pack).", "user_input": "Block of assets for each asset; opening WDV per block.", "judgement": "Put-to-use dates, adjustments for subsidy/GST credit, actual cost.", "exceptions": "", "status": "secondary"},
+    {"key": "cash_payments", "number": "21(d)", "short": "Cash payments", "title": "Amounts inadmissible: payments otherwise than by account payee cheque / draft / electronic mode above the limit", "statutory": ["it1961.s40A3", "it1961.r6DD", "form3cd.cl21d"],
+     "derivable": "Cash payments above the limit from the day book (per voucher for expenses; per party per day for suppliers).", "user_input": "Whether the expense is claimed.", "judgement": "Exceptions under Rule 6DD; aggregation; amount inadmissible.", "exceptions": "Rule 6DD", "status": "secondary"},
+    {"key": "statutory_dues", "number": "26", "short": "Statutory dues", "title": "Sums allowable only on actual payment: closing balances to check", "statutory": ["it1961.s43B", "form3cd.cl26"],
+     "derivable": "Closing balances of duties, taxes and similar ledgers.", "user_input": "Dates of payment after the year end.", "judgement": "Which sums are covered; whether paid by the due date of return.", "exceptions": "", "status": "secondary"},
+    {"key": "loans", "number": "31(a)/(b)/(c)", "short": "Loans", "title": "Loans and deposits taken and repaid (principal only)", "statutory": ["it1961.s269SS", "it1961.s269T", "form3cd.cl31a", "form3cd.cl31c"],
+     "derivable": "Loan register from the day book: principal by mode (bank, cash, journal), interest and TDS kept apart.", "user_input": "PAN and address of lenders.", "judgement": "Whether each amount is a loan, deposit or specified sum; exemptions.", "exceptions": "Specified lenders/borrowers", "status": "secondary"},
+    {"key": "cash_receipts", "number": "31(ba)/(bc)", "short": "Cash receipts", "title": "Receipts of Rs 2 lakh or more otherwise than by banking channel", "statutory": ["it1961.s269ST", "form3cd.cl31ba"],
+     "derivable": "Cash receipts of the threshold amount or more from the day book.", "user_input": "Name, address and PAN of payers.", "judgement": "Aggregation by transaction or event; exempt receipts.", "exceptions": "", "status": "secondary"},
+    {"key": "tds", "number": "34", "short": "TDS check", "title": "Expenses on which tax may have to be deducted: list to check against TDS returns", "statutory": ["form3cd.cl34"],
+     "derivable": "Expense ledgers and amounts.", "user_input": "Sections, amounts deducted and deposited, from TDS records.", "judgement": "Applicability of TDS to each payment.", "exceptions": "", "status": "secondary"},
+    {"key": "ratios", "number": "40", "short": "Ratios", "title": "Turnover, gross profit and net profit", "statutory": ["form3cd.cl40"],
+     "derivable": "Turnover, gross profit and net profit from the statements.", "user_input": "", "judgement": "Definition of gross profit for this business.", "exceptions": "", "status": "secondary"},
+    {"key": "gst_breakup", "number": "44", "short": "GST break-up", "title": "Break-up of total expenditure by GST registration of the supplier", "statutory": ["form3cd.cl44"],
+     "derivable": "Expenditure by ledger.", "user_input": "Split by suppliers' GST status from purchase records.", "judgement": "", "exceptions": "", "status": "secondary"}
+  ],
+  "supporting": []
+}

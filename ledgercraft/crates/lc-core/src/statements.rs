@@ -34,6 +34,12 @@ pub struct PackRow {
 pub struct FormatPack {
     pub id: String,
     pub name: String,
+    /// Who issues the format and the document it comes from (each pack is
+    /// verified on its own, line by line, in the Legal verification register).
+    #[serde(default)]
+    pub authority: String,
+    #[serde(default)]
+    pub document: String,
     pub status: String,
     pub bs_title: String,
     pub pl_title: String,

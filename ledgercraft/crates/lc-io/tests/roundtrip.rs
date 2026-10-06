@@ -205,8 +205,8 @@ fn tax_audit_helper_lists_the_planted_cases() {
         "18 Depreciation",
         "21(d) Cash payments",
         "26 Statutory dues",
-        "31 Loans",
-        "31(ba) Cash receipts",
+        "31(a)(b)(c) Loans",
+        "31(ba)(bc) Cash receipts",
         "34 TDS check",
         "40 Ratios",
         "44 GST break-up",
@@ -226,7 +226,7 @@ fn tax_audit_helper_lists_the_planted_cases() {
             .count(),
         n
     );
-    let loans = calamine::Reader::worksheet_range(&mut book, "31 Loans").unwrap();
+    let loans = calamine::Reader::worksheet_range(&mut book, "31(a)(b)(c) Loans").unwrap();
     assert!(loans.rows().any(|r| r[0].to_string().contains("Loan from")));
     let _ = std::fs::remove_dir_all(&root);
 }
@@ -258,4 +258,61 @@ fn messy_hand_made_trial_balance_is_read() {
         .collect();
     assert_eq!(got, want);
     let _ = std::fs::remove_dir_all(&d);
+}
+
+#[test]
+fn form26_helper_never_uses_form_3cd_clause_numbers() {
+    let root = tmp("taxaudit26");
+    let mut s = lc_testdata::scenarios::firm_with_glitches();
+    // The same books, a Tax Year under the Income-tax Act, 2025.
+    let shift = |d: chrono::NaiveDate| d.with_year(d.year() + 1).unwrap();
+    use chrono::Datelike;
+    s.engagement.fy_start = shift(s.engagement.fy_start);
+    s.engagement.fy_end = shift(s.engagement.fy_end);
+    for v in s.engagement.vouchers.iter_mut() {
+        v.date = shift(v.date);
+    }
+    let a = analyse(&s.engagement, &RulesPack::builtin());
+    let ex = export(
+        &root,
+        &s.engagement,
+        &a,
+        &SignOff::default(),
+        &ExportOptions::default(),
+    )
+    .unwrap();
+    assert!(!ex.dir.join("Tax_Audit_Helper_Form_3CD.xlsx").exists());
+    let path = ex.dir.join("Tax_Audit_Helper_Form_26.xlsx");
+    let mut book: calamine::Xlsx<_> = calamine::open_workbook(&path).unwrap();
+    let names = calamine::Reader::sheet_names(&book);
+    for n in &names {
+        assert!(
+            !n.chars().next().unwrap().is_ascii_digit(),
+            "clause-numbered sheet in Form 26 helper: {n}"
+        );
+    }
+    let index = calamine::Reader::worksheet_range(&mut book, "Index").unwrap();
+    let text: String = index
+        .rows()
+        .flat_map(|r| r.iter().map(|c| c.to_string()))
+        .collect::<Vec<_>>()
+        .join(" ");
+    assert!(
+        text.contains("not fully mapped") && !text.contains("Clause 21"),
+        "{text}"
+    );
+    // Loan findings carry no Form 3CD wording in a Form 26 year.
+    for f in a
+        .findings
+        .iter()
+        .filter(|f| f.code.starts_with("LOAN_") || f.code.starts_with("CASH_"))
+    {
+        let all = format!(
+            "{} {} {}",
+            f.message,
+            f.suggestion.clone().unwrap_or_default(),
+            f.legal_ref
+        );
+        assert!(!all.contains("3CD") && !all.contains("1961"), "{all}");
+    }
 }

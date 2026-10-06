@@ -1,6 +1,8 @@
 {
   "id": "company_div1",
   "name": "Schedule III, Division I (Companies not following Ind AS)",
+  "authority": "Ministry of Corporate Affairs; ICAI",
+  "document": "Companies Act, 2013, Schedule III, Division I (as amended by notification of 24-03-2021); ICAI Guidance Note on Division I – Non Ind AS Schedule III",
   "status": "draft – line items to be verified against Schedule III (as amended 24-03-2021) and ICAI Guidance Note on Division I",
   "bs_title": "Balance Sheet as at {end}",
   "pl_title": "Statement of Profit and Loss for the year ended {end}",

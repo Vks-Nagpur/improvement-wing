@@ -2,34 +2,246 @@
   "version": "2026.10-r1",
   "note": "Statutory provisions used by LedgerCraft, kept as data. Status: 'primary' only after a person records verification against the official text (Legal verification register). 'secondary' = taken from secondary sources, shown with a not-verified tag. 'conflicting' or 'unknown' = no section number is shown; the neutral text 'Statutory reference pending primary-source verification' is printed instead.",
   "provisions": {
-    "it1961.s40A3": {"act": "Income-tax Act, 1961", "citation": "s.40A(3)/(3A)", "title": "Expenditure paid otherwise than by account payee cheque/draft/electronic mode above the limit", "effective_until": "2026-03-31", "status": "secondary"},
-    "it1961.r6DD": {"act": "Income-tax Rules, 1962", "citation": "Rule 6DD", "title": "Exceptions to s.40A(3)", "effective_until": "2026-03-31", "status": "secondary"},
-    "it1961.s43_1_p6": {"act": "Income-tax Act, 1961", "citation": "s.43(1), sixth proviso", "title": "Actual cost: payment for an asset otherwise than by permitted modes above the limit", "effective_until": "2026-03-31", "status": "secondary"},
-    "it1961.s269SS": {"act": "Income-tax Act, 1961", "citation": "s.269SS", "title": "Mode of taking or accepting certain loans, deposits and specified sum", "effective_until": "2026-03-31", "status": "secondary"},
-    "it1961.s269ST": {"act": "Income-tax Act, 1961", "citation": "s.269ST", "title": "Mode of undertaking transactions (receipt of ₹2 lakh or more)", "effective_until": "2026-03-31", "status": "secondary"},
-    "it1961.s269T": {"act": "Income-tax Act, 1961", "citation": "s.269T", "title": "Mode of repayment of certain loans or deposits", "effective_until": "2026-03-31", "status": "secondary"},
-    "it1961.s271D": {"act": "Income-tax Act, 1961", "citation": "s.271D", "title": "Penalty for contravention of s.269SS", "effective_until": "2026-03-31", "status": "secondary"},
-    "it1961.s271DA": {"act": "Income-tax Act, 1961", "citation": "s.271DA", "title": "Penalty for contravention of s.269ST", "effective_until": "2026-03-31", "status": "secondary"},
-    "it1961.s271E": {"act": "Income-tax Act, 1961", "citation": "s.271E", "title": "Penalty for contravention of s.269T", "effective_until": "2026-03-31", "status": "secondary"},
-    "it1961.s32": {"act": "Income-tax Act, 1961", "citation": "s.32", "title": "Depreciation", "effective_until": "2026-03-31", "status": "secondary"},
-    "it1961.s44AB": {"act": "Income-tax Act, 1961", "citation": "s.44AB", "title": "Audit of accounts of certain persons", "effective_until": "2026-03-31", "status": "secondary"},
-    "form3cd.cl18": {"act": "Income-tax Rules, 1962", "citation": "Form 3CD, clause 18", "title": "Depreciation allowable", "effective_until": "2026-03-31", "status": "secondary"},
-    "form3cd.cl21d": {"act": "Income-tax Rules, 1962", "citation": "Form 3CD, clause 21(d)", "title": "Amounts inadmissible under s.40A(3)", "effective_until": "2026-03-31", "status": "secondary"},
-    "form3cd.cl31a": {"act": "Income-tax Rules, 1962", "citation": "Form 3CD, clause 31(a)", "title": "Loans or deposits accepted (s.269SS)", "effective_until": "2026-03-31", "status": "secondary"},
-    "form3cd.cl31b": {"act": "Income-tax Rules, 1962", "citation": "Form 3CD, clause 31(b)", "title": "Specified sums accepted (s.269SS)", "effective_until": "2026-03-31", "status": "secondary"},
-    "form3cd.cl31ba": {"act": "Income-tax Rules, 1962", "citation": "Form 3CD, clause 31(ba)", "title": "Receipts of ₹2 lakh or more (s.269ST)", "effective_until": "2026-03-31", "status": "secondary"},
-    "form3cd.cl31c": {"act": "Income-tax Rules, 1962", "citation": "Form 3CD, clause 31(c)", "title": "Repayment of loans or deposits (s.269T)", "effective_until": "2026-03-31", "status": "secondary"},
-    "it2025.s36": {"act": "Income-tax Act, 2025", "citation": "s.36 (sub-section not confirmed)", "title": "Counterpart of old s.40A(3) as per published section listings", "effective_from": "2026-04-01", "status": "secondary"},
-    "it2025.cash_asset_cost": {"act": "Income-tax Act, 2025", "citation": "", "title": "Counterpart of old s.43(1) sixth proviso", "effective_from": "2026-04-01", "status": "unknown"},
-    "it2025.s185": {"act": "Income-tax Act, 2025", "citation": "s.185", "title": "Counterpart of old s.269SS", "effective_from": "2026-04-01", "status": "secondary"},
-    "it2025.s186": {"act": "Income-tax Act, 2025", "citation": "s.186", "title": "Counterpart of old s.269ST", "effective_from": "2026-04-01", "status": "secondary"},
-    "it2025.s188": {"act": "Income-tax Act, 2025", "citation": "s.188", "title": "Counterpart of old s.269T", "effective_from": "2026-04-01", "status": "secondary"},
-    "it2025.depreciation": {"act": "Income-tax Act, 2025", "citation": "", "title": "Depreciation (sources conflict: s.33 or s.34)", "effective_from": "2026-04-01", "status": "conflicting"},
-    "it2025.s63": {"act": "Income-tax Act, 2025", "citation": "s.63", "title": "Tax audit", "effective_from": "2026-04-01", "status": "secondary"},
-    "itr2026.form26": {"act": "Income-tax Rules, 2026", "citation": "", "title": "Form 26 (tax audit report) clause for this item", "effective_from": "2026-04-01", "status": "unknown"},
-    "ca2013.sch3": {"act": "Companies Act, 2013", "citation": "Schedule III, Division I", "title": "Form of balance sheet and statement of profit and loss", "status": "secondary"},
-    "ca2013.sch3.netting": {"act": "Companies Act, 2013 / ICAI Guidance Notes", "citation": "Schedule III / ICAI Guidance Note", "title": "Assets and liabilities shown separately (no netting)", "status": "secondary"},
-    "icai.as10": {"act": "ICAI Accounting Standards", "citation": "AS 10", "title": "Property, Plant and Equipment", "status": "secondary"},
-    "icai.as26": {"act": "ICAI Accounting Standards", "citation": "AS 26", "title": "Intangible Assets", "status": "secondary"}
+    "it1961.s40A3": {
+      "act": "Income-tax Act, 1961",
+      "citation": "s.40A(3)/(3A)",
+      "title": "Expenditure paid otherwise than by account payee cheque/draft/electronic mode above the limit",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it1961.r6DD": {
+      "act": "Income-tax Rules, 1962",
+      "citation": "Rule 6DD",
+      "title": "Exceptions to s.40A(3)",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it1961.s43_1_p6": {
+      "act": "Income-tax Act, 1961",
+      "citation": "s.43(1), sixth proviso",
+      "title": "Actual cost: payment for an asset otherwise than by permitted modes above the limit",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it1961.s269SS": {
+      "act": "Income-tax Act, 1961",
+      "citation": "s.269SS",
+      "title": "Mode of taking or accepting certain loans, deposits and specified sum",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it1961.s269ST": {
+      "act": "Income-tax Act, 1961",
+      "citation": "s.269ST",
+      "title": "Mode of undertaking transactions (receipt of ₹2 lakh or more)",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it1961.s269T": {
+      "act": "Income-tax Act, 1961",
+      "citation": "s.269T",
+      "title": "Mode of repayment of certain loans or deposits",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it1961.s271D": {
+      "act": "Income-tax Act, 1961",
+      "citation": "s.271D",
+      "title": "Penalty for contravention of s.269SS",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it1961.s271DA": {
+      "act": "Income-tax Act, 1961",
+      "citation": "s.271DA",
+      "title": "Penalty for contravention of s.269ST",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it1961.s271E": {
+      "act": "Income-tax Act, 1961",
+      "citation": "s.271E",
+      "title": "Penalty for contravention of s.269T",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it1961.s32": {
+      "act": "Income-tax Act, 1961",
+      "citation": "s.32",
+      "title": "Depreciation",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it1961.s44AB": {
+      "act": "Income-tax Act, 1961",
+      "citation": "s.44AB",
+      "title": "Audit of accounts of certain persons",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "form3cd.cl18": {
+      "act": "Income-tax Rules, 1962",
+      "citation": "Form 3CD, clause 18",
+      "title": "Depreciation allowable",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "form3cd.cl21d": {
+      "act": "Income-tax Rules, 1962",
+      "citation": "Form 3CD, clause 21(d)",
+      "title": "Amounts inadmissible under s.40A(3)",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "form3cd.cl31a": {
+      "act": "Income-tax Rules, 1962",
+      "citation": "Form 3CD, clause 31(a)",
+      "title": "Loans or deposits accepted (s.269SS)",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "form3cd.cl31b": {
+      "act": "Income-tax Rules, 1962",
+      "citation": "Form 3CD, clause 31(b)",
+      "title": "Specified sums accepted (s.269SS)",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "form3cd.cl31ba": {
+      "act": "Income-tax Rules, 1962",
+      "citation": "Form 3CD, clause 31(ba)",
+      "title": "Receipts of ₹2 lakh or more (s.269ST)",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "form3cd.cl31c": {
+      "act": "Income-tax Rules, 1962",
+      "citation": "Form 3CD, clause 31(c)",
+      "title": "Repayment of loans or deposits (s.269T)",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it2025.s36": {
+      "act": "Income-tax Act, 2025",
+      "citation": "s.36 (sub-section not confirmed)",
+      "title": "Counterpart of old s.40A(3) as per published section listings",
+      "effective_from": "2026-04-01",
+      "status": "secondary"
+    },
+    "it2025.cash_asset_cost": {
+      "act": "Income-tax Act, 2025",
+      "citation": "",
+      "title": "Counterpart of old s.43(1) sixth proviso",
+      "effective_from": "2026-04-01",
+      "status": "unknown"
+    },
+    "it2025.s185": {
+      "act": "Income-tax Act, 2025",
+      "citation": "s.185",
+      "title": "Counterpart of old s.269SS",
+      "effective_from": "2026-04-01",
+      "status": "secondary"
+    },
+    "it2025.s186": {
+      "act": "Income-tax Act, 2025",
+      "citation": "s.186",
+      "title": "Counterpart of old s.269ST",
+      "effective_from": "2026-04-01",
+      "status": "secondary"
+    },
+    "it2025.s188": {
+      "act": "Income-tax Act, 2025",
+      "citation": "s.188",
+      "title": "Counterpart of old s.269T",
+      "effective_from": "2026-04-01",
+      "status": "secondary"
+    },
+    "it2025.depreciation": {
+      "act": "Income-tax Act, 2025",
+      "citation": "",
+      "title": "Depreciation (sources conflict: s.33 or s.34)",
+      "effective_from": "2026-04-01",
+      "status": "conflicting"
+    },
+    "it2025.s63": {
+      "act": "Income-tax Act, 2025",
+      "citation": "s.63",
+      "title": "Tax audit",
+      "effective_from": "2026-04-01",
+      "status": "secondary"
+    },
+    "itr2026.form26": {
+      "act": "Income-tax Rules, 2026",
+      "citation": "",
+      "title": "Form 26 (tax audit report) clause for this item",
+      "effective_from": "2026-04-01",
+      "status": "unknown"
+    },
+    "ca2013.sch3": {
+      "act": "Companies Act, 2013",
+      "citation": "Schedule III, Division I",
+      "title": "Form of balance sheet and statement of profit and loss",
+      "status": "secondary"
+    },
+    "ca2013.sch3.netting": {
+      "act": "Companies Act, 2013 / ICAI Guidance Notes",
+      "citation": "Schedule III / ICAI Guidance Note",
+      "title": "Assets and liabilities shown separately (no netting)",
+      "status": "secondary"
+    },
+    "icai.as10": {
+      "act": "ICAI Accounting Standards",
+      "citation": "AS 10",
+      "title": "Property, Plant and Equipment",
+      "status": "secondary"
+    },
+    "icai.as26": {
+      "act": "ICAI Accounting Standards",
+      "citation": "AS 26",
+      "title": "Intangible Assets",
+      "status": "secondary"
+    },
+    "it1961.s43B": {
+      "act": "Income-tax Act, 1961",
+      "citation": "s.43B",
+      "title": "Certain deductions only on actual payment",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "it2025.actual_payment": {
+      "act": "Income-tax Act, 2025",
+      "citation": "",
+      "title": "Counterpart of old s.43B (deductions on actual payment)",
+      "effective_from": "2026-04-01",
+      "status": "unknown"
+    },
+    "form3cd.cl26": {
+      "act": "Income-tax Rules, 1962",
+      "citation": "Form 3CD, clause 26",
+      "title": "Sums referred to in s.43B",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "form3cd.cl34": {
+      "act": "Income-tax Rules, 1962",
+      "citation": "Form 3CD, clause 34",
+      "title": "Tax deducted or collected at source",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "form3cd.cl40": {
+      "act": "Income-tax Rules, 1962",
+      "citation": "Form 3CD, clause 40",
+      "title": "Turnover, gross profit and net profit",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    },
+    "form3cd.cl44": {
+      "act": "Income-tax Rules, 1962",
+      "citation": "Form 3CD, clause 44",
+      "title": "Break-up of total expenditure (GST)",
+      "effective_until": "2026-03-31",
+      "status": "secondary"
+    }
   }
 }

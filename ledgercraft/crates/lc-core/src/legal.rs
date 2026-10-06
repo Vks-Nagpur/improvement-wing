@@ -79,10 +79,15 @@ pub fn applicable(
         format!("format:{pk}:titles"),
         "format_line",
         &grp,
-        "Statement titles and where profit is carried".into(),
+        format!("Source document and statement titles: {}", fmt.document),
         format!(
-            "{} | {} | profit to {:?}: {}",
-            fmt.bs_title, fmt.pl_title, fmt.profit_to, fmt.profit_note_label
+            "{} | {} | {} | {} | profit to {:?}: {}",
+            fmt.authority,
+            fmt.document,
+            fmt.bs_title,
+            fmt.pl_title,
+            fmt.profit_to,
+            fmt.profit_note_label
         ),
         &fmt.status,
     ));
@@ -230,26 +235,32 @@ pub fn applicable(
         }
     }
     if scope.tax_audit {
-        let (id, title, st) = if new_act {
-            (
-                "taxaudit:form26",
-                "Form 26 (tax audit report): clauses and fields used by the helper",
-                "unknown",
+        let schema = crate::taxaudit::schema_for(eng);
+        let title = if schema.clauses.is_empty() {
+            format!(
+                "{} ({}): no clause mapped yet",
+                schema.form, schema.act_section
             )
         } else {
-            (
-                "taxaudit:form3cd",
-                "Form 3CD: clauses used by the helper (18, 21(d), 26, 31, 34, 40, 44)",
-                "secondary",
+            format!(
+                "{} ({}): clauses {}",
+                schema.form,
+                schema.act_section,
+                schema
+                    .clauses
+                    .iter()
+                    .map(|c| c.number.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ")
             )
         };
         out.push(item(
-            id.into(),
+            format!("taxaudit:{}", schema.id),
             "tax_audit_form",
             "Tax audit form",
-            title.into(),
-            title.into(),
-            st,
+            title,
+            crate::taxaudit::schema_text(eng).to_string(),
+            &schema.status,
         ));
     }
     out

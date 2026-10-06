@@ -1,6 +1,8 @@
 {
   "id": "non_corporate",
   "name": "ICAI Guidance Note on Financial Statements of Non-Corporate Entities",
+  "authority": "ICAI",
+  "document": "Guidance Note on Financial Statements of Non-Corporate Entities",
   "status": "draft – line items to be verified against the ICAI Guidance Note text",
   "bs_title": "Balance Sheet as at {end}",
   "pl_title": "Statement of Profit and Loss for the year ended {end}",

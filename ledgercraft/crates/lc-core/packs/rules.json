@@ -1,7 +1,7 @@
 {
-  "version": "2026.10-draft",
+  "version": "2026.10-r1",
   "pack_id": "in-rules",
-  "verification": "Legal references unverified against official texts (see TRUTH-MODEL.md §10)",
+  "verification": "Item-level: each rule with legal content lists its provisions (sections.json); none is verified against the official text until recorded in the Legal verification register.",
   "note": "Thresholds and legal references are data. New-Act numbers 185/186/188 and 33 per incometaxindia.gov.in section pages and TaxTMI; s.36 as the counterpart of s.40A(3) per published section listings (statute text not yet read); the counterpart of s.43(1) 6th proviso is not yet confirmed. Tax audit: Form 26 under s.63 / Rule 47 (Income-tax Rules 2026, G.S.R. 198(E), 20-03-2026) from Tax Year 2026-27; Form 3CA/3CB/3CD for FY 2025-26 and earlier.",
   "new_act_from": "2026-04-01",
   "thresholds": {
@@ -25,7 +25,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "OPENING_TOTAL_DIFF": {
       "severity": "blocker",
@@ -40,7 +41,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "OPENING_DIFF": {
       "severity": "warning",
@@ -55,7 +57,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "OPENING_MISSING_LEDGER": {
       "severity": "warning",
@@ -70,7 +73,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "OPENING_NEW_LEDGER": {
       "severity": "warning",
@@ -85,7 +89,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "PL_OPENING": {
       "severity": "warning",
@@ -100,7 +105,14 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "ca2013.sch3"
+      ],
+      "refs_new": [
+        "ca2013.sch3"
+      ],
+      "scope": "statements"
     },
     "UNKNOWN_GROUP": {
       "severity": "blocker",
@@ -115,7 +127,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "MAPPING_UNCONFIRMED": {
       "severity": "blocker",
@@ -130,7 +143,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "MAPPING_REVIEW": {
       "severity": "blocker",
@@ -145,7 +159,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "UNMAPPED": {
       "severity": "blocker",
@@ -160,7 +175,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "VOUCHER_UNBALANCED": {
       "severity": "blocker",
@@ -175,7 +191,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "VOUCHER_UNKNOWN_LEDGER": {
       "severity": "blocker",
@@ -190,7 +207,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "VOUCHER_TB_MISMATCH": {
       "severity": "blocker",
@@ -205,7 +223,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "VOUCHER_OUTSIDE_PERIOD": {
       "severity": "warning",
@@ -220,7 +239,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "DUPLICATE_VOUCHER": {
       "severity": "warning",
@@ -235,7 +255,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "NEGATIVE_CASH": {
       "severity": "warning",
@@ -250,7 +271,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "CASH_CR_BALANCE": {
       "severity": "blocker",
@@ -265,7 +287,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "SUSPENSE_BALANCE": {
       "severity": "warning",
@@ -280,7 +303,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "BRANCH_NOT_ELIMINATED": {
       "severity": "blocker",
@@ -295,7 +319,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "BRANCH_GROUP_CONFLICT": {
       "severity": "warning",
@@ -310,7 +335,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "ABNORMAL_BALANCE": {
       "severity": "warning",
@@ -325,7 +351,14 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "ca2013.sch3"
+      ],
+      "refs_new": [
+        "ca2013.sch3"
+      ],
+      "scope": "statements"
     },
     "RECLASS_DEBTOR_CR": {
       "severity": "info",
@@ -340,7 +373,14 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "ca2013.sch3.netting"
+      ],
+      "refs_new": [
+        "ca2013.sch3.netting"
+      ],
+      "scope": "statements"
     },
     "RECLASS_CREDITOR_DR": {
       "severity": "info",
@@ -355,7 +395,14 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "ca2013.sch3.netting"
+      ],
+      "refs_new": [
+        "ca2013.sch3.netting"
+      ],
+      "scope": "statements"
     },
     "RECLASS_BANK_CR": {
       "severity": "info",
@@ -370,10 +417,17 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "ca2013.sch3"
+      ],
+      "refs_new": [
+        "ca2013.sch3"
+      ],
+      "scope": "statements"
     },
     "MISGROUP_LOAN": {
-      "severity": "warning",
+      "severity": "review",
       "title": "Loan grouped as creditor/debtor",
       "simple": "This looks like a loan but is grouped as a party. Loans go under Borrowings, and cash loan limits apply.",
       "old_ref": "Schedule III; s.269SS/269T; Form 3CD cl. 31",
@@ -385,7 +439,27 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "ca2013.sch3",
+        "it1961.s269SS",
+        "it1961.s269T",
+        "form3cd.cl31a",
+        "form3cd.cl31c"
+      ],
+      "refs_new": [
+        "ca2013.sch3",
+        "it2025.s185",
+        "it2025.s188",
+        "itr2026.form26"
+      ],
+      "scope": "statements",
+      "detection_basis": "Ledger in a creditor/debtor group whose name or transactions suggest a loan (name words such as 'loan', or interest credited).",
+      "unknown_facts": [
+        "Whether the balance is a loan or a trade balance"
+      ],
+      "possible_exceptions": [],
+      "next_step": "Confirm the nature of the balance; if it is a loan, place it under borrowings (Map ledgers)."
     },
     "MISGROUP_OD": {
       "severity": "warning",
@@ -400,7 +474,14 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "ca2013.sch3"
+      ],
+      "refs_new": [
+        "ca2013.sch3"
+      ],
+      "scope": "statements"
     },
     "MISGROUP_TAX": {
       "severity": "warning",
@@ -415,7 +496,14 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "ca2013.sch3"
+      ],
+      "refs_new": [
+        "ca2013.sch3"
+      ],
+      "scope": "statements"
     },
     "CAPITAL_IN_EXPENSE": {
       "severity": "info",
@@ -430,7 +518,14 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "icai.as10"
+      ],
+      "refs_new": [
+        "icai.as10"
+      ],
+      "scope": "statements"
     },
     "MISC_EXP_ASSET": {
       "severity": "warning",
@@ -445,12 +540,19 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "icai.as26"
+      ],
+      "refs_new": [
+        "icai.as26"
+      ],
+      "scope": "statements"
     },
     "CASH_PAYMENT_LIMIT": {
-      "severity": "warning",
+      "severity": "review",
       "title": "Cash payment above limit",
-      "simple": "Cash paid for an expense/purchase to one person in a day is above the limit. The expense may be disallowed.",
+      "simple": "Potential threshold event detected: an expense or a supplier was paid in cash above the limit.",
       "old_ref": "s.40A(3)/(3A), Rule 6DD exceptions; Form 3CD cl. 21(d)",
       "new_ref": "Income-tax Act 2025, s.36 (corresponds to s.40A(3); sub-section to be confirmed); reported in Form 26 (Rule 47, Income-tax Rules 2026)",
       "source": {
@@ -460,12 +562,32 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "it1961.s40A3",
+        "it1961.r6DD",
+        "form3cd.cl21d"
+      ],
+      "refs_new": [
+        "it2025.s36",
+        "itr2026.form26"
+      ],
+      "scope": "tax_audit",
+      "detection_basis": "Cash-in-hand side of a payment voucher. Expense ledgers: each voucher on its own. Suppliers: all cash paid to the same supplier on the same day added together. Limit from the rules pack (higher limit for ledgers tagged transporter).",
+      "unknown_facts": [
+        "Whether the payment falls within a statutory exception (for example Rule 6DD under the 1961 Act)",
+        "Whether several payments to the same person on the same day should be aggregated under the law",
+        "Whether the expense is claimed as a deduction"
+      ],
+      "possible_exceptions": [
+        "Exceptions prescribed under the Rules (1961 Act: Rule 6DD); counterpart under the 2025 Act to be verified"
+      ],
+      "next_step": "Review the statutory scope, aggregation rule, exceptions and facts. If the provision applies after review, consider its tax treatment."
     },
     "CASH_ASSET_PURCHASE": {
-      "severity": "warning",
+      "severity": "review",
       "title": "Asset bought in cash above limit",
-      "simple": "Asset bought in cash above the limit; that amount is not counted in tax depreciation.",
+      "simple": "Potential threshold event detected: a fixed asset was paid for in cash above the limit.",
       "old_ref": "s.43(1), 6th proviso",
       "new_ref": "IT Act 2025 provision corresponding to s.43(1) (section no. to be confirmed)",
       "source": {
@@ -475,12 +597,28 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "it1961.s43_1_p6"
+      ],
+      "refs_new": [
+        "it2025.cash_asset_cost"
+      ],
+      "scope": "tax_audit",
+      "detection_basis": "Cash-in-hand side of payment vouchers to fixed-asset ledgers, added together per asset ledger per day, compared with the cash expense limit.",
+      "unknown_facts": [
+        "Whether the statutory condition on mode of payment applies to this asset and this payment",
+        "The governing provision under the Income-tax Act, 2025 (not confirmed)"
+      ],
+      "possible_exceptions": [
+        "Exceptions prescribed under the Rules (to be verified)"
+      ],
+      "next_step": "Review whether the actual-cost provision applies. Do not change the asset's cost for tax depreciation until that review is complete."
     },
     "CASH_RECEIPT_LIMIT": {
-      "severity": "warning",
+      "severity": "review",
       "title": "Cash received ₹2 lakh or more",
-      "simple": "Cash of ₹2 lakh or more received from one person in a day / one transaction. Penalty may apply.",
+      "simple": "Potential threshold event detected: cash of ₹2 lakh or more was received.",
       "old_ref": "s.269ST; s.271DA",
       "new_ref": "Income-tax Act 2025, s.186 (corresponds to s.269ST); reported in Form 26",
       "source": {
@@ -490,12 +628,31 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "it1961.s269ST",
+        "it1961.s271DA",
+        "form3cd.cl31ba"
+      ],
+      "refs_new": [
+        "it2025.s186",
+        "itr2026.form26"
+      ],
+      "scope": "tax_audit",
+      "detection_basis": "Cash-in-hand side of receipt vouchers. Income ledgers: each voucher. Parties: all cash received from the same party on the same day added together.",
+      "unknown_facts": [
+        "Whether several receipts relate to one transaction or one event (the law's aggregation tests)",
+        "Who the payer is, and whether the receipt is exempt"
+      ],
+      "possible_exceptions": [
+        "Receipts excluded by the provision itself (for example from government or banks), to be verified"
+      ],
+      "next_step": "Review the payer, the transaction and the aggregation rules. If the provision applies after review, consider reporting and the penalty provision."
     },
     "LOAN_ACCEPTED_CASH": {
-      "severity": "warning",
+      "severity": "review",
       "title": "Loan accepted in cash (limit test)",
-      "simple": "Loan taken in cash where the loan (with earlier unpaid principal) is ₹20,000 or more.",
+      "simple": "Potential threshold event detected: a loan or deposit was taken in cash.",
       "old_ref": "s.269SS; s.271D; Form 3CD cl. 31(a)",
       "new_ref": "Income-tax Act 2025, s.185 (corresponds to s.269SS); reported in Form 26",
       "source": {
@@ -505,12 +662,32 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "it1961.s269SS",
+        "it1961.s271D",
+        "form3cd.cl31a"
+      ],
+      "refs_new": [
+        "it2025.s185",
+        "itr2026.form26"
+      ],
+      "scope": "tax_audit",
+      "detection_basis": "Credits to loan ledgers (unsecured loans, loans liability) from cash-in-hand, counting principal only; interest credited and TDS are excluded.",
+      "unknown_facts": [
+        "Whether the lender or the borrower falls within an exemption",
+        "Whether the amount is a loan, deposit or specified sum under the law",
+        "The balance outstanding test, if relevant"
+      ],
+      "possible_exceptions": [
+        "Exemptions for specified lenders/borrowers (for example banks, government), to be verified"
+      ],
+      "next_step": "Review the nature of the amount, the parties and the exemptions. If the provision applies after review, consider reporting in the tax audit report and the penalty provision."
     },
     "LOAN_ACCEPTED_JOURNAL": {
-      "severity": "warning",
+      "severity": "review",
       "title": "Loan accepted by journal entry",
-      "simple": "Loan credited through a journal (not bank or cash). Check the mode; book adjustments may count as 'otherwise than banking channel'.",
+      "simple": "Potential threshold event detected: a loan or deposit was credited by journal entry (not through a bank).",
       "old_ref": "s.269SS; Form 3CD cl. 31(a)",
       "new_ref": "Income-tax Act 2025, s.185 (corresponds to s.269SS); reported in Form 26",
       "source": {
@@ -520,12 +697,30 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "it1961.s269SS",
+        "form3cd.cl31a"
+      ],
+      "refs_new": [
+        "it2025.s185",
+        "itr2026.form26"
+      ],
+      "scope": "tax_audit",
+      "detection_basis": "Credits to loan ledgers by journal vouchers with no bank or cash line, principal only.",
+      "unknown_facts": [
+        "What the journal represents (book adjustment, transfer, or acceptance of a loan)",
+        "Whether acceptance by journal entry falls within the provision"
+      ],
+      "possible_exceptions": [
+        "Exemptions for specified lenders/borrowers, to be verified"
+      ],
+      "next_step": "Review what the journal entry records. If it is acceptance of a loan or deposit within the provision, consider reporting and the penalty provision."
     },
     "LOAN_REPAID_CASH": {
-      "severity": "warning",
+      "severity": "review",
       "title": "Loan repaid in cash (limit test)",
-      "simple": "Loan repaid in cash where the amount, or the balance with interest, is ₹20,000 or more.",
+      "simple": "Potential threshold event detected: a loan or deposit was repaid in cash.",
       "old_ref": "s.269T; s.271E; Form 3CD cl. 31(b)",
       "new_ref": "Income-tax Act 2025, s.188 (corresponds to s.269T); reported in Form 26",
       "source": {
@@ -535,7 +730,26 @@
       },
       "verification": "unverified",
       "effective_from": "2021-04-01",
-      "effective_until": ""
+      "effective_until": "",
+      "refs_old": [
+        "it1961.s269T",
+        "it1961.s271E",
+        "form3cd.cl31c"
+      ],
+      "refs_new": [
+        "it2025.s188",
+        "itr2026.form26"
+      ],
+      "scope": "tax_audit",
+      "detection_basis": "Debits to loan ledgers from cash-in-hand, principal only.",
+      "unknown_facts": [
+        "Whether the repayment falls within an exemption",
+        "The amount outstanding test, if relevant"
+      ],
+      "possible_exceptions": [
+        "Exemptions for specified lenders/borrowers, to be verified"
+      ],
+      "next_step": "Review the repayment, the parties and exemptions. If the provision applies after review, consider reporting and the penalty provision."
     },
     "STATEMENT_NOT_BALANCED": {
       "severity": "blocker",
@@ -550,7 +764,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "FAR_TB_MISMATCH": {
       "severity": "warning",
@@ -565,7 +780,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "FAR_DEP_MISMATCH": {
       "severity": "warning",
@@ -580,7 +796,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "FAR_MISSING_LEDGER": {
       "severity": "warning",
@@ -595,7 +812,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     },
     "FAR_ERROR": {
       "severity": "warning",
@@ -610,7 +828,8 @@
       },
       "verification": "internal",
       "effective_from": "",
-      "effective_until": ""
+      "effective_until": "",
+      "scope": "internal"
     }
   }
 }

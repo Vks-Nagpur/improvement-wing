@@ -55,8 +55,12 @@ pub fn accounting_policies(
     }
     p.push((
         "Taxes on income".into(),
-        if eng.entity_type.is_company() {
+        // Deferred tax is not computed by LedgerCraft: the policy sentence is
+        // printed only when the books carry a deferred tax balance.
+        if eng.entity_type.is_company() && has_deferred_tax(eng) {
             "Current tax is the amount of tax payable on the taxable income for the year. Deferred tax is recognised on timing differences, subject to prudence, in accordance with AS 22."
+        } else if eng.entity_type.is_company() {
+            "Current tax is the amount of tax payable on the taxable income for the year."
         } else {
             "Provision for current tax is made on the basis of the taxable income for the year under the Income-tax law."
         }
@@ -64,4 +68,12 @@ pub fn accounting_policies(
     ));
     p.push(("Provisions and contingent liabilities".into(), "A provision is recognised when there is a present obligation as a result of a past event and a reliable estimate can be made of the outflow. Contingent liabilities are disclosed by way of notes.".into()));
     p
+}
+
+/// The books carry a deferred tax ledger (LedgerCraft itself computes none).
+pub fn has_deferred_tax(eng: &Engagement) -> bool {
+    eng.cy
+        .ledgers
+        .iter()
+        .any(|l| l.name.to_ascii_lowercase().contains("deferred tax"))
 }

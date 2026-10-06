@@ -16,6 +16,7 @@ pub mod engine;
 pub mod facts;
 pub mod far;
 pub mod groups;
+pub mod legal;
 pub mod mapping;
 pub mod model;
 pub mod money;

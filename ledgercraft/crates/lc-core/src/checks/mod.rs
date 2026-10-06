@@ -76,6 +76,22 @@ pub struct Finding {
     pub suggestion: Option<String>,
     /// Stable identity `CODE:subject`, used for de-duplication and tests.
     pub key: String,
+    /// Why the rule fired: aggregation, threshold, ledgers looked at.
+    #[serde(default)]
+    pub detection_basis: String,
+    #[serde(default)]
+    pub unknown_facts: Vec<String>,
+    #[serde(default)]
+    pub possible_exceptions: Vec<String>,
+    /// "accounting logic", "not verified" or "verified" (legal content).
+    #[serde(default)]
+    pub verification_status: String,
+    /// A person must decide (statutory scope, exceptions, facts).
+    #[serde(default)]
+    pub professional_review_required: bool,
+    /// Blocks a final copy while open.
+    #[serde(default)]
+    pub blocks_final: bool,
 }
 
 pub struct Findings<'a> {
@@ -119,8 +135,24 @@ impl<'a> Findings<'a> {
             voucher: d.voucher,
             date: d.date,
             amount: d.amount,
-            suggestion: d.suggestion,
+            suggestion: d
+                .suggestion
+                .or_else(|| (!r.next_step.is_empty()).then(|| r.next_step.clone())),
             key: format!("{code}:{subject}"),
+            detection_basis: r.detection_basis.clone(),
+            unknown_facts: r.unknown_facts.clone(),
+            possible_exceptions: r.possible_exceptions.clone(),
+            verification_status: if r.scope == "internal"
+                || r.scope.is_empty() && r.verification != "unverified"
+            {
+                "accounting logic".into()
+            } else if self.rules.verified.contains(&format!("rule:{code}")) {
+                "verified".into()
+            } else {
+                "not verified".into()
+            },
+            professional_review_required: r.severity == crate::rules::Severity::Review,
+            blocks_final: r.severity == crate::rules::Severity::Blocker,
         });
     }
 }

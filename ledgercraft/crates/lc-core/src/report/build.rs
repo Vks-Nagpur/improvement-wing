@@ -345,6 +345,13 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
         let mut blocks = Vec::new();
         let d = &opt.disclosures;
         let mut list = policies::accounting_policies(eng, opt, has_inv, has_emp);
+        if eng.entity_type.is_company() {
+            c.warnings.push(if policies::has_deferred_tax(eng) {
+                "Deferred tax: LedgerCraft does not compute deferred tax (AS 22); the figure shown is as in the books. Check it and the policy wording.".to_string()
+            } else {
+                "Deferred tax: LedgerCraft does not compute deferred tax (AS 22) and no deferred tax ledger is in the books. If deferred tax applies, record it by adjustment and state the policy.".to_string()
+            });
+        }
         for (t, body) in list.iter_mut() {
             if let Some(own) = d
                 .policy_text

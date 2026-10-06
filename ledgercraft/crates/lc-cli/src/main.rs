@@ -2,7 +2,7 @@
 //!
 //!   ledgercraft analyse  --name "ABC & Co" --entity firm --fy 2025-26 --tb tb.xlsx
 //!                        [--py-tb py.xlsx] [--vouchers daybook.csv] [--signoff signoff.json]
-//!                        [--out folder] [--final] [--expert]
+//!                        [--out folder] [--final] [--expert] [--verifications file]
 //!   ledgercraft practice-data --out folder      (writes sample books with known answers)
 //!   ledgercraft bench --vouchers 1000000        (speed test on a large clean book)
 
@@ -231,6 +231,26 @@ fn cmd_analyse(a: &HashMap<String, String>) -> Result<(), String> {
         &ExportOptions {
             mode,
             report: report_options(a)?,
+            // Verification records entered in the app (Legal verification register).
+            legal: Some(lc_core::legal::readiness(
+                lc_core::legal::applicable(
+                    &eng,
+                    &rules,
+                    &lc_core::statements::FormatPack::of(&eng),
+                    &lc_core::far::DepPack::builtin(),
+                    lc_core::legal::Scope {
+                        tax_audit: true,
+                        depreciation: eng.far.is_some(),
+                    },
+                ),
+                &match a.get("verifications") {
+                    Some(p) => serde_json::from_str(
+                        &std::fs::read_to_string(p).map_err(|e| e.to_string())?,
+                    )
+                    .map_err(|e| e.to_string())?,
+                    None => Vec::new(),
+                },
+            )),
             ..Default::default()
         },
     )?;

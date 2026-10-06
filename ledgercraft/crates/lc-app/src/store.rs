@@ -577,6 +577,31 @@ pub struct ProjectSummary {
 }
 
 impl Store {
+    /// Legal verification register (TRUTH-MODEL.md §10): records entered by a
+    /// person, shared by all clients, append-only (a withdrawal is a new record).
+    pub fn legal_records(&self) -> Vec<lc_core::legal::Verification> {
+        fs::read_to_string(self.root.join("legal-verifications.json"))
+            .ok()
+            .and_then(|t| serde_json::from_str(&t).ok())
+            .unwrap_or_default()
+    }
+
+    pub fn add_legal_records(&self, new: Vec<lc_core::legal::Verification>) -> Result<(), String> {
+        let mut all = self.legal_records();
+        let ts = Local::now().to_rfc3339();
+        for mut r in new {
+            r.check()?;
+            r.recorded_at = ts.clone();
+            all.push(r);
+        }
+        write_atomic(
+            &self.root.join("legal-verifications.json"),
+            serde_json::to_string_pretty(&all)
+                .map_err(|e| e.to_string())?
+                .as_bytes(),
+        )
+    }
+
     pub fn new(root: PathBuf) -> Result<Store, String> {
         fs::create_dir_all(root.join("clients"))
             .map_err(|e| format!("cannot create data folder {}: {e}", root.display()))?;

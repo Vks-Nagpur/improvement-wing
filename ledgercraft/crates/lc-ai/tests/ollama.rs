@@ -71,6 +71,12 @@ fn protocol_and_guards() {
         "qwen2.5:3b",
     ));
     let f = lc_core::checks::Finding {
+        detection_basis: String::new(),
+        unknown_facts: vec![],
+        possible_exceptions: vec![],
+        verification_status: String::new(),
+        professional_review_required: false,
+        blocks_final: false,
         code: "CASH_PAYMENT_LIMIT".into(),
         severity: lc_core::rules::Severity::Warning,
         title: "Cash payment above limit".into(),

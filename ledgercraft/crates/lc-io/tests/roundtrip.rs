@@ -83,6 +83,52 @@ fn export_is_versioned_and_signing_copy_needs_no_blockers() {
             .answers
             .insert(k.into(), "nil".into());
     }
+    // Accounting blockers closed is not enough: legal content must be verified by a person.
+    let err = export(&root, &ok.engagement, &a, &signoff, &opt).unwrap_err();
+    assert!(err.contains("readiness was not assessed"), "{err}");
+    let items = lc_core::legal::applicable(
+        &ok.engagement,
+        &RulesPack::builtin(),
+        &lc_core::statements::FormatPack::of(&ok.engagement),
+        &lc_core::far::DepPack::builtin(),
+        lc_core::legal::Scope {
+            tax_audit: opt.tax_audit,
+            depreciation: ok.engagement.far.is_some(),
+        },
+    );
+    opt.legal = Some(lc_core::legal::readiness(items.clone(), &[]));
+    let err = export(&root, &ok.engagement, &a, &signoff, &opt).unwrap_err();
+    assert!(err.contains("legal content not verified (0 of"), "{err}");
+    let recs: Vec<lc_core::legal::Verification> = items
+        .iter()
+        .map(|it| lc_core::legal::Verification {
+            item_id: it.id.clone(),
+            content_hash: it.hash.clone(),
+            authority: "test".into(),
+            document_title: "test".into(),
+            provision: "test".into(),
+            official_source: "test".into(),
+            verified_on: "2026-10-07".into(),
+            verified_by: "test".into(),
+            ..Default::default()
+        })
+        .collect();
+    opt.legal = Some(lc_core::legal::readiness(items, &recs));
+    // Signing details must be complete.
+    let err = export(&root, &ok.engagement, &a, &signoff, &opt).unwrap_err();
+    assert!(
+        err.contains("at least one signatory") && err.contains("date"),
+        "{err}"
+    );
+    let signoff = SignOff {
+        signatories: vec![lc_core::report::Signatory {
+            name: "A Partner".into(),
+            designation: "Partner".into(),
+            ..Default::default()
+        }],
+        date: "07-10-2026".into(),
+        ..signoff
+    };
     let d1 = export(&root, &ok.engagement, &a, &signoff, &opt)
         .unwrap()
         .dir;

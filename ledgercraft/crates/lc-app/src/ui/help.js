@@ -17,6 +17,7 @@ const HELP = {
       "Then press <b>Next: run the checks</b> (top right).",
     ],
     check: [
+      "<b>Review</b> (purple): cash and loan items where the law has exceptions and facts only you know. Open <b>Why this was flagged</b> to see how it was detected and what to decide.",
       "Press <b>Run checks</b>. It takes a few seconds.",
       "<b>Must fix</b> (red): the final copy is locked until these are solved. <b>Check</b>: look at it. <b>Note</b>: for information.",
       "Read <b>What to do</b> under each item. Fix it in your books and import again, or correct it here (Map ledgers or Adjustments).",
@@ -65,6 +66,12 @@ const HELP = {
       "Each supplier's input tax credit in the books is compared with 2B, and each customer's TDS with 26AS. Parties are matched by name; check the ones marked <b>name looks alike</b>.",
       "<b>Not in 2B</b> usually means the supplier has not filed; that credit is at risk. Both comparisons go into the auditor workbook.",
     ],
+    legal: [
+      "Each row is something LedgerCraft relies on that comes from law or a professional standard: a line of the statement format, a check with statutory content, a section reference, a depreciation rate, the tax audit form.",
+      "Click an item to see exactly what to compare. Compare it with the official text (Act, Rules, Gazette, ICAI publication).",
+      "Select the items you checked, fill who, when and the official source, then press <b>Record verification</b>. If an item changes in a later version, it shows <b>Changed since verified</b> and must be checked again.",
+      "A final copy is locked until every item for this client year is verified. Drafts are always available.",
+    ],
     audit: [
       "This list shows who did what and when, newest first.",
       "The green line means no entry was edited or removed in between. A red line means the record was changed. Keep the exported files as your outside copy.",
@@ -94,6 +101,7 @@ const HELP = {
       "फिर ऊपर दाईं ओर <b>Next: run the checks</b> दबाएँ।",
     ],
     check: [
+      "<b>Review</b> (बैंगनी): नकद और ऋण से जुड़े मामले जिनमें क़ानून के अपवाद हैं और तथ्य केवल आप जानते हैं। <b>Why this was flagged</b> खोलकर देखें कि कैसे पकड़ा गया और क्या तय करना है।",
       "<b>Run checks</b> दबाएँ। कुछ सेकंड लगते हैं।",
       "<b>Must fix</b> (लाल): इन्हें सुधारे बिना अंतिम प्रति नहीं बनेगी। <b>Check</b>: देख लें। <b>Note</b>: जानकारी के लिए।",
       "हर बिंदु के नीचे <b>What to do</b> पढ़ें। किताबों में सुधार कर फिर import करें, या यहीं सुधारें (Map ledgers या Adjustments)।",
@@ -142,6 +150,12 @@ const HELP = {
       "किताबों में हर सप्लायर का इनपुट टैक्स क्रेडिट 2B से, और हर ग्राहक का TDS 26AS से मिलाया जाता है। पक्ष नाम से मिलाए जाते हैं; <b>name looks alike</b> वाले जाँचें।",
       "<b>Not in 2B</b> का अर्थ अक्सर है कि सप्लायर ने रिटर्न नहीं भरा; वह क्रेडिट जोखिम में है। दोनों तुलनाएँ ऑडिटर वर्कबुक में जाती हैं।",
     ],
+    legal: [
+      "हर पंक्ति ऐसी चीज़ है जो क़ानून या पेशेवर मानक से आती है: विवरण के प्रारूप की पंक्ति, वैधानिक जाँच, धारा संदर्भ, मूल्यह्रास दर, टैक्स ऑडिट फ़ॉर्म।",
+      "किसी पंक्ति पर क्लिक करें और ठीक-ठीक देखें कि किससे मिलाना है। उसे आधिकारिक पाठ (अधिनियम, नियम, राजपत्र, ICAI प्रकाशन) से मिलाएँ।",
+      "जिन पंक्तियों को आपने जाँचा उन्हें चुनें, किसने, कब और आधिकारिक स्रोत भरें, फिर <b>Record verification</b> दबाएँ। बाद में पंक्ति बदलने पर वह <b>Changed since verified</b> दिखेगी और दोबारा जाँचनी होगी।",
+      "इस क्लाइंट वर्ष की हर पंक्ति सत्यापित होने तक अंतिम प्रति बंद रहती है। ड्राफ्ट हमेशा बन सकता है।",
+    ],
     audit: [
       "यह सूची बताती है किसने क्या और कब किया, नया सबसे ऊपर।",
       "हरी पंक्ति का अर्थ है बाद में कुछ बदला या हटाया नहीं गया। लाल पंक्ति का अर्थ है रिकॉर्ड से छेड़छाड़ हुई।",
@@ -171,6 +185,7 @@ const HELP = {
       "मग वर उजवीकडे <b>Next: run the checks</b> दाबा.",
     ],
     check: [
+      "<b>Review</b> (जांभळा): रोख आणि कर्जाचे मुद्दे जिथे कायद्यात अपवाद आहेत आणि तथ्ये फक्त तुम्हाला माहीत आहेत. <b>Why this was flagged</b> उघडून कसे पकडले आणि काय ठरवायचे ते पाहा.",
       "<b>Run checks</b> दाबा. काही सेकंद लागतात.",
       "<b>Must fix</b> (लाल): हे सुधारल्याशिवाय अंतिम प्रत बनणार नाही. <b>Check</b>: पाहून घ्या. <b>Note</b>: माहितीसाठी.",
       "प्रत्येक मुद्द्याखाली <b>What to do</b> वाचा. पुस्तकांत दुरुस्ती करून पुन्हा import करा, किंवा इथेच दुरुस्त करा (Map ledgers किंवा Adjustments).",
@@ -218,6 +233,12 @@ const HELP = {
       "GSTR-2B (GST पोर्टलवरून) आणि Form 26AS (TRACES वरून) अपलोड करा. काहीही कुठेही पाठवले जात नाही; फाइल्स याच संगणकावर वाचल्या जातात.",
       "पुस्तकांतील प्रत्येक पुरवठादाराचे इनपुट टॅक्स क्रेडिट 2B शी, आणि प्रत्येक ग्राहकाचा TDS 26AS शी जुळवला जातो. पक्ष नावाने जुळवले जातात; <b>name looks alike</b> असलेले तपासा.",
       "<b>Not in 2B</b> म्हणजे बहुधा पुरवठादाराने रिटर्न भरलेले नाही; ते क्रेडिट धोक्यात आहे. दोन्ही तुलना ऑडिटर वर्कबुकमध्ये जातात.",
+    ],
+    legal: [
+      "प्रत्येक ओळ कायद्यातून किंवा व्यावसायिक मानकातून आलेली गोष्ट आहे: विवरणपत्राच्या प्रारूपाची ओळ, वैधानिक तपासणी, कलम संदर्भ, घसारा दर, टॅक्स ऑडिट फॉर्म.",
+      "ओळीवर क्लिक करा आणि नेमके कशाशी जुळवायचे ते पाहा. ती अधिकृत मजकुराशी (अधिनियम, नियम, राजपत्र, ICAI प्रकाशन) जुळवा.",
+      "तपासलेल्या ओळी निवडा, कोणी, केव्हा आणि अधिकृत स्रोत भरा, मग <b>Record verification</b> दाबा. नंतर ओळ बदलल्यास ती <b>Changed since verified</b> दिसेल आणि पुन्हा तपासावी लागेल.",
+      "या क्लायंट वर्षाची प्रत्येक ओळ सत्यापित होईपर्यंत अंतिम प्रत बंद राहते. ड्राफ्ट नेहमी तयार होतो.",
     ],
     audit: [
       "ही यादी कोणी काय आणि केव्हा केले ते दाखवते, नवीन सर्वात वर.",

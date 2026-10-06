@@ -93,6 +93,21 @@ are unresolved. A final copy is refused while any of these is true:
 5. Branch books are combined and the inter-branch accounts do not cancel out.
    (When they do cancel, they are shown as one nil ledger, *Inter-branch
    accounts (eliminated)*, so every voucher still balances and ties to the books.)
+6. Any legal item that applies to this client year and this output is not
+   verified by a person (Legal verification register): format lines, checks
+   with statutory content, section references, depreciation rows used, and the
+   tax audit form when the tax audit helper is exported. A verification is
+   bound to the exact item text; if the item changes it must be verified again.
+   LedgerCraft never marks an item verified by itself.
+7. The signing details are incomplete (a signatory, place and date; partner
+   and membership number when an auditor's firm is given).
+
+Findings that need professional judgement (cash and loan thresholds) are
+shown as **Review**: they state how they were detected, what the program
+cannot know, possible exceptions and the reference with its verification
+status. They never state a legal conclusion. Section numbers that are unknown
+or conflicting are not printed; the text "Statutory reference pending
+primary-source verification" appears instead.
 
 ## 8. Rules and formats are versioned and pinned
 

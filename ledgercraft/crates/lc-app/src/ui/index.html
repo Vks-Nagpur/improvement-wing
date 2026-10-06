@@ -25,6 +25,7 @@
       <label class="switch menu-row" title="Shows legal references and every option"><input type="checkbox" id="expert"> Expert mode (legal references)</label>
       <hr>
       <button type="button" class="menu-item" data-tour>How LedgerCraft works (tour)</button>
+      <button type="button" class="menu-item" id="openLegal">Legal verification register</button>
       <p class="menu-keys">Ctrl+K search client · Alt+1 to 9 go to a step · Alt+0 start screen</p>
     </div>
     <button class="pill" id="aiPill" type="button" aria-controls="aiPanel">Local AI: checking</button>
@@ -99,6 +100,7 @@
             </select></div>
           <div class="field"><label for="npFy">Financial year</label><input id="npFy" required pattern="\d{4}-\d{2}" size="8"></div>
           <button class="primary" type="submit">Create</button>
+          <p class="muted small fullrow">Formats offered: Schedule III Division I (companies not following Ind AS) and the ICAI formats for LLPs and non-corporate entities. Not supported: Ind AS (Division II and III), XBRL.</p>
         </form>
         <p class="error" id="npError" role="alert"></p>
       </div>
@@ -169,7 +171,7 @@
       <div class="rules-bar" id="rulesBar" hidden></div>
       <div class="tiles" id="tiles"></div>
       <div class="filters" role="group" aria-label="Filter findings">
-        <button data-f="all" class="on">All</button><button data-f="blocker">Must fix</button><button data-f="warning">Check</button><button data-f="info">Note</button>
+        <button data-f="all" class="on">All</button><button data-f="blocker">Must fix</button><button data-f="review">Review</button><button data-f="warning">Check</button><button data-f="info">Note</button>
         <span class="spacer"></span>
         <label class="small">AI explains in <select id="lang"><option value="english">English</option><option value="hindi">Hindi</option><option value="marathi">Marathi</option></select></label>
       </div>
@@ -419,6 +421,7 @@
         </fieldset>
         <fieldset><legend>Signing for the business</legend><div id="sigRows"></div><button type="button" id="addSig">Add signatory</button></fieldset>
         <div class="final-why" id="finalWhy" hidden></div>
+        <p class="muted small">A final copy records that the preparer has completed the checks; it is not an audit report and LedgerCraft gives no assurance.</p>
         <fieldset><legend>Copy</legend>
           <label class="radio"><input type="radio" name="mode" value="draft" checked> Draft (marked DRAFT on every page)</label>
           <label class="radio"><input type="radio" name="mode" value="final" id="modeFinal"> Final signing copy</label>
@@ -429,7 +432,7 @@
             <label class="switch"><input type="checkbox" data-file="xlsx" checked> Excel of the statements</label>
             <label class="switch"><input type="checkbox" data-file="docx" checked> Word document (to edit wording)</label>
             <label class="switch"><input type="checkbox" data-file="auditor_workbook" checked> Auditor workbook (findings, loans, adjustments)</label>
-            <label class="switch"><input type="checkbox" data-file="tax_audit" checked> Tax audit helper (Form 3CD / Form 26 clauses)</label>
+            <label class="switch"><input type="checkbox" data-file="tax_audit" checked> Tax audit helper (Form 3CD clauses; Form 26 not yet mapped)</label>
             <label class="switch"><input type="checkbox" data-file="html" checked> Preview page (opens in a browser)</label>
             <label class="switch"><input type="checkbox" data-file="json"> Data file for other software</label>
           </div>
@@ -441,6 +444,40 @@
     </section>
 
     <!-- 8. Audit -->
+    <!-- Legal verification register -->
+    <section data-panel="legal" hidden>
+      <header class="screen-head">
+        <div><h1>Legal verification register</h1><p class="lead">Every legal item this client year relies on: format lines, checks with statutory content, section references, depreciation rows and the tax audit form. A person records each verification from the official text. LedgerCraft never marks anything verified by itself.</p></div>
+        <div class="actions"><button type="button" id="lgBack">Back to Sign and export</button></div>
+      </header>
+      <div class="guide" data-guide="legal"></div>
+      <div class="tiles" id="lgTiles"></div>
+      <div class="filters" role="group" aria-label="Filter items">
+        <button data-lf="open" class="on">Not verified</button><button data-lf="stale">Changed since verified</button><button data-lf="verified">Verified</button><button data-lf="all">All</button>
+        <span class="spacer"></span>
+        <label class="switch small"><input type="checkbox" id="lgTax" checked> Include tax audit items</label>
+      </div>
+      <div class="scroll"><table class="grid dense" id="lgTable"><thead><tr><th><input type="checkbox" id="lgAll" aria-label="Select all shown"></th><th>Item</th><th>As shipped</th><th>Status</th><th>Verification</th></tr></thead><tbody></tbody></table></div>
+      <form id="lgForm" class="opts wide mt">
+        <fieldset><legend>Record a verification for the selected items (<span id="lgSel">0</span>)</legend>
+          <p class="muted small">Compare each selected item with the official text first (click an item to see exactly what to compare). The record is tied to the item as it is now; if the item changes later, it shows as changed and must be verified again.</p>
+          <div class="cols">
+            <div class="field"><label for="lgAuth">Authority</label><input id="lgAuth" placeholder="e.g. Ministry of Corporate Affairs, CBDT, ICAI"></div>
+            <div class="field"><label for="lgDoc">Document title</label><input id="lgDoc" placeholder="e.g. Companies Act, 2013, Schedule III"></div>
+            <div class="field"><label for="lgProv">Provision / paragraph / table</label><input id="lgProv"></div>
+            <div class="field"><label for="lgSrc">Official source (URL or notification no.)</label><input id="lgSrc"></div>
+            <div class="field"><label for="lgFrom">Effective from</label><input id="lgFrom" type="date"></div>
+            <div class="field"><label for="lgUntil">Effective until (if any)</label><input id="lgUntil" type="date"></div>
+            <div class="field"><label for="lgOn">Verified on</label><input id="lgOn" type="date"></div>
+            <div class="field"><label for="lgBy">Verified by</label><input id="lgBy" placeholder="Name, membership no."></div>
+          </div>
+          <div class="field"><label for="lgNote">Note</label><input id="lgNote"></div>
+          <div class="actions"><button type="button" id="lgWithdraw" class="danger-ghost">Withdraw verification of selected</button><button type="submit" class="primary">Record verification</button></div>
+          <p class="status" id="lgStatus" role="status"></p>
+        </fieldset>
+      </form>
+    </section>
+
     <section data-panel="audit" hidden>
       <header class="screen-head">
         <div><h1>Audit trail</h1><p class="lead">Every import, change, adjustment and export is recorded in a tamper-evident log on this PC. It cannot be switched off.</p></div>

@@ -225,12 +225,84 @@ fn full_flow_through_the_app() {
         Some(json!({"options": o})),
     )
     .unwrap();
+    // Legal content is not verified: refused, with the count.
+    let err = c
+        .call(
+            "POST",
+            &format!("/api/projects/{pid}/export"),
+            Some(json!({"mode": "final"})),
+        )
+        .unwrap_err();
+    assert!(err.contains("legal content not verified (0 of"), "{err}");
+    let legal = c
+        .call("GET", &format!("/api/projects/{pid}/legal"), None)
+        .unwrap();
+    let ids: Vec<Value> = legal["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|i| i["id"].clone())
+        .collect();
+    assert!(ids.len() > 20 && legal["ready"] == json!(false));
+    // A record without its source and person is refused.
+    let err = c
+        .call(
+            "POST",
+            &format!("/api/projects/{pid}/legal/verify"),
+            Some(json!({"item_ids": ids, "verified_by": "CA Test"})),
+        )
+        .unwrap_err();
+    assert!(
+        err.contains("Missing") && err.contains("official source"),
+        "{err}"
+    );
+    let rec = json!({"item_ids": ids, "authority": "Test authority", "document_title": "Test document", "provision": "Test provision",
+        "official_source": "test-source", "verified_on": "2026-10-07", "verified_by": "CA Test"});
+    let r = c
+        .call(
+            "POST",
+            &format!("/api/projects/{pid}/legal/verify"),
+            Some(rec),
+        )
+        .unwrap();
+    assert_eq!(r["ready"], json!(true));
+    // Withdrawing one item makes the year not ready again; re-recording fixes it.
+    let one = json!({"item_ids": [ids[0].clone()], "verified_by": "CA Test", "note": "re-check"});
+    let r = c
+        .call(
+            "POST",
+            &format!("/api/projects/{pid}/legal/withdraw"),
+            Some(one),
+        )
+        .unwrap();
+    assert_eq!(r["ready"], json!(false));
+    c.call("POST", &format!("/api/projects/{pid}/legal/verify"), Some(json!({"item_ids": [ids[0].clone()], "authority": "A", "document_title": "D",
+        "provision": "P", "official_source": "S", "verified_on": "2026-10-07", "verified_by": "CA Test"}))).unwrap();
+    // Signing details are needed too.
+    let err = c
+        .call(
+            "POST",
+            &format!("/api/projects/{pid}/export"),
+            Some(json!({"mode": "final"})),
+        )
+        .unwrap_err();
+    assert!(err.contains("signing details"), "{err}");
+    c.call("POST", &format!("/api/projects/{pid}/settings"),
+        Some(json!({"signoff": {"udin": "26123456ABCDEF1234", "place": "Nagpur", "date": "07-10-2026", "signatories": [{"name": "A Partner", "designation": "Partner"}]}}))).unwrap();
     let ok = c.call(
         "POST",
         &format!("/api/projects/{pid}/export"),
         Some(json!({"mode": "final"})),
     );
     assert!(ok.is_ok(), "warnings only: final copy allowed: {ok:?}");
+    let audit = c
+        .call("GET", &format!("/api/projects/{pid}/audit"), None)
+        .unwrap()
+        .to_string();
+    assert!(
+        audit.contains("legal_verification_recorded")
+            && audit.contains("legal_verification_withdrawn")
+    );
     let ex = c
         .call(
             "POST",

@@ -122,7 +122,7 @@ pub fn run(ctx: &Ctx, f: &mut Findings) -> Vec<LoanRow> {
                                     rs(principal),
                                     rs(aggregate)
                                 ),
-                                Detail { ledger: Some(l.name.clone()), voucher: Some(v.key()), date: Some(v.date), amount: Some(a), suggestion: Some("Report in Form 3CD clause 31(a) with mode; check penalty exposure.".into()) },
+                                Detail { ledger: Some(l.name.clone()), voucher: Some(v.key()), date: Some(v.date), amount: Some(a), suggestion: None },
                             );
                         }
                         principal = aggregate;
@@ -144,7 +144,7 @@ pub fn run(ctx: &Ctx, f: &mut Findings) -> Vec<LoanRow> {
                                 "LOAN_REPAID_CASH",
                                 &format!("{} {}", v.key(), l.name),
                                 &format!("{}: {} repaid in cash to '{}'; balance (with interest) before repayment {}.", v.key(), rs(a), l.name, rs(total)),
-                                Detail { ledger: Some(l.name.clone()), voucher: Some(v.key()), date: Some(v.date), amount: Some(a), suggestion: Some("Report in Form 3CD clause 31(b); check penalty exposure.".into()) },
+                                Detail { ledger: Some(l.name.clone()), voucher: Some(v.key()), date: Some(v.date), amount: Some(a), suggestion: None },
                             );
                         }
                         principal = (principal - a).max(Money::ZERO);

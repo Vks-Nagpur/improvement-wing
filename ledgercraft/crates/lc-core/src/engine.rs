@@ -323,7 +323,11 @@ pub fn at_least(findings: &[Finding], s: Severity) -> impl Iterator<Item = &Find
 
 #[allow(dead_code)]
 fn _assert_severity_order() {
-    debug_assert!(Severity::Blocker < Severity::Warning && Severity::Warning < Severity::Info);
+    debug_assert!(
+        Severity::Blocker < Severity::Review
+            && Severity::Review < Severity::Warning
+            && Severity::Warning < Severity::Info
+    );
 }
 
 fn far_checks(

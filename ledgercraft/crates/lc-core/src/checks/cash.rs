@@ -88,8 +88,20 @@ pub fn run(ctx: &Ctx, f: &mut Findings) {
                             f.add(
                                 "CASH_PAYMENT_LIMIT",
                                 &format!("{} {}", v.key(), l.name),
-                                &format!("{}: {} paid in cash for '{}' (limit {}).", v.key(), rs(amt), l.name, rs(Money(limit))),
-                                Detail { ledger: Some(l.name.clone()), voucher: Some(v.key()), date: Some(v.date), amount: Some(amt), suggestion: Some("Check Rule 6DD exceptions; otherwise consider disallowance in tax computation.".into()) },
+                                &format!(
+                                    "{}: {} paid in cash for '{}' (limit {}).",
+                                    v.key(),
+                                    rs(amt),
+                                    l.name,
+                                    rs(Money(limit))
+                                ),
+                                Detail {
+                                    ledger: Some(l.name.clone()),
+                                    voucher: Some(v.key()),
+                                    date: Some(v.date),
+                                    amount: Some(amt),
+                                    suggestion: None,
+                                },
                             );
                         }
                     }
@@ -101,8 +113,19 @@ pub fn run(ctx: &Ctx, f: &mut Findings) {
                             f.add(
                                 "CASH_RECEIPT_LIMIT",
                                 &format!("{} {}", v.key(), l.name),
-                                &format!("{}: {} received in cash ('{}').", v.key(), rs(amt), l.name),
-                                Detail { ledger: Some(l.name.clone()), voucher: Some(v.key()), date: Some(v.date), amount: Some(amt), suggestion: Some("Identify the customer; receipt of ₹2 lakh or more in cash attracts penalty.".into()) },
+                                &format!(
+                                    "{}: {} received in cash ('{}').",
+                                    v.key(),
+                                    rs(amt),
+                                    l.name
+                                ),
+                                Detail {
+                                    ledger: Some(l.name.clone()),
+                                    voucher: Some(v.key()),
+                                    date: Some(v.date),
+                                    amount: Some(amt),
+                                    suggestion: None,
+                                },
                             );
                         }
                     } else {
@@ -122,8 +145,21 @@ pub fn run(ctx: &Ctx, f: &mut Findings) {
             f.add(
                 "CASH_PAYMENT_LIMIT",
                 &format!("{} {}", d.format("%d-%m-%Y"), l.name),
-                &format!("{} paid in cash to '{}' on {} (limit {}). Vouchers: {}.", rs(amt), l.name, d.format("%d-%m-%Y"), rs(Money(limit)), keys.join("; ")),
-                Detail { ledger: Some(l.name.clone()), voucher: Some(keys.join("; ")), date: Some(d), amount: Some(amt), suggestion: Some("Check Rule 6DD exceptions; otherwise consider disallowance in tax computation.".into()) },
+                &format!(
+                    "{} paid in cash to '{}' on {} (limit {}). Vouchers: {}.",
+                    rs(amt),
+                    l.name,
+                    d.format("%d-%m-%Y"),
+                    rs(Money(limit)),
+                    keys.join("; ")
+                ),
+                Detail {
+                    ledger: Some(l.name.clone()),
+                    voucher: Some(keys.join("; ")),
+                    date: Some(d),
+                    amount: Some(amt),
+                    suggestion: None,
+                },
             );
         }
     }
@@ -145,9 +181,7 @@ pub fn run(ctx: &Ctx, f: &mut Findings) {
                     voucher: Some(keys.join("; ")),
                     date: Some(d),
                     amount: Some(amt),
-                    suggestion: Some(
-                        "Exclude this amount from the asset's cost for tax depreciation.".into(),
-                    ),
+                    suggestion: None,
                 },
             );
         }
@@ -158,8 +192,20 @@ pub fn run(ctx: &Ctx, f: &mut Findings) {
             f.add(
                 "CASH_RECEIPT_LIMIT",
                 &format!("{} {}", d.format("%d-%m-%Y"), l.name),
-                &format!("{} received in cash from '{}' on {}. Vouchers: {}.", rs(amt), l.name, d.format("%d-%m-%Y"), keys.join("; ")),
-                Detail { ledger: Some(l.name.clone()), voucher: Some(keys.join("; ")), date: Some(d), amount: Some(amt), suggestion: Some("Receipt of ₹2 lakh or more in cash from a person in a day attracts penalty.".into()) },
+                &format!(
+                    "{} received in cash from '{}' on {}. Vouchers: {}.",
+                    rs(amt),
+                    l.name,
+                    d.format("%d-%m-%Y"),
+                    keys.join("; ")
+                ),
+                Detail {
+                    ledger: Some(l.name.clone()),
+                    voucher: Some(keys.join("; ")),
+                    date: Some(d),
+                    amount: Some(amt),
+                    suggestion: None,
+                },
             );
         }
     }

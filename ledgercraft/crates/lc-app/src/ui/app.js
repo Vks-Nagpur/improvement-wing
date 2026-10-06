@@ -112,7 +112,7 @@ function stepStatus() {
   const open = openDisclosures(st);
   mark("disclose", open ? `${open} section${open === 1 ? "" : "s"} not answered` : `All answered${nd ? `, ${nd} items` : ""}`, open ? "todo" : "ok");
   mark("analysis", a ? `${a.ratios.length} ratios, ${a.loans.length} loans` : "", a ? "ok" : "");
-  const fb = a ? a.summary.must_fix + (a.blockers || []).length : 0;
+  const fb = a ? a.summary.must_fix + (a.blockers || []).length + (a.legal && a.legal.statements && !a.legal.statements.ready ? 1 : 0) : 0;
   mark("export", a ? (fb ? "Draft only" : "Ready to sign") : "", a && !fb ? "ok" : "");
 }
 // Disclosure sections still to be answered (never assumed nil).
@@ -215,6 +215,7 @@ function show(view) {
   if (view === "present") loadPresent();
   if (view === "export") loadSign();
   if (view === "audit") loadAudit();
+  if (view === "legal") loadLegal().catch(e => toast(e.message, true));
   if (view === "adjust") loadAdjustments();
   if (view === "disclose") loadDisclosures();
   if (view === "bank") loadBank();
@@ -527,7 +528,7 @@ $("#tImport").addEventListener("click", async () => {
 });
 
 // ---- 3. check -------------------------------------------------------------
-const SEV = { blocker: "Must fix", warning: "Check", info: "Note" };
+const SEV = { blocker: "Must fix", review: "Review", warning: "Check", info: "Note" };
 // Rule and format packs pinned to this year (TRUTH-MODEL §8).
 async function loadRules() {
   if (!state.id) return;
@@ -562,11 +563,24 @@ $$(".filters [data-f]").forEach(b => b.addEventListener("click", () => { state.c
 $("#expert").checked = store.get("expert", false);
 $("#expert").addEventListener("change", () => { store.set("expert", $("#expert").checked); if (state.analysis) renderCheck(); });
 
+// Why a rule fired: how it was detected, what LedgerCraft cannot know,
+// possible exceptions, the reference and its verification status.
+function whyFired(f) {
+  const rows = [];
+  if (f.detection_basis) rows.push(`<p><b>How it was detected:</b> ${esc(f.detection_basis)}</p>`);
+  if ((f.unknown_facts || []).length) rows.push(`<p><b>Not known to LedgerCraft (you decide):</b></p><ul>${f.unknown_facts.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`);
+  if ((f.possible_exceptions || []).length) rows.push(`<p><b>Possible exceptions:</b></p><ul>${f.possible_exceptions.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`);
+  if (f.legal_ref) rows.push(`<p><b>Reference:</b> ${esc(f.legal_ref)}${f.verification_status ? ` <span class="badge ${f.verification_status === "verified" ? "okb" : f.verification_status === "not verified" ? "warning" : "info"}">${esc(f.verification_status)}</span>` : ""}</p>`);
+  rows.push(`<p><b>Blocks a final copy:</b> ${f.blocks_final ? "yes" : "no"}${f.professional_review_required ? " · needs your professional judgement" : ""}</p>`);
+  if (!f.detection_basis && !f.legal_ref && !expert()) return "";
+  return `<details class="why"><summary>Why this was flagged</summary>${rows.join("")}</details>`;
+}
 function renderCheck() {
   const a = state.analysis; if (!a) return;
   const s = a.summary;
   $("#tiles").innerHTML = `
     <div class="tile ${s.must_fix ? "blocker" : ""}"><div class="k">Must fix</div><div class="v">${s.must_fix}</div></div>
+    <div class="tile ${s.review ? "review" : ""}"><div class="k">Review (your judgement)</div><div class="v">${s.review || 0}</div></div>
     <div class="tile ${s.check ? "warning" : ""}"><div class="k">Check</div><div class="v">${s.check}</div></div>
     <div class="tile"><div class="k">Notes</div><div class="v">${s.notes}</div></div>
     <div class="tile"><div class="k">Profit / (loss)</div><div class="v money">${esc(s.profit)}</div></div>
@@ -584,7 +598,7 @@ function renderCheck() {
       <span class="fa">${f.ledger ? '<button class="small" type="button" data-a="map">Map this ledger</button>' : f.code.startsWith("MAPPING_") ? '<button class="small primary" type="button" data-a="maps">Open Map ledgers</button>' : ""}<button class="small" type="button" data-a="ai">Explain</button></span>
       <div class="m">${esc(f.message)}</div>
       ${f.suggestion ? `<div class="s"><b>What to do:</b> ${esc(f.suggestion)}</div>` : ""}
-      ${expert() && f.legal_ref ? `<div class="ref">Reference: ${esc(f.legal_ref)}</div>` : ""}`;
+      ${whyFired(f)}`;
     li.querySelector('[data-a="maps"]')?.addEventListener("click", () => { $("#mapSearch").value = ""; $("#mapAttention").checked = true; show("map"); renderMap(); });
     li.querySelector('[data-a="map"]')?.addEventListener("click", () => {
       $("#mapSearch").value = f.ledger; $("#mapAttention").checked = false; show("map"); renderMap();
@@ -960,6 +974,7 @@ function bento(a, KPIS, delta) {
     ["Must-fix problems", a.summary.must_fix, "check"],
     ["Placements to confirm", pend, "map"],
     ["Disclosures to answer", st ? openDisclosures(st) : 0, "disclose"],
+    ["Legal items to verify", a.legal && a.legal.statements ? a.legal.statements.applicable - a.legal.statements.verified : 0, "legal"],
   ];
   const done = items.filter(x => !x[1]).length, C = 213.6;
   h += tile("ready", `<p class="tk">Final copy</p><div class="ring-row"><svg class="ring" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="34" class="ring-bg"/><circle cx="40" cy="40" r="34" class="ring-fg" style="--off:${(C * (1 - done / items.length)).toFixed(1)}"/></svg><div><p class="tv">${done === items.length ? "Ready to sign" : `${items.length - done} of ${items.length} open`}</p><p class="muted small">${done === items.length ? "Nothing blocks a final copy." : "A draft can be printed now."}</p></div></div><ul class="ready-list">${items.map(([l, n, v]) => `<li class="${n ? "open" : "ok"}"><span>${n ? "●" : "✓"}</span><span>${l}</span><b>${n || ""}</b>${n ? `<button type="button" class="small" data-go="${v}">Open</button>` : ""}</li>`).join("")}</ul>`);
@@ -1340,12 +1355,16 @@ async function loadSign() {
   if (files) $$("[data-file]").forEach(c => (c.checked = files[c.dataset.file] ?? c.checked));
   if (!state.analysis) { try { state.analysis = await api("POST", `/api/projects/${pid()}/analyse`); } catch {} }
   const a = state.analysis;
+  let legal = null;
+  try { legal = await api("GET", `/api/projects/${pid()}/legal?tax_audit=${$('[data-file="tax_audit"]').checked ? 1 : 0}`); } catch {}
   const reasons = a ? [...(a.summary.must_fix ? [`${a.summary.must_fix} "Must fix" item(s) on the Check screen`] : []), ...(a.blockers || [])] : [];
+  if (legal && !legal.ready) reasons.push(`Legal content: ${legal.verified} of ${legal.applicable} items verified${legal.stale ? ` (${legal.stale} changed since verification)` : ""}. Record verifications in the Legal verification register.`);
   const blocked = reasons.length > 0;
   $("#modeFinal").disabled = blocked;
   if (blocked) $$('input[name=mode]').forEach(r => (r.checked = r.value === "draft"));
   $("#finalWhy").hidden = !blocked;
-  $("#finalWhy").innerHTML = blocked ? `<p class="k">Final copy is locked until these are done. A draft can be exported now.</p><ul>${reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : "";
+  $("#finalWhy").innerHTML = blocked ? `<p class="k">Final copy is locked until these are done. A draft can be exported now.</p><ul>${reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>${legal && !legal.ready ? '<button type="button" class="small" id="goLegal">Open Legal verification register</button>' : ""}` : "";
+  $("#goLegal")?.addEventListener("click", () => show("legal"));
   setStatus($("#eStatus"), "");
   form.inert = false; form.removeAttribute("aria-busy"); form.dataset.ready = "1";
   renderNext();
@@ -1375,6 +1394,69 @@ $("#signForm").addEventListener("submit", async e => {
   } catch (err) { setStatus($("#eStatus"), err.message, true); }
 });
 
+// ---- legal verification register --------------------------------------------
+state.lgFilter = "open";
+async function loadLegal() {
+  if (!pid()) return;
+  const r = await api("GET", `/api/projects/${pid()}/legal?tax_audit=${$("#lgTax").checked ? 1 : 0}`);
+  state.legal = r;
+  $("#lgTiles").innerHTML = `
+    <div class="tile ${r.ready ? "ok" : "warning"}"><div class="k">Final copy</div><div class="v sm">${r.ready ? "Legal content verified" : "Locked: legal content not verified"}</div></div>
+    <div class="tile"><div class="k">Items for this client year</div><div class="v">${r.applicable}</div></div>
+    <div class="tile"><div class="k">Verified</div><div class="v">${r.verified}</div></div>
+    <div class="tile ${r.stale ? "warning" : ""}"><div class="k">Changed since verified</div><div class="v">${r.stale}</div></div>
+    <div class="tile ${r.pending ? "warning" : ""}"><div class="k">Not verified</div><div class="v">${r.pending}</div></div>`;
+  renderLegal();
+}
+function renderLegal() {
+  const r = state.legal; if (!r) return;
+  const f = state.lgFilter;
+  const order = [...new Set(r.items.map(x => x.group))];
+  const shown = r.items.filter(x => f === "all" || (f === "open" ? x.status === "pending" : x.status === f))
+    .map((x, i) => [x, i]).sort((p, q) => order.indexOf(p[0].group) - order.indexOf(q[0].group) || p[1] - q[1]).map(p => p[0]);
+  const tb = $("#lgTable tbody"); tb.innerHTML = "";
+  let group = null;
+  for (const x of shown) {
+    if (x.group !== group) { group = x.group; const g = document.createElement("tr"); g.className = "sub"; g.innerHTML = `<td colspan="5"><b>${esc(group)}</b></td>`; tb.appendChild(g); }
+    const tr = document.createElement("tr");
+    const v = x.verification;
+    tr.innerHTML = `<td><input type="checkbox" data-id="${esc(x.id)}" aria-label="Select"></td>
+      <td><button type="button" class="linkish">${esc(x.title)}</button><div class="muted small">${esc(x.id)}</div><pre class="lg-content" hidden>${esc(x.content || "(no content)")}</pre></td>
+      <td class="muted small">${esc(x.shipped_status || "")}</td>
+      <td><span class="badge ${x.status === "verified" ? "okb" : x.status === "stale" ? "blocker" : "warning"}">${x.status === "verified" ? "Verified" : x.status === "stale" ? "Changed since verified" : "Not verified"}</span></td>
+      <td class="small">${v ? `${esc(v.verified_by)}, ${esc(v.verified_on)}<div class="muted">${esc(v.document_title)} · ${esc(v.provision)} · ${esc(v.official_source)}</div>` : '<span class="muted">-</span>'}</td>`;
+    tr.querySelector(".linkish").addEventListener("click", () => { const c = tr.querySelector(".lg-content"); c.hidden = !c.hidden; });
+    tb.appendChild(tr);
+  }
+  if (!shown.length) tb.innerHTML = `<tr><td colspan="5" class="empty">Nothing in this filter.</td></tr>`;
+  $$("#lgTable input[data-id]").forEach(c => c.addEventListener("change", lgCount));
+  $("#lgAll").checked = false; lgCount();
+}
+function lgSelected() { return $$("#lgTable input[data-id]:checked").map(c => c.dataset.id); }
+function lgCount() { $("#lgSel").textContent = lgSelected().length; }
+$("#lgAll").addEventListener("change", () => { $$("#lgTable input[data-id]").forEach(c => (c.checked = $("#lgAll").checked)); lgCount(); });
+$$("[data-lf]").forEach(b => b.addEventListener("click", () => { state.lgFilter = b.dataset.lf; $$("[data-lf]").forEach(x => x.classList.toggle("on", x === b)); renderLegal(); }));
+$("#lgTax").addEventListener("change", loadLegal);
+$("#lgBack").addEventListener("click", () => show("export"));
+$("#openLegal").addEventListener("click", () => { $("#helpMenu").hidePopover?.(); if (pid()) show("legal"); else toast("Open a client year first.", true); });
+$("#lgForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const ids = lgSelected();
+  if (!ids.length) return setStatus($("#lgStatus"), "Select at least one item.", true);
+  const body = { item_ids: ids, authority: $("#lgAuth").value.trim(), document_title: $("#lgDoc").value.trim(), provision: $("#lgProv").value.trim(), official_source: $("#lgSrc").value.trim(),
+    effective_from: $("#lgFrom").value, effective_until: $("#lgUntil").value, verified_on: $("#lgOn").value, verified_by: $("#lgBy").value.trim(), note: $("#lgNote").value.trim() };
+  setStatus($("#lgStatus"), "Saving...");
+  try { state.legal = await api("POST", `/api/projects/${pid()}/legal/verify`, body); state.analysis = null; setStatus($("#lgStatus"), `Recorded for ${ids.length} item(s).`); loadLegal(); }
+  catch (err) { setStatus($("#lgStatus"), err.message, true); }
+});
+$("#lgWithdraw").addEventListener("click", async () => {
+  const ids = lgSelected();
+  if (!ids.length) return setStatus($("#lgStatus"), "Select at least one item.", true);
+  if (!$("#lgBy").value.trim()) return setStatus($("#lgStatus"), "Fill 'Verified by' with who is withdrawing.", true);
+  try { await api("POST", `/api/projects/${pid()}/legal/withdraw`, { item_ids: ids, verified_by: $("#lgBy").value.trim(), note: $("#lgNote").value.trim() }); state.analysis = null; setStatus($("#lgStatus"), `Withdrawn for ${ids.length} item(s).`); loadLegal(); }
+  catch (err) { setStatus($("#lgStatus"), err.message, true); }
+});
+
 // ---- 8. audit ---------------------------------------------------------------
 const short = h => (h ? String(h).slice(0, 10) + "..." : "");
 const amt = p => `₹${rupees(Math.abs(p))} ${p >= 0 ? "Dr" : "Cr"}`;
@@ -1387,7 +1469,7 @@ function describe(e) {
     case "file_imported": return `${d.original_name}: ${d.contents} (fingerprint ${short(d.sha256)})`;
     case "file_removed": return `Stopped using ${d.file} (${d.kind})`;
     case "tally_import": return `From Tally company "${d.company}": ${d.ledgers} ledgers, ${d.vouchers} vouchers${d.previous_year ? ", last year's balances" : ""}`;
-    case "checks_run": return `Must fix ${d.must_fix}, Check ${d.check}, Notes ${d.notes} (rules ${d.rules_version})`;
+    case "checks_run": return `Must fix ${d.must_fix}${d.review != null ? `, Review ${d.review}` : ""}, Check ${d.check}, Notes ${d.notes} (rules ${d.rules_version})`;
     case "mapping_changed": {
       const lbl = id => (state.heads.find(h => h.id === id) || {}).label || id;
       return `${d.ledger}: ${d.from ? lbl(d.from) : "automatic"} to ${d.to ? lbl(d.to) : "automatic"}${d.ai_suggested ? " (AI suggestion accepted)" : ""}`;
@@ -1397,6 +1479,8 @@ function describe(e) {
     case "rules_migrated": return `Moved from rule pack ${d.rules_from} to ${d.rules_to}; ${(d.rule_changes || []).length} rule(s) changed${d.format_changed ? ", format changed" : ""}`;
     case "rolled_forward": return `Started from FY ${d.from_fy}: ${d.previous_year_ledgers} ledgers as last year's figures (${d.adjustments_included} adjustment(s) included), ${d.fixed_assets} fixed assets carried forward`;
     case "next_year_started": return `Next year FY ${d.fy} started from this year`;
+    case "legal_verification_recorded": return `Legal verification recorded by ${d.verified_by} on ${d.verified_on} for ${(d.items || []).length} item(s) (source: ${d.official_source})`;
+    case "legal_verification_withdrawn": return `Legal verification withdrawn by ${d.verified_by} for ${(d.items || []).length} item(s)`;
     case "branch_added": return `Branch ${d.branch} added`;
     case "branch_removed": return `Branch ${d.branch} removed`;
     case "tags_changed": return `${d.ledger}: tags ${(d.to || []).join(", ") || "removed"}`;

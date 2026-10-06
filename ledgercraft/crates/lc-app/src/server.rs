@@ -222,6 +222,9 @@ impl App {
             ("GET", ["api", "projects", id, "portal"]) => self.portal_recons(id).map(|(g, t)| json!({"gst": g, "tds": t})),
             ("GET", ["api", "projects", id, "bankrec"]) => self.bank_recs(id).map(|(ledgers, recs)| json!({"ledgers": ledgers, "recs": recs})),
             ("GET", ["api", "projects", id, "rules"]) => self.rules_info(id),
+            ("GET", ["api", "projects", id, "legal"]) => self.legal(id, q.get("tax_audit").map(|v| v != "0").unwrap_or(true)).map(|r| json!(r)),
+            ("POST", ["api", "projects", id, "legal", "verify"]) => self.legal_record(id, &json_body(), false),
+            ("POST", ["api", "projects", id, "legal", "withdraw"]) => self.legal_record(id, &json_body(), true),
             ("POST", ["api", "projects", id, "rules", "migrate"]) => {
                 self.invalidate(id);
                 self.store.project(id).and_then(|p| p.migrate_pins())
@@ -295,6 +298,73 @@ impl App {
         let p = self.store.project(id)?;
         let st = p.load_settings()?;
         Ok(json!({"id": id, "settings": st, "audit": p.verify_audit()}))
+    }
+
+    /// Legal content readiness of a client year for the chosen output.
+    fn legal(&self, id: &str, tax_audit: bool) -> Result<lc_core::legal::Readiness, String> {
+        let p = self.store.project(id)?;
+        let eng = p.engagement()?;
+        let items = lc_core::legal::applicable(
+            &eng,
+            &p.rules_pack()?,
+            &lc_core::statements::FormatPack::of(&eng),
+            &lc_core::far::DepPack::builtin(),
+            lc_core::legal::Scope {
+                tax_audit,
+                depreciation: eng.far.is_some(),
+            },
+        );
+        Ok(lc_core::legal::readiness(
+            items,
+            &self.store.legal_records(),
+        ))
+    }
+
+    /// Record (or withdraw) verifications for items of this client year. The
+    /// hash is taken from the item as it is now, never from the browser.
+    fn legal_record(&self, id: &str, b: &Value, revoke: bool) -> Result<Value, String> {
+        let r = self.legal(id, true)?;
+        let ids: Vec<String> = b
+            .get("item_ids")
+            .and_then(|x| x.as_array())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default();
+        if ids.is_empty() {
+            return Err("Choose at least one item.".into());
+        }
+        let mut recs = Vec::new();
+        for item_id in &ids {
+            let it = r
+                .items
+                .iter()
+                .find(|x| &x.item.id == item_id)
+                .ok_or_else(|| format!("Unknown item: {item_id}"))?;
+            recs.push(lc_core::legal::Verification {
+                item_id: item_id.clone(),
+                content_hash: it.item.hash.clone(),
+                authority: s(b, "authority"),
+                document_title: s(b, "document_title"),
+                provision: s(b, "provision"),
+                official_source: s(b, "official_source"),
+                effective_from: s(b, "effective_from"),
+                effective_until: s(b, "effective_until"),
+                verified_on: s(b, "verified_on"),
+                verified_by: s(b, "verified_by"),
+                note: s(b, "note"),
+                revoked: revoke,
+                ..Default::default()
+            });
+        }
+        self.store.add_legal_records(recs)?;
+        let p = self.store.project(id)?;
+        p.log("user", if revoke { "legal_verification_withdrawn" } else { "legal_verification_recorded" }, json!({"items": ids, "verified_by": s(b, "verified_by"), "official_source": s(b, "official_source"), "verified_on": s(b, "verified_on")}))?;
+        // Every client's references may change: drop all cached analyses.
+        self.cache.lock().unwrap().clear();
+        self.legal(id, true).map(|r| json!(r))
     }
 
     fn invalidate(&self, id: &str) {
@@ -547,7 +617,11 @@ impl App {
         if let Some(a) = self.cache.lock().unwrap().get(id) {
             return Ok((eng, a.clone()));
         }
-        let a = lc_core::analyse(&eng, &p.rules_pack()?);
+        let mut pack = p.rules_pack()?;
+        if let Ok(r) = self.legal(id, true) {
+            pack.verified = lc_core::legal::verified_ids(&r);
+        }
+        let a = lc_core::analyse(&eng, &pack);
         self.cache.lock().unwrap().insert(id.to_string(), a.clone());
         Ok((eng, a))
     }
@@ -579,7 +653,7 @@ impl App {
                 })
             })
             .collect();
-        let run = json!({"must_fix": a.count(Severity::Blocker), "check": a.count(Severity::Warning), "notes": a.count(Severity::Info), "rules_version": a.rules_version});
+        let run = json!({"must_fix": a.count(Severity::Blocker), "review": a.count(Severity::Review), "check": a.count(Severity::Warning), "notes": a.count(Severity::Info), "rules_version": a.rules_version});
         // Record a run only when its result differs from the last recorded one.
         if p.audit()
             .iter()
@@ -605,7 +679,7 @@ impl App {
             "summary": {
                 "entity": eng.entity_name, "entity_type": eng.entity_type.label(), "fy": st.fy,
                 "ledgers": eng.cy.ledgers.len(), "vouchers": eng.vouchers.len(), "has_previous_year": eng.py.is_some(), "has_far": eng.far.is_some(), "units": eng.consolidation.as_ref().map(|c| c.units.clone()).unwrap_or_default(),
-                "must_fix": a.count(Severity::Blocker), "check": a.count(Severity::Warning), "notes": a.count(Severity::Info),
+                "must_fix": a.count(Severity::Blocker), "review": a.count(Severity::Review), "check": a.count(Severity::Warning), "notes": a.count(Severity::Info),
                 "profit": a.facts_cy.profit().fmt_indian(), "total_assets": a.facts_cy.total_assets().fmt_indian(), "printable": a.printable,
             },
             "findings": a.findings,
@@ -621,6 +695,10 @@ impl App {
             }))).collect::<Vec<_>>(),
             "warnings": rep.warnings,
             "blockers": rep.blockers,
+            "legal": {
+                "statements": self.legal(id, false).map(|r| json!({"ready": r.ready, "applicable": r.applicable, "verified": r.verified, "pending": r.pending, "stale": r.stale})).unwrap_or(Value::Null),
+                "with_tax_audit": self.legal(id, true).map(|r| json!({"ready": r.ready, "applicable": r.applicable, "verified": r.verified, "pending": r.pending, "stale": r.stale})).unwrap_or(Value::Null),
+            },
         }))
     }
 
@@ -1065,6 +1143,7 @@ impl App {
                     .portal_recons(id)
                     .map(|(g, t)| g.into_iter().chain(t).collect())
                     .unwrap_or_default(),
+                legal: Some(self.legal(id, want("tax_audit"))?),
             };
             if !(o.pdf
                 || o.statements_xlsx

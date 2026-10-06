@@ -44,6 +44,9 @@ pub struct ExportOptions {
     pub bank_recs: Vec<lc_core::bankrec::Reconciliation>,
     /// GSTR-2B and Form 26AS reconciliations.
     pub portal_recons: Vec<lc_core::recon::Recon>,
+    /// Legal content readiness for this output (TRUTH-MODEL.md §7). A final
+    /// copy is refused unless it is assessed and every applicable item is verified.
+    pub legal: Option<lc_core::legal::Readiness>,
 }
 
 impl Default for ExportOptions {
@@ -62,6 +65,7 @@ impl Default for ExportOptions {
             adjustment_effects: Vec::new(),
             bank_recs: Vec::new(),
             portal_recons: Vec::new(),
+            legal: None,
         }
     }
 }
@@ -107,6 +111,45 @@ pub fn report(eng: &Engagement, a: &Analysis, signoff: &SignOff, opt: &ExportOpt
     lc_core::report::build(eng, a, &ro, signoff)
 }
 
+/// A final copy needs every applicable legal item verified by a person.
+pub fn legal_gate(r: &Option<lc_core::legal::Readiness>) -> Result<(), String> {
+    match r {
+        Some(r) if r.ready => Ok(()),
+        Some(r) => Err(format!(
+            "Final copy refused: legal content not verified ({} of {} applicable items verified, {} pending, {} changed since they were verified). Record the verifications in the Legal verification register, or export a draft.",
+            r.verified, r.applicable, r.pending, r.stale
+        )),
+        None => Err("Final copy refused: legal content readiness was not assessed.".into()),
+    }
+}
+
+/// A final copy needs the signing details: a signatory, place and date.
+pub fn signoff_gate(s: &SignOff) -> Result<(), String> {
+    let mut miss = Vec::new();
+    if !s.signatories.iter().any(|x| !x.name.trim().is_empty()) {
+        miss.push("at least one signatory");
+    }
+    if s.place.trim().is_empty() {
+        miss.push("place");
+    }
+    if s.date.trim().is_empty() {
+        miss.push("date");
+    }
+    if !s.auditor_firm.trim().is_empty()
+        && (s.auditor_partner.trim().is_empty() || s.membership_no.trim().is_empty())
+    {
+        miss.push("auditor's partner name and membership number");
+    }
+    if miss.is_empty() {
+        Ok(())
+    } else {
+        Err(format!(
+            "Final copy refused: fill the signing details ({}).",
+            miss.join(", ")
+        ))
+    }
+}
+
 /// Export to `<root>/<entity>/FY <yyyy-yy>/<Draft|Final>-<date>_v<n>/`.
 pub fn export(
     root: &Path,
@@ -119,9 +162,27 @@ pub fn export(
         let n = a.count(Severity::Blocker);
         return Err(format!("Signing copy refused: {n} item(s) marked 'Must fix' are still open. Export as draft or fix them first."));
     }
-    let rep = report(eng, a, signoff, opt);
+    let mut rep = report(eng, a, signoff, opt);
     if opt.mode == Mode::Signing && !rep.blockers.is_empty() {
         return Err(format!("Final copy refused: {}", rep.blockers.join(" ")));
+    }
+    if opt.mode == Mode::Signing {
+        legal_gate(&opt.legal)?;
+        signoff_gate(signoff)?;
+    } else if !opt.legal.as_ref().map(|r| r.ready).unwrap_or(false) {
+        // Drafts always say that the legal content is not verified.
+        let n = match &opt.legal {
+            Some(r) => format!(
+                "legal content not verified ({} of {} items verified)",
+                r.verified, r.applicable
+            ),
+            None => "legal content not verified".to_string(),
+        };
+        rep.meta.draft_note = if rep.meta.draft_note.is_empty() {
+            n
+        } else {
+            format!("{}; {n}", rep.meta.draft_note)
+        };
     }
     let fy = lc_core::date::fy_label(eng.fy_start);
     let base = root.join(safe(&eng.entity_name)).join(format!("FY {fy}"));
@@ -456,9 +517,9 @@ fn write_auditor_workbook(
         let ws = x(wb.add_worksheet().set_name("Loan register"))?;
         let new_act = eng.fy_start >= chrono::NaiveDate::from_ymd_opt(2026, 4, 1).unwrap();
         let title = if new_act {
-            "Loans and deposits taken – helper for Form 26 (ss.185 and 188 of the Income-tax Act, 2025; amounts owed shown positive)"
+            "Loans and deposits taken (principal only; amounts owed shown positive). Tax audit (Form 26): clause not yet mapped; statutory references pending primary-source verification."
         } else {
-            "Loans and deposits taken – helper for Form 3CD clause 31 (ss.269SS and 269T; amounts owed shown positive)"
+            "Loans and deposits taken (principal only; amounts owed shown positive). Helper for Form 3CD clause 31 (ss.269SS and 269T, Income-tax Act, 1961) [references not yet verified against the official text]"
         };
         x(ws.write_string_with_format(0, 0, title, &f.title))?;
         let heads = [

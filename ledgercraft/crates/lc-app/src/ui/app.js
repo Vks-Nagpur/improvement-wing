@@ -648,7 +648,7 @@ async function renderMap() {
   const rule = a.mapping.filter(m => m.status === "rule").length, conf = a.mapping.filter(m => m.status === "confirmed").length, un = a.mapping.filter(m => !m.head).length;
   $("#mapSummary").innerHTML = `<span class="badge okb">${conf} confirmed by you</span> <span class="badge info">${rule} certain by group</span> <span class="badge warning">${pend} waiting for your confirmation</span>${un ? ` <span class="badge blocker">${un} not placed</span>` : ""}`;
   $("#mapConfirmAll").disabled = !pend;
-  if (!rows.length) tb.innerHTML = `<tr><td colspan="7" class="empty">${only ? "Nothing needs attention. Untick the box to see every ledger." : "No ledger matches."}</td></tr>`;
+  if (!rows.length) tb.innerHTML = `<tr><td colspan="8" class="empty">${only ? "Nothing needs attention. Untick the box to see every ledger." : "No ledger matches."}</td></tr>`;
   const LIMIT = state.mapLimit || 300;
   for (const m of rows.slice(0, LIMIT)) {
     const tr = document.createElement("tr");
@@ -658,7 +658,7 @@ async function renderMap() {
     const mine = m.source === "memory";
     tr.innerHTML = `<td>${needsAttention(m) ? '<span class="needs" aria-hidden="true"></span>' : ""}${esc(m.name)}${why.length ? `<div class="src">${esc(why.join("; "))}</div>` : ""}</td>
       <td>${esc(m.group)}${m.standard_group ? "" : ' <span class="badge blocker">group not recognised</span>'}</td>
-      <td class="num">${esc(m.amount)}</td>
+      <td class="num">${esc(m.amount)}</td><td class="num muted">${m.py ? esc(m.py) : m.new_this_year ? '<span class="badge">new</span>' : "-"}</td>
       <td><select class="head" aria-label="Shown under for ${esc(m.name)}">${m.head ? "" : '<option value="" selected>Not placed: choose a line</option>'}${opts}</select>
 </td>
       <td><span class="badge ${STATUS[m.status]?.[1] || ""}">${STATUS[m.status]?.[0] || ""}</span><div class="src">${esc(m.status_reason || "")}</div></td>
@@ -896,20 +896,64 @@ const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)")
 // This year against last year as two thin bars (shared scale).
 function pair(c, p) {
   const top = Math.max(Math.abs(c || 0), Math.abs(p || 0)) || 1;
-  const bar = (v, cls, l) => `<span class="mb-row"><span class="mb-l">${l}</span><span class="mb-t"><i class="${cls}" style="--w:${(Math.abs(v || 0) / top).toFixed(3)}"></i></span></span>`;
+  const bar = (v, cls, l) => `<span class="mb-row"><span class="mb-l">${l}</span><span class="mb-t"><i class="${cls}" style="--w:${(Math.abs(v || 0) / top).toFixed(3)}"></i></span><span class="mb-v">${esc(compactRs(v || 0))}</span></span>`;
   return `<div class="mbar">${bar(c, "cy", "This year")}${p == null ? "" : bar(p, "py", "Last year")}</div>`;
+}
+// "▲ ₹1.20 Cr (+25.3%) on last year": direction only, no judgement (neutral ink).
+function vsLy(c, p) {
+  if (p == null) return '<span class="kd muted">No last year figures</span>';
+  const d = (c || 0) - p;
+  if (!d) return '<span class="kd">Same as last year</span>';
+  const pc = p ? ` (${d > 0 ? "+" : "-"}${Math.abs((d / Math.abs(p)) * 100).toFixed(1)}%)` : " (new)";
+  return `<span class="kd">${d > 0 ? "▲" : "▼"} ${esc(compactRs(Math.abs(d)))}${pc} on last year</span>`;
+}
+// Facts that call for a decision or an explanation, from this year against last year.
+function pointsToLook(a) {
+  const c = a.key.cy, p = a.key.py;
+  if (!p) return null;
+  const gr = k => (p[k] ? ((c[k] - p[k]) / Math.abs(p[k])) * 100 : null);
+  const mat = 0.005 * Math.max(Math.abs(c.revenue || 0), Math.abs(c.total_assets || 0));
+  const big = k => Math.abs((c[k] || 0) - (p[k] || 0)) >= mat;
+  const f = x => `${Math.abs(x).toFixed(1)}%`;
+  const out = [];
+  const add = (dir, text, go) => out.push({ dir, text, go });
+  if (p.profit > 0 && c.profit < 0) add("down", `Profit of ${compactRs(p.profit)} last year turned into a loss of ${compactRs(-c.profit)}.`);
+  else if (gr("profit") != null && Math.abs(gr("profit")) >= 25 && big("profit")) add(c.profit > p.profit ? "up" : "down", `Profit ${c.profit > p.profit ? "rose" : "fell"} ${f(gr("profit"))}: ${compactRs(p.profit)} to ${compactRs(c.profit)}.`);
+  if (c.revenue && p.revenue) {
+    const mc = (c.profit / c.revenue) * 100, mp = (p.profit / p.revenue) * 100;
+    if (Math.abs(mc - mp) >= 2) add(mc > mp ? "up" : "down", `Profit margin moved from ${mp.toFixed(1)}% to ${mc.toFixed(1)}% of revenue.`);
+  }
+  if (gr("revenue") != null && Math.abs(gr("revenue")) >= 25) add(gr("revenue") > 0 ? "up" : "down", `Revenue ${gr("revenue") > 0 ? "rose" : "fell"} ${f(gr("revenue"))}: ${compactRs(p.revenue)} to ${compactRs(c.revenue)}.`);
+  const faster = (k, label, tail, go) => {
+    const g = gr(k), r = gr("revenue");
+    if (g != null && r != null && g - r >= 15 && big(k)) add("up", `${label} grew faster than revenue (${g >= 0 ? "+" : "-"}${f(g)} against ${r >= 0 ? "+" : "-"}${f(r)}): ${tail}`, go);
+  };
+  faster("receivables", "Debtors", "more of the year's sales is still to be collected. See the ageing.", "analysis");
+  faster("inventories", "Stock", "stock held is higher for the level of sales.");
+  faster("payables", "Creditors", "more of the year's purchases is still unpaid.");
+  faster("employee", "Employee costs", "they take a larger share of revenue.");
+  for (const [k, l] of [["borrowings", "Borrowings"], ["finance_costs", "Interest and finance costs"], ["cash_bank", "Cash and bank"]]) {
+    const g = gr(k);
+    if (g != null && Math.abs(g) >= 25 && big(k)) add(g > 0 ? "up" : "down", `${l} ${g > 0 ? "rose" : "fell"} ${f(g)}: ${compactRs(p[k])} to ${compactRs(c[k])}.`);
+    else if (!p[k] && c[k] && big(k)) add("up", `${l} of ${compactRs(c[k])} this year; none last year.`);
+  }
+  const fl = a.ratios.filter(r => r.needs_explanation).length;
+  if (fl) add("flat", `${fl} ratio${fl === 1 ? "" : "s"} moved by more than 25%${state.settings?.entity_type === "company" ? "; Schedule III asks for the reason in the notes" : "; worth explaining the reason"}.`);
+  return out;
 }
 function bento(a, KPIS, delta) {
   const st = state.settings, cy = a.key.cy, py = a.key.py;
   let i = 0;
   const tile = (cls, body) => `<section class="tile ${cls}" style="--i:${i++}">${body}</section>`;
-  const fig = (k, label, cls) => tile(`kpi-t ${cls || ""}`, `<p class="tk">${label}</p><p class="tv" data-count="${cy[k] || 0}">${esc(compactRs(cy[k]))}</p>${delta(cy[k], py && py[k])}${pair(cy[k], py ? py[k] : null)}`);
+  const fig = (k, label, cls) => tile(`kpi-t ${cls || ""}`, `<p class="tk">${label}</p><p class="tv" data-count="${cy[k] || 0}">${esc(compactRs(cy[k]))}</p>${vsLy(cy[k], py ? py[k] : null)}${pair(cy[k], py ? py[k] : null)}`);
   // Profit, the headline.
   const margin = cy.revenue ? ((cy.profit / cy.revenue) * 100).toFixed(1) + "% of revenue" : "";
   const spent = (cy.revenue || 0) + (cy.other_income || 0) - (cy.profit || 0);
-  const flow = [["Revenue", cy.revenue], ["Other income", cy.other_income], ["Expenses and tax", -spent]]
-    .map(([l, v]) => `<li><span>${l}</span><span>${v < 0 ? "(" + esc(compactRs(-v)) + ")" : esc(compactRs(v || 0))}</span></li>`).join("");
-  let h = tile("hero", `<p class="tk">Profit / (loss) for the year</p><p class="tv big" data-count="${cy.profit || 0}">${esc(compactRs(cy.profit))}</p>${delta(cy.profit, py && py.profit)}<p class="muted small">${margin}</p><ul class="flow">${flow}<li class="tot"><span>Profit / (loss)</span><span>${esc(compactRs(cy.profit || 0))}</span></li></ul>${pair(cy.profit, py ? py.profit : null)}`);
+  const spentPy = py ? (py.revenue || 0) + (py.other_income || 0) - (py.profit || 0) : 0;
+  const amt = v => (v < 0 ? "(" + esc(compactRs(-v)) + ")" : esc(compactRs(v || 0)));
+  const flow = `<li class="hd"><span></span><span>This year</span>${py ? "<span>Last year</span>" : ""}</li>` + [["Revenue", cy.revenue, py && py.revenue], ["Other income", cy.other_income, py && py.other_income], ["Expenses and tax", -spent, -spentPy]]
+    .map(([l, v, w]) => `<li><span>${l}</span><span>${amt(v)}</span>${py ? `<span>${amt(w)}</span>` : ""}</li>`).join("");
+  let h = tile("hero", `<p class="tk">Profit / (loss) for the year</p><p class="tv big" data-count="${cy.profit || 0}">${esc(compactRs(cy.profit))}</p>${vsLy(cy.profit, py ? py.profit : null)}<p class="muted small">${margin}</p><ul class="flow">${flow}<li class="tot"><span>Profit / (loss)</span><span>${amt(cy.profit)}</span>${py ? `<span>${amt(py.profit)}</span>` : ""}</li></ul>${pair(cy.profit, py ? py.profit : null)}`);
   // Ready for a final copy?
   const pend = a.mapping.filter(m => !m.head || ["suggested", "review"].includes(m.status)).length;
   const items = [
@@ -922,6 +966,17 @@ function bento(a, KPIS, delta) {
   h += fig("revenue", "Revenue", "sm");
   h += fig("total_assets", "Total assets", "sm");
   for (const [k, l] of [["cash_bank", "Cash and bank"], ["receivables", "Debtors"], ["payables", "Creditors"], ["borrowings", "Borrowings"]]) h += fig(k, l, "q");
+  // Decisions: what moved, and the biggest movements line by line.
+  const pts = pointsToLook(a);
+  h += tile("points", `<p class="tk">Points to look at, against last year</p>` + (pts == null
+    ? `<p class="muted">Import last year's trial balance to compare the two years.</p><button type="button" class="small" data-go="import">Import last year</button>`
+    : pts.length ? `<ul class="pt-list">${pts.map(x => `<li><span class="pd ${x.dir}">${x.dir === "up" ? "▲" : x.dir === "down" ? "▼" : "●"}</span><span>${esc(x.text)}</span></li>`).join("")}</ul>` : `<p class="tv">No large movements</p><p class="muted small">Nothing moved by 25% or more against last year.</p>`));
+  if (py) {
+    const br = v => (v < 0 ? `(${compactRs(-v)})` : compactRs(v));
+    // Capital-account movement lines (Add: profit, Less: drawings) repeat other figures: left out.
+    const mv = (a.compare || []).map(r => ({ ...r, d: r.cy - (r.py || 0) })).filter(r => r.d && !/^(add|less)\b|profit\s*&\s*loss a\/c/i.test(r.label)).sort((x, y) => Math.abs(y.d) - Math.abs(x.d)).slice(0, 8);
+    h += tile("moves", `<p class="tk">Biggest movements from last year <span class="muted">(note lines)</span></p><table class="mv"><thead><tr><th>Line</th><th class="num">Last year</th><th class="num">This year</th><th class="num">Change</th></tr></thead><tbody>${mv.map(r => `<tr><td>${esc(r.label)}<span class="muted small"> · Note ${r.note}</span></td><td class="num">${r.py == null ? "-" : esc(br(r.py))}</td><td class="num">${esc(br(r.cy))}</td><td class="num">${r.d > 0 ? "▲" : "▼"} ${esc(compactRs(Math.abs(r.d)))}${r.py ? ` <span class="muted">${Math.abs((r.d / Math.abs(r.py)) * 100).toFixed(0)}%</span>` : ' <span class="muted">new</span>'}</td></tr>`).join("")}</tbody></table><p class="muted small">Full comparison in Detailed tables below.</p>`);
+  }
   const ch = a.charts || [];
   const chart = (c, cls) => tile(cls, `<figure class="chart">${c.svg}<figcaption class="sr">${esc(c.title)}</figcaption></figure>`);
   const monthly = ch.filter(c => /month/i.test(c.title)), ageing = ch.filter(c => /^age/i.test(c.title)), other = ch.filter(c => !monthly.includes(c) && !ageing.includes(c));
@@ -939,7 +994,7 @@ function bento(a, KPIS, delta) {
   if (a.ratios.length) {
     const f = (v, u) => (v == null ? "-" : v.toFixed(2) + (u === "%" ? "%" : ""));
     const flagged = a.ratios.filter(r => r.needs_explanation).length;
-    h += tile("ratios", `<p class="tk">Ratios, this year and last year <span class="muted">(${flagged ? `${flagged} changed by more than 25%: explain in the notes` : "none changed by more than 25%"})</span></p><ul class="ratio-list">${a.ratios.map(r => `<li class="${r.needs_explanation ? "flag" : ""}"><span>${esc(r.name)}</span><b>${f(r.cy, r.unit)}</b><span class="muted">${f(r.py, r.unit)}</span></li>`).join("")}</ul>`);
+    h += tile("ratios", `<p class="tk">Ratios, this year and last year <span class="muted">(${flagged ? `${flagged} changed by more than 25%: marked explain` : "none changed by more than 25%"})</span></p><ul class="ratio-list">${a.ratios.map(r => `<li class="${r.needs_explanation ? "flag" : ""}"><span>${esc(r.name)}</span><b>${f(r.cy, r.unit)}</b><span class="muted">${f(r.py, r.unit)}</span></li>`).join("")}</ul>`);
   }
   return `<div class="bento">${h}</div>`;
 }
@@ -975,7 +1030,7 @@ function renderAnalysis() {
     return `<span class="kd ${ch >= 0 ? "up" : "down"}">${ch >= 0 ? "▲" : "▼"} ${Math.abs(ch).toFixed(1)}% on last year</span>`;
   };
   let h = bento(a, KPIS, delta);
-  h += `<details class="more"><summary>Detailed tables: key figures, loans, ratios and ageing</summary><div class="two"><div class="box"><h2>Key figures (₹)</h2><table class="grid dense"><thead><tr><th>Item</th><th class="num">This year</th>${py ? '<th class="num">Last year</th><th class="num">Change</th>' : ""}</tr></thead><tbody>` +
+  h += `<details class="more"><summary>Detailed tables: key figures, every note line against last year, loans, ratios and ageing</summary><div class="two"><div class="box"><h2>Key figures (₹)</h2><table class="grid dense"><thead><tr><th>Item</th><th class="num">This year</th>${py ? '<th class="num">Last year</th><th class="num">Change</th>' : ""}</tr></thead><tbody>` +
     KEY.map(([k, l]) => `<tr><td>${l}</td><td class="num">${money(cy[k])}</td>${py ? `<td class="num">${money(py[k])}</td><td class="num">${pct(cy[k], py[k])}</td>` : ""}</tr>`).join("") + "</tbody></table></div></div>";
   // Loans
   const loans = a.loans || [];
@@ -993,6 +1048,12 @@ function renderAnalysis() {
     if (!ag || !ag.rows.length) continue;
     h += `<div class="box"><h2>${title}</h2><div class="scroll"><table class="grid dense"><thead><tr><th>Category</th>${ag.bucket_labels.map(b => `<th class="num">${esc(b)}</th>`).join("")}</tr></thead><tbody>` +
       ag.rows.map(r => `<tr><td>${esc(r.category)}</td>${r.buckets.map(v => `<td class="num">${v ? rupees(Math.abs(v)) : "-"}</td>`).join("")}</tr>`).join("") + "</tbody></table></div></div>";
+  }
+  if (py && (a.compare || []).length) {
+    let last = null;
+    h += `<div class="box"><h2>This year against last year, note by note (₹)</h2><div class="scroll"><table class="grid dense"><thead><tr><th>Line</th><th class="num">This year</th><th class="num">Last year</th><th class="num">Change</th><th class="num">%</th></tr></thead><tbody>` +
+      a.compare.map(r => { const d = r.cy - (r.py || 0); const head = r.note !== last ? `<tr class="sub"><td colspan="5"><b>Note ${r.note}. ${esc(r.title)}</b></td></tr>` : ""; last = r.note;
+        return head + `<tr><td>${esc(r.label)}</td><td class="num">${money(r.cy)}</td><td class="num">${r.py == null ? "-" : money(r.py)}</td><td class="num">${d ? money(d) : "-"}</td><td class="num">${r.py ? pct(r.cy, r.py) : r.cy ? "new" : ""}</td></tr>`; }).join("") + "</tbody></table></div></div>";
   }
   h += "</details>";
   box.innerHTML = h;

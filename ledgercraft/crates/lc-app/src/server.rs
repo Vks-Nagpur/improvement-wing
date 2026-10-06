@@ -558,11 +558,21 @@ impl App {
         let st = p.load_settings()?;
         let (eng, a) = self.analysis(id)?;
         let rep = lc_core::report::build(&eng, &a, &st.options, &st.signoff);
+        // Last year's closing balance of each ledger (by name), for comparison.
+        let py_bal: std::collections::HashMap<String, lc_core::Money> = eng
+            .py
+            .iter()
+            .flat_map(|t| t.ledgers.iter())
+            .map(|l| (lc_core::model::norm_name(&l.name), l.closing))
+            .collect();
+        let has_py = eng.py.is_some();
         let mapping: Vec<Value> = a
             .mapping
             .iter()
             .map(|m| {
+                let py = py_bal.get(&lc_core::model::norm_name(&m.name));
                 json!({
+                    "py": py.map(|x| x.fmt_drcr()), "new_this_year": has_py && py.is_none(),
                     "name": m.name, "group": m.group, "standard_group": m.class.map(|c| c.label()),
                     "head": m.head.map(|h| h.id()), "head_label": m.head.map(|h| h.label()),
                     "source": m.source, "reclassified": m.reclassified, "status": m.status, "status_reason": m.status_reason, "amount": m.amount.fmt_drcr(), "tags": st.tags.get(&m.name).cloned().unwrap_or_default(),
@@ -605,6 +615,10 @@ impl App {
             "ageing": {"receivables": a.ageing_receivables, "payables": a.ageing_payables},
             "charts": lc_core::report::charts::build(&eng, &a, "Plex, Segoe UI, sans-serif").into_iter().map(|(t, svg)| json!({"title": t, "svg": svg})).collect::<Vec<_>>(),
             "loans": a.loans,
+            // Every note line with both years, for comparison and movement ranking.
+            "compare": a.statements.notes.iter().flat_map(|n| n.lines.iter().map(move |l| json!({
+                "note": n.no, "title": n.title, "label": l.label, "cy": l.cy.0, "py": l.py.map(|x| x.0),
+            }))).collect::<Vec<_>>(),
             "warnings": rep.warnings,
             "blockers": rep.blockers,
         }))

@@ -12,6 +12,7 @@ pub mod capital;
 pub mod checks;
 pub mod consolidate;
 pub mod date;
+pub mod dimensions;
 pub mod engine;
 pub mod facts;
 pub mod far;

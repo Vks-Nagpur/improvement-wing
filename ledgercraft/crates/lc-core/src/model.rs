@@ -172,7 +172,38 @@ pub fn norm_name(s: &str) -> String {
     out
 }
 
+/// Largest total of all amounts in one engagement (absolute values, paise).
+/// Far above any real book; keeps every sum the engine makes inside i64.
+pub const MAX_BOOK_PAISE: i128 = (i64::MAX / 8) as i128;
+
 impl Engagement {
+    /// Refuse books whose amounts are too large to add up safely (corrupt
+    /// or hostile input) instead of failing part-way through.
+    pub fn amounts_fit(&self) -> Result<(), String> {
+        let mut total: i128 = 0;
+        let mut add = |m: Money| total += (m.0 as i128).abs();
+        for tb in std::iter::once(&self.cy).chain(self.py.iter()) {
+            for l in &tb.ledgers {
+                add(l.opening);
+                add(l.closing);
+                add(l.closing_stock.unwrap_or_default());
+            }
+        }
+        for v in &self.vouchers {
+            for l in &v.lines {
+                add(l.amount);
+            }
+        }
+        if total > MAX_BOOK_PAISE {
+            Err(format!(
+                "The amounts in these books add up to more than {} rupees, which is not a real book: the file is probably damaged or read in the wrong unit.",
+                MAX_BOOK_PAISE / 100
+            ))
+        } else {
+            Ok(())
+        }
+    }
+
     /// True when the statements cover a full year (12 months).
     pub fn is_full_year(&self) -> bool {
         use chrono::Datelike;

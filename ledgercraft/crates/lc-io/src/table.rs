@@ -69,6 +69,27 @@ fn read_table_raw(path: &Path, prefer_sheets: &[&str]) -> Result<Vec<Vec<String>
         out
     } else {
         check_workbook(path)?;
+        no_crash(path, || read_sheet(path, prefer_sheets))?
+    };
+    if raw.len() > MAX_ROWS {
+        return Err(format!("{}: more than {MAX_ROWS} rows.", path.display()));
+    }
+    Ok(raw)
+}
+
+/// The Excel reader library can panic on some damaged files (found by the
+/// fuzz tests): turn that into a plain refusal instead of a crash.
+fn no_crash<T>(path: &Path, f: impl FnOnce() -> Result<T, String>) -> Result<T, String> {
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)).unwrap_or_else(|_| {
+        Err(format!(
+            "{}: the Excel file is damaged and could not be read. Open it in Excel, save it again and import the saved copy.",
+            path.display()
+        ))
+    })
+}
+
+fn read_sheet(path: &Path, prefer_sheets: &[&str]) -> Result<Vec<Vec<String>>, String> {
+    {
         let mut wb = open_workbook_auto(path).map_err(|e| format!("{}: {e}", path.display()))?;
         let names = wb.sheet_names().to_vec();
         let pick = prefer_sheets
@@ -87,15 +108,11 @@ fn read_table_raw(path: &Path, prefer_sheets: &[&str]) -> Result<Vec<Vec<String>
                 range.width()
             ));
         }
-        range
+        Ok(range
             .rows()
             .map(|r| r.iter().map(cell_text).collect())
-            .collect()
-    };
-    if raw.len() > MAX_ROWS {
-        return Err(format!("{}: more than {MAX_ROWS} rows.", path.display()));
+            .collect())
     }
-    Ok(raw)
 }
 
 fn table_from_raw(
@@ -160,12 +177,14 @@ pub fn read_optional_sheet(
         return Ok(None);
     }
     check_workbook(path)?;
-    let wb = open_workbook_auto(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    if !wb
-        .sheet_names()
-        .iter()
-        .any(|n| n.eq_ignore_ascii_case(sheet))
-    {
+    let has = no_crash(path, || {
+        let wb = open_workbook_auto(path).map_err(|e| format!("{}: {e}", path.display()))?;
+        Ok(wb
+            .sheet_names()
+            .iter()
+            .any(|n| n.eq_ignore_ascii_case(sheet)))
+    })?;
+    if !has {
         return Ok(None);
     }
     read_table(path, &[sheet], header_hint).map(Some)

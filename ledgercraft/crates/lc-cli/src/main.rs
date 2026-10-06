@@ -459,6 +459,19 @@ fn cmd_practice(a: &HashMap<String, String>) -> Result<(), String> {
     Ok(())
 }
 
+/// Peak memory of this process so far, in MB (Linux only; None elsewhere).
+fn peak_mb() -> Option<f64> {
+    let s = std::fs::read_to_string("/proc/self/status").ok()?;
+    let kb: f64 = s
+        .lines()
+        .find(|l| l.starts_with("VmHWM:"))?
+        .split_whitespace()
+        .nth(1)?
+        .parse()
+        .ok()?;
+    Some(kb / 1024.0)
+}
+
 fn cmd_bench(a: &HashMap<String, String>) -> Result<(), String> {
     let n: usize = a
         .get("vouchers")
@@ -466,37 +479,106 @@ fn cmd_bench(a: &HashMap<String, String>) -> Result<(), String> {
         .transpose()?
         .unwrap_or(1_000_000);
     let per_day = (n / 365).max(1);
+    let secs = |t: Instant| t.elapsed().as_secs_f64();
     let t0 = Instant::now();
     let s =
         lc_testdata::scenarios::clean(lc_testdata::scenarios::Kind::Firm, 42, 300, 150, per_day);
     let lines: usize = s.engagement.vouchers.iter().map(|v| v.lines.len()).sum();
+    let generate = secs(t0);
     println!(
-        "Generated {} vouchers ({} lines) in {:.2?}",
+        "Generated {} vouchers ({} lines) in {generate:.2}s",
         s.engagement.vouchers.len(),
-        lines,
-        t0.elapsed()
+        lines
     );
+
+    // Import: day book written to CSV and read back, as a user would import it.
+    let dir = std::env::temp_dir().join(format!("lc-bench-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let csv = a
+        .get("write")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| dir.join("daybook.csv"));
+    lc_io::write_inputs::write_vouchers_csv(&s.engagement.vouchers, &csv)?;
     let t1 = Instant::now();
-    let res = analyse(&s.engagement, &RulesPack::builtin());
+    let back = lc_io::read::read_vouchers(&csv)?;
+    let import = secs(t1);
+    let identical = back == s.engagement.vouchers;
     println!(
-        "Checked in {:.2?}: {} findings (expected {}), balance sheet tallies: {}",
-        t1.elapsed(),
-        res.findings.len(),
-        s.expected.keys.len(),
-        res.statements.total_assets == res.statements.total_liabilities
+        "Imported {} vouchers in {import:.2}s; identical: {identical}",
+        back.len()
     );
-    if let Some(p) = a.get("write") {
-        let t2 = Instant::now();
-        lc_io::write_inputs::write_vouchers_csv(&s.engagement.vouchers, &PathBuf::from(p))?;
-        println!("Wrote CSV in {:.2?}; reading back...", t2.elapsed());
-        let t3 = Instant::now();
-        let back = lc_io::read::read_vouchers(&PathBuf::from(p))?;
-        println!(
-            "Read {} vouchers back in {:.2?}; identical: {}",
-            back.len(),
-            t3.elapsed(),
-            back == s.engagement.vouchers
-        );
+    drop(back);
+
+    let t2 = Instant::now();
+    let res = analyse(&s.engagement, &RulesPack::builtin());
+    let analysis = secs(t2);
+    let tallies = res.statements.total_assets == res.statements.total_liabilities;
+    println!(
+        "Checked in {analysis:.2}s: {} findings (expected {}), balance sheet tallies: {tallies}",
+        res.findings.len(),
+        s.expected.keys.len()
+    );
+
+    for f in &res.findings {
+        println!("  finding: {} {}", f.code, f.key);
+    }
+
+    let t3 = Instant::now();
+    let opt = ExportOptions::default();
+    export(&dir, &s.engagement, &res, &SignOff::default(), &opt)?;
+    let export_s = secs(t3);
+    println!("Exported the draft (PDF, Word, Excel, HTML, workbook) in {export_s:.2}s");
+
+    // Pathological: one voucher with 50,000 lines and a 5,000-character name.
+    let mut e = s.engagement.clone();
+    let long = "L".repeat(5_000);
+    let d = e.fy_start;
+    let mut v = lc_core::model::Voucher {
+        date: d,
+        number: "P1".into(),
+        vtype: "Journal".into(),
+        narration: String::new(),
+        lines: Vec::new(),
+    };
+    for _ in 0..25_000 {
+        v.lines.push(lc_core::model::VoucherLine {
+            ledger: long.clone(),
+            amount: lc_core::Money(100),
+        });
+        v.lines.push(lc_core::model::VoucherLine {
+            ledger: long.clone(),
+            amount: lc_core::Money(-100),
+        });
+    }
+    e.vouchers.push(v);
+    let t4 = Instant::now();
+    let _ = analyse(&e, &RulesPack::builtin());
+    let pathological = secs(t4);
+    println!(
+        "Pathological voucher (50,000 lines, 5,000-character name) checked in {pathological:.2}s"
+    );
+    let peak = peak_mb();
+    match peak {
+        Some(m) => println!("Peak memory: {m:.0} MB"),
+        None => println!("Peak memory: not measured on this system"),
+    }
+    let _ = std::fs::remove_dir_all(&dir);
+    if let Some(out) = a.get("out") {
+        let v = serde_json::json!({
+            "vouchers": s.engagement.vouchers.len(), "lines": lines,
+            "seconds": {"generate": generate, "import": import, "analysis": analysis,
+                        "export": export_s, "pathological": pathological},
+            "peak_memory_mb": peak, "import_identical": identical, "balance_sheet_tallies": tallies,
+            "os": std::env::consts::OS,
+        });
+        std::fs::write(
+            out,
+            serde_json::to_string_pretty(&v).map_err(|e| e.to_string())?,
+        )
+        .map_err(|e| format!("{out}: {e}"))?;
+    }
+    if !identical || !tallies {
+        return Err("benchmark book did not survive the round trip or does not tally".into());
     }
     Ok(())
 }

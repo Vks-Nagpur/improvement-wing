@@ -41,6 +41,41 @@ pub fn run(ctx: &Ctx, f: &mut Findings) {
         }
     }
 
+    // Ledger names must be unique within a year's books: two ledgers with
+    // one name cannot be told apart in vouchers, mapping or last year.
+    for (year, tb) in std::iter::once(("this year", &ctx.eng.cy))
+        .chain(ctx.eng.py.iter().map(|p| ("last year", p)))
+    {
+        let mut seen: std::collections::BTreeMap<String, Vec<&str>> = Default::default();
+        for l in &tb.ledgers {
+            seen.entry(crate::model::norm_name(&l.name))
+                .or_default()
+                .push(&l.group);
+        }
+        for l in &tb.ledgers {
+            let Some(groups) = seen.get(&crate::model::norm_name(&l.name)) else {
+                continue;
+            };
+            if groups.len() > 1 {
+                f.add(
+                    "DUPLICATE_LEDGER",
+                    &format!("{}:{year}", l.name),
+                    &format!(
+                        "'{}' appears {} times in {year}'s trial balance (groups: {}).",
+                        l.name,
+                        groups.len(),
+                        groups.join(", ")
+                    ),
+                    Detail {
+                        ledger: Some(l.name.clone()),
+                        ..Default::default()
+                    },
+                );
+                seen.remove(&crate::model::norm_name(&l.name));
+            }
+        }
+    }
+
     let tb = &ctx.eng.cy;
     let total_closing: Money = tb.ledgers.iter().map(|l| l.closing).sum();
     if !total_closing.is_zero() {

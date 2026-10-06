@@ -1,5 +1,5 @@
 {
-  "version": "2026.10-r2",
+  "version": "2026.10-r3",
   "pack_id": "in-rules",
   "verification": "Item-level: each rule with legal content lists its provisions (sections.json); none is verified against the official text until recorded in the Legal verification register.",
   "note": "Thresholds and legal references are data. New-Act numbers 185/186/188 and 33 per incometaxindia.gov.in section pages and TaxTMI; s.36 as the counterpart of s.40A(3) per published section listings (statute text not yet read); the counterpart of s.43(1) 6th proviso is not yet confirmed. Tax audit: Form 26 under s.63 / Rule 47 (Income-tax Rules 2026, G.S.R. 198(E), 20-03-2026) from Tax Year 2026-27; Form 3CA/3CB/3CD for FY 2025-26 and earlier.",
@@ -839,6 +839,40 @@
       "effective_from": "",
       "effective_until": "",
       "scope": "internal"
+    },
+    "AMOUNTS_TOO_LARGE": {
+      "severity": "blocker",
+      "title": "Amounts too large to be real",
+      "simple": "The amounts in the imported books are far larger than any real book. Nothing was computed from them.",
+      "old_ref": "",
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": "",
+      "scope": "internal",
+      "next_step": "Check that the right file was imported and that amounts were read in rupees (not in paise or with extra digits), then import again."
+    },
+    "DUPLICATE_LEDGER": {
+      "severity": "blocker",
+      "title": "Same ledger name used twice",
+      "simple": "Two ledgers in the same year's trial balance have the same name, so their balances cannot be told apart.",
+      "old_ref": "",
+      "new_ref": "",
+      "source": {
+        "authority": "LedgerCraft accounting logic",
+        "document": "Data integrity",
+        "section": ""
+      },
+      "verification": "internal",
+      "effective_from": "",
+      "effective_until": "",
+      "scope": "internal",
+      "next_step": "Rename one of the ledgers in the books (or merge them if they are the same account) and import again."
     }
   }
 }

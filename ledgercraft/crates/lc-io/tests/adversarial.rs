@@ -115,3 +115,12 @@ fn skipped_rows_are_reported_with_reasons() {
     assert!(rep.skipped.iter().any(|x| x.reason.contains("title line")));
     assert!(rep.skipped.iter().any(|x| x.reason.contains("total row")));
 }
+
+#[test]
+fn damaged_workbook_that_crashed_the_excel_reader_is_refused() {
+    // Found by the fuzz tests: this file made the Excel reader library panic.
+    let p = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/damaged-xlsx-reader-panic.xlsx");
+    let e = read_trial_balance(&p).unwrap_err();
+    assert!(e.contains("damaged"), "{e}");
+}

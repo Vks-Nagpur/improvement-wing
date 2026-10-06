@@ -32,7 +32,12 @@ jobs:
         with:
           name: legal-readiness-${{ matrix.os }}
           path: ledgercraft/legal-readiness-${{ matrix.os }}.json
-      - run: cargo run --release -p lc-cli -- bench --vouchers 200000
+      - name: Performance (import, checks, export, pathological input, memory)
+        run: cargo run --release -p lc-cli -- bench --vouchers 200000 --out bench-${{ matrix.os }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bench-${{ matrix.os }}
+          path: ledgercraft/bench-${{ matrix.os }}.json
 
   audit:
     runs-on: ubuntu-latest

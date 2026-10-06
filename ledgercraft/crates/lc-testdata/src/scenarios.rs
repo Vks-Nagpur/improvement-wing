@@ -1065,6 +1065,86 @@ pub fn clean_huf() -> Scenario {
     s
 }
 
+/// Clean proprietor books: one owner's capital and current account.
+pub fn clean_proprietor() -> Scenario {
+    let mut s = clean(Kind::Firm, 6, 6, 4, 2);
+    s.engagement.entity_type = EntityType::Proprietor;
+    s.engagement.entity_name = "Sunita Patil (Proprietor of Patil Stores)".into();
+    rename_ledgers(
+        &mut s.engagement,
+        &[
+            ("Partner A - Capital", "Proprietor's Capital Account"),
+            ("Partner B - Capital", "Proprietor's Current Account"),
+            ("Partners' Remuneration", "Salary - Store Manager"),
+            ("Interest on Partners' Capital", "Interest on Business Loan"),
+        ],
+    );
+    s.name = "clean_proprietor".into();
+    s.description = "Clean proprietor books, owner's capital, no planted errors".into();
+    s
+}
+
+/// Clean books of an association of persons (members' capital).
+pub fn clean_aop() -> Scenario {
+    let mut s = clean(Kind::Firm, 7, 6, 4, 2);
+    s.engagement.entity_type = EntityType::Aop;
+    s.engagement.entity_name = "Shree Ganesh Contractors (AOP)".into();
+    rename_ledgers(
+        &mut s.engagement,
+        &[
+            ("Partner A - Capital", "Member A - Capital"),
+            ("Partner B - Capital", "Member B - Capital"),
+            ("Partners' Remuneration", "Remuneration to Members"),
+            (
+                "Interest on Partners' Capital",
+                "Interest on Members' Capital",
+            ),
+        ],
+    );
+    s.name = "clean_aop".into();
+    s.description = "Clean AOP books, members' capital, no planted errors".into();
+    s
+}
+
+/// Clean books of a body of individuals.
+pub fn clean_boi() -> Scenario {
+    let mut s = clean(Kind::Firm, 8, 6, 4, 2);
+    s.engagement.entity_type = EntityType::Boi;
+    s.engagement.entity_name = "Kale Family Farmers (BOI)".into();
+    rename_ledgers(
+        &mut s.engagement,
+        &[
+            ("Partner A - Capital", "Individual A - Capital"),
+            ("Partner B - Capital", "Individual B - Capital"),
+            ("Partners' Remuneration", "Remuneration to Individuals"),
+            (
+                "Interest on Partners' Capital",
+                "Interest on Individuals' Capital",
+            ),
+        ],
+    );
+    s.name = "clean_boi".into();
+    s.description = "Clean BOI books, individuals' capital, no planted errors".into();
+    s
+}
+
+/// One clean book per supported entity type (golden corpus, J01).
+pub fn golden() -> Vec<Scenario> {
+    let mut company = clean(Kind::Company, 2, 12, 8, 3);
+    company.name = "clean_company".into();
+    let mut firm = clean(Kind::Firm, 1, 10, 6, 4);
+    firm.name = "clean_firm".into();
+    vec![
+        company,
+        clean_llp(),
+        firm,
+        clean_proprietor(),
+        clean_huf(),
+        clean_aop(),
+        clean_boi(),
+    ]
+}
+
 /// A head office and one branch, each with its own books. The inter-branch
 /// accounts ("Pune Branch A/c" in the head office, "Head Office A/c" in the
 /// branch) must cancel out when the books are combined.

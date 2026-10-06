@@ -1,0 +1,519 @@
+# clean_company
+Clean company books, 3 vouchers/day, no planted errors
+entity: Company | year: 2025-04-01 to 2026-03-31
+
+## Findings (after every placement is confirmed)
+
+## Mapping (ledger | group | head | closing | status)
+Equity Share Capital | Capital Account | Capital | (10,00,000.00) | Confirmed
+Securities Premium | Reserves & Surplus | ReservesSurplus | 0.00 | Confirmed
+Directors' Remuneration | Administrative Expenses | OtherExpenses | 3,60,000.00 | Confirmed
+Income Tax Expense | Indirect Expenses | TaxExpense | 1,80,000.00 | Confirmed
+Provision for Income Tax | Provisions | StProvisions | (1,80,000.00) | Confirmed
+Advance Tax | Loans & Advances (Asset) | StLoansAdvances | 1,50,000.00 | Confirmed
+HDFC Bank Term Loan | Secured Loans | LtBorrowings | (3,20,000.00) | Confirmed
+Interest on Term Loan | Indirect Expenses | FinanceCosts | 78,871.36 | Confirmed
+Investment in Mutual Funds | Investments | NcInvestments | 3,00,000.00 | Confirmed
+Security Deposit - Office | Deposits (Asset) | LtLoansAdvances | 1,50,000.00 | Confirmed
+Accounting Software | Fixed Assets | Intangibles | 60,000.00 | Confirmed
+Capital Work-in-Progress - Factory | Fixed Assets | Cwip | 4,00,000.00 | Confirmed
+Travelling Expenses | Travel & Conveyance | OtherExpenses | 23,568.99 | Confirmed
+Stock-in-Trade - Warehouse B | Stock-in-Hand | Inventories | 50,000.00 | Confirmed
+Profit & Loss A/c | Profit & Loss A/c | ReservesSurplus | (10,90,341.08) | Confirmed
+Cash | Cash-in-Hand | CashBank | 33,67,398.76 | Confirmed
+HDFC Bank Current A/c | Bank Accounts | CashBank | 85,17,140.18 | Confirmed
+Sales - Local | Sales Accounts | RevenueOps | (2,86,98,260.89) | Confirmed
+Purchases - Local | Purchase Accounts | Purchases | 1,22,33,079.98 | Confirmed
+Freight Inward | Direct Expenses | OtherExpenses | 0.00 | Confirmed
+Office Expenses | Indirect Expenses | OtherExpenses | 92,920.96 | Confirmed
+Printing & Stationery | Indirect Expenses | OtherExpenses | 1,05,025.66 | Confirmed
+Telephone Expenses | Indirect Expenses | OtherExpenses | 92,536.01 | Confirmed
+Staff Welfare | Indirect Expenses | EmployeeBenefits | 1,00,666.03 | Confirmed
+Conveyance | Indirect Expenses | OtherExpenses | 1,11,068.33 | Confirmed
+Rent | Indirect Expenses | OtherExpenses | 3,00,000.00 | Confirmed
+Electricity Charges | Indirect Expenses | OtherExpenses | 75,625.02 | Confirmed
+Salary | Indirect Expenses | EmployeeBenefits | 5,78,980.53 | Confirmed
+Bank Charges | Indirect Expenses | OtherExpenses | 5,216.39 | Confirmed
+Depreciation | Indirect Expenses | Depreciation | 1,35,000.00 | Confirmed
+Interest on Unsecured Loans | Indirect Expenses | FinanceCosts | 36,000.00 | Confirmed
+Interest Received | Indirect Incomes | OtherIncome | (54,698.56) | Confirmed
+Plant & Machinery | Fixed Assets | Ppe | 6,80,000.00 | Confirmed
+Furniture & Fixtures | Fixed Assets | Ppe | 1,35,000.00 | Confirmed
+TDS Payable | Duties & Taxes | OtherCurrentLiabilities | 0.00 | Confirmed
+Unsecured Loan - Rajesh Kumar | Unsecured Loans | LtBorrowings | (3,32,400.00) | Confirmed
+Stock-in-Trade | Stock-in-Hand | Inventories | 3,97,888.41 | Confirmed
+Customer 01 | Debtors - Export | TradeReceivables | 9,04,062.03 | Confirmed
+Customer 02 | Debtors - Export | TradeReceivables | 3,79,653.25 | Confirmed
+Customer 03 | Debtors - Export | TradeReceivables | 1,86,712.06 | Confirmed
+Customer 04 | Debtors - Export | TradeReceivables | 1,46,006.50 | Confirmed
+Customer 05 | Debtors - Export | TradeReceivables | 4,28,554.31 | Confirmed
+Customer 06 | Debtors - Export | TradeReceivables | 2,17,124.17 | Confirmed
+Customer 07 | Debtors - Export | TradeReceivables | 4,27,110.90 | Confirmed
+Customer 08 | Debtors - Export | TradeReceivables | 5,36,175.98 | Confirmed
+Customer 09 | Debtors - Export | TradeReceivables | 4,37,453.42 | Confirmed
+Customer 10 | Debtors - Export | TradeReceivables | 1,645.67 | Confirmed
+Customer 11 | Debtors - Export | TradeReceivables | 4,94,596.56 | Confirmed
+Customer 12 | Debtors - Export | TradeReceivables | 2,77,861.55 | Confirmed
+Supplier 01 | Sundry Creditors | TradePayables | (5,23,165.64) | Confirmed
+Supplier 02 | Sundry Creditors | TradePayables | (1,12,931.95) | Confirmed
+Supplier 03 | Sundry Creditors | TradePayables | (2,95,254.19) | Confirmed
+Supplier 04 | Sundry Creditors | TradePayables | (27,841.61) | Confirmed
+Supplier 05 | Sundry Creditors | TradePayables | (1,00,766.02) | Confirmed
+Supplier 06 | Sundry Creditors | TradePayables | (1,43,416.30) | Confirmed
+Supplier 07 | Sundry Creditors | TradePayables | (75,596.67) | Confirmed
+Supplier 08 | Sundry Creditors | TradePayables | (1,98,270.10) | Confirmed
+
+## Blockers
+Not answered yet: Share capital particulars (Notes and disclosures). Enter the particulars or mark it as nil.
+Not answered yet: Contingent liabilities and commitments (Notes and disclosures). Enter the particulars or mark it as nil.
+Not answered yet: Related parties (Notes and disclosures). Enter the particulars or mark it as nil.
+Not answered yet: Dues to micro and small enterprises (MSME status of suppliers) (Notes and disclosures). Enter the particulars or mark it as nil.
+
+## Warnings
+Not answered yet: Share capital particulars (Notes and disclosures). Enter the particulars or mark it as nil.
+Not answered yet: Contingent liabilities and commitments (Notes and disclosures). Enter the particulars or mark it as nil.
+Not answered yet: Related parties (Notes and disclosures). Enter the particulars or mark it as nil.
+Not answered yet: Dues to micro and small enterprises (MSME status of suppliers) (Notes and disclosures). Enter the particulars or mark it as nil.
+Format pack 'Schedule III, Division I (Companies not following Ind AS)' is marked draft: draft – line items to be verified against Schedule III (as amended 24-03-2021) and ICAI Guidance Note on Division I
+Inventories are shown at the book value in the trial balance; LedgerCraft does not value stock. Check the valuation and the cost formula stated in the accounting policy.
+Deferred tax: LedgerCraft does not compute deferred tax (AS 22) and no deferred tax ledger is in the books. If deferred tax applies, record it by adjustment and state the policy.
+Accounting policies are standard wording: review and edit them for this entity (Notes and disclosures).
+Cash Flow Statement: Income-tax balances identified by name and kept out of working capital: Provision for Income Tax, Advance Tax. Check the list.
+Cash Flow Statement: Interest and dividend income identified by ledger name and shown under investing activities. Check the classification.
+Cash Flow Statement: Operating cash flow by the indirect method differs by (3,600.00) from the cash left after investing and financing. Usually assets bought on credit, loans settled by journal or other non-cash transactions; review and disclose them.
+Cash Flow Statement applicability: requires your review. Companies: a cash flow statement forms part of the financial statements, with exemptions for some companies (for example one person, small and dormant companies). Whether this company is exempt is for you to decide. (Companies Act, 2013, s.2(40) and Schedule III (not verified against the official text))
+Explain the change of more than 25% in 'Current ratio'.
+Explain the change of more than 25% in 'Debt-equity ratio'.
+Explain the change of more than 25% in 'Return on equity'.
+Explain the change of more than 25% in 'Inventory turnover ratio'.
+Explain the change of more than 25% in 'Trade receivables turnover ratio'.
+Explain the change of more than 25% in 'Trade payables turnover ratio'.
+Explain the change of more than 25% in 'Net capital turnover ratio'.
+Explain the change of more than 25% in 'Net profit ratio'.
+Explain the change of more than 25% in 'Return on capital employed'.
+
+## Balance Sheet as at 31 March 2026 [balance_sheet]
+  [Particulars | Note No. | As at 31 March 2026 | As at 31 March 2025]
+  I. EQUITY AND LIABILITIES |  |  | 
+  (1) Shareholders' funds |  |  | 
+  (a) Share capital | 3 | 10,00,000.00 | 10,00,000.00
+  (b) Reserves and surplus | 4 | 1,53,03,128.73 | 10,90,341.08
+  (2) Non-current liabilities |  |  | 
+  (a) Long-term borrowings | 5 | 6,52,400.00 | 11,00,000.00
+  (3) Current liabilities |  |  | 
+  (a) Trade payables | 6 | 14,77,242.48 | 4,24,755.23
+  (b) Short-term provisions | 7 | 1,80,000.00 | -
+  TOTAL |  | 1,86,12,771.21 | 36,15,096.31
+  II. ASSETS |  |  | 
+  (1) Non-current assets |  |  | 
+  (a) Property, Plant and Equipment and Intangible assets |  |  | 
+  (i) Property, Plant and Equipment | 8 | 8,15,000.00 | 9,50,000.00
+  (ii) Intangible assets | 9 | 60,000.00 | 60,000.00
+  (iii) Capital work-in-progress | 10 | 4,00,000.00 | -
+  (b) Non-current investments | 11 | 3,00,000.00 | 2,00,000.00
+  (c) Long-term loans and advances | 12 | 1,50,000.00 | 1,50,000.00
+  (2) Current assets |  |  | 
+  (a) Inventories | 13 | 4,16,275.87 | 4,47,888.41
+  (b) Trade receivables | 14 | 44,36,956.40 | 8,47,207.90
+  (c) Cash and cash equivalents | 15 | 1,18,84,538.94 | 9,60,000.00
+  (d) Short-term loans and advances | 16 | 1,50,000.00 | -
+  TOTAL |  | 1,86,12,771.21 | 36,15,096.31
+The accompanying notes form an integral part of the financial statements.
+
+## Statement of Profit and Loss for the year ended 31 March 2026 [profit_and_loss]
+  [Particulars | Note No. | For the year ended 31 March 2026 | For the year ended 31 March 2025]
+  I. Revenue from operations | 17 | 2,86,98,260.89 | 57,16,325.81
+  II. Other income | 18 | 54,698.56 | -
+  III. Total Income (I + II) |  | 2,87,52,959.45 | 57,16,325.81
+  IV. Expenses: |  |  | 
+  Purchases of Stock-in-Trade | 19 | 1,22,33,079.98 | 30,92,137.27
+  Changes in inventories of finished goods, work-in-progress and Stock-in-Trade | 20 | 31,612.54 | (99,675.90)
+  Employee benefits expense | 21 | 6,79,646.56 | 5,65,667.88
+  Finance costs | 22 | 1,14,871.36 | -
+  Depreciation and amortization expense | 23 | 1,35,000.00 | 1,22,710.78
+  Other expenses | 24 | 11,65,961.36 | 4,35,358.01
+  Total expenses |  | 1,43,60,171.80 | 41,16,198.04
+  V. Profit before tax (III - IV) |  | 1,43,92,787.65 | 16,00,127.77
+  VI. Tax expense | 25 | 1,80,000.00 | -
+  VII. Profit / (Loss) for the period (V - VI) |  | 1,42,12,787.65 | 16,00,127.77
+The accompanying notes form an integral part of the financial statements.
+
+## Cash Flow Statement for the year ended 31 March 2026 [cash_flow]
+  [Particulars | For the year ended 31 March 2026]
+  A. Cash flow from operating activities | 
+  Net profit before tax | 1,43,92,787.65
+  Adjustments for: | 
+  Depreciation and amortisation expense | 1,35,000.00
+  Finance costs | 1,14,871.36
+  Interest and dividend income | (54,698.56)
+  Operating profit before working capital changes | 1,45,87,960.45
+  Changes in working capital: | 
+  (Increase) / decrease in inventories | 31,612.54
+  (Increase) / decrease in trade receivables | (35,89,748.50)
+  Increase / (decrease) in trade payables | 10,52,487.25
+  Cash generated from operations | 1,20,82,311.74
+  Income taxes paid (net of refunds) | (1,50,000.00)
+  Non-cash transactions and other differences (review) | (3,600.00)
+  Net cash from / (used in) operating activities (A) | 1,19,28,711.74
+  B. Cash flow from investing activities | 
+  Purchase of property, plant and equipment and intangible assets | (4,00,000.00)
+  Purchase of investments | (1,00,000.00)
+  Interest and dividends received | 54,698.56
+  Net cash from / (used in) investing activities (B) | (4,45,301.44)
+  C. Cash flow from financing activities | 
+  Repayment of borrowings | (4,80,000.00)
+  Finance costs paid | (78,871.36)
+  Net cash from / (used in) financing activities (C) | (5,58,871.36)
+  Net increase / (decrease) in cash and cash equivalents (A + B + C) | 1,09,24,538.94
+  Cash and cash equivalents at the beginning of the year | 9,60,000.00
+  Cash and cash equivalents at the end of the year | 1,18,84,538.94
+The Cash Flow Statement has been prepared under the indirect method set out in Accounting Standard 3 'Cash Flow Statements'. Investing and financing cash flows are taken from the cash and bank entries of the day book. Income taxes paid are worked out from the tax expense and the movement in tax balances. Previous year figures are not presented as balances at the beginning of the previous year are not available.
+The accompanying notes form an integral part of the financial statements.
+
+## Notes to the financial statements [notes]
+### 1  Entity information
+These financial statements relate to Clean Industries Private Limited, a company.
+### 2  Significant accounting policies
+### 2.1 Basis of preparation
+The financial statements have been prepared under the historical cost convention on the accrual basis of accounting, in accordance with the generally accepted accounting principles in India, including the Accounting Standards notified under section 133 of the Companies Act, 2013 read with the Companies (Accounting Standards) Rules, 2021 and the other relevant provisions of the Act. The financial statements are presented in the format prescribed by Division I of Schedule III to the Companies Act, 2013.
+### 2.2 Use of estimates
+The preparation of financial statements requires estimates and assumptions that affect the reported amounts of assets, liabilities, income and expenses. Differences between actual results and estimates are recognised in the period in which they are known.
+### 2.3 Property, plant and equipment
+Property, plant and equipment are stated at cost of acquisition, including attributable costs of bringing the asset to its working condition, less accumulated depreciation. Depreciation is provided on the written down value method at the rates considered appropriate by the management.
+### 2.4 Inventories
+Inventories are valued at the lower of cost and net realisable value. Cost is determined on the first-in, first-out (FIFO) basis.
+### 2.5 Revenue recognition
+Revenue from sale of goods is recognised when significant risks and rewards of ownership are transferred to the buyer, and revenue from services when the service is rendered, net of goods and services tax.
+### 2.6 Employee benefits
+Short-term employee benefits are recognised as an expense in the year in which the related service is rendered. Contributions to provident fund and other defined contribution schemes are charged when due.
+### 2.7 Taxes on income
+Current tax is the amount of tax payable on the taxable income for the year.
+### 2.8 Provisions and contingent liabilities
+A provision is recognised when there is a present obligation as a result of a past event and a reliable estimate can be made of the outflow. Contingent liabilities are disclosed by way of notes.
+### 3  Share capital
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Equity Share Capital | 10,00,000.00 | 10,00,000.00
+  Total | 10,00,000.00 | 10,00,000.00
+[Information not yet provided]
+### 4  Reserves and surplus
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Surplus in the Statement of Profit and Loss |  | 
+  Balance at the beginning of the year | 10,90,341.08 | (5,09,786.69)
+  Add: Profit / (loss) for the year | 1,42,12,787.65 | 16,00,127.77
+  Balance at the end of the year | 1,53,03,128.73 | 10,90,341.08
+  Total | 1,53,03,128.73 | 10,90,341.08
+### 5  Long-term borrowings
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Secured |  | 
+  HDFC Bank Term Loan | 3,20,000.00 | 8,00,000.00
+  Unsecured |  | 
+  Unsecured Loan - Rajesh Kumar | 3,32,400.00 | 3,00,000.00
+  Total | 6,52,400.00 | 11,00,000.00
+### 6  Trade payables
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Total outstanding dues of micro enterprises and small enterprises | - | -
+  Total outstanding dues of creditors other than micro enterprises and small enterprises | 14,77,242.48 | 4,24,755.23
+  Total | 14,77,242.48 | 4,24,755.23
+Dues to micro and small enterprises: [Information not yet provided]
+  [Particulars | Outstanding for following periods from the date of the transaction | Total]
+  [Less than 1 year | 1-2 years | 2-3 years | More than 3 years]
+  (i) MSME | - | - | - | - | -
+  (ii) Others | 14,77,242.48 | - | - | - | 14,77,242.48
+  (iii) Disputed dues - MSME | - | - | - | - | -
+  (iv) Disputed dues - Others | - | - | - | - | -
+  Total | 14,77,242.48 | - | - | - | 14,77,242.48
+Ageing is computed from the date of the transaction (bill date) on a first-in, first-out basis; opening balances are aged from the beginning of the year. Due dates of payment are not available in the imported books, so this is not ageing from the due date.
+### 7  Short-term provisions
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Provision for Income Tax | 1,80,000.00 | -
+  Total | 1,80,000.00 | -
+### 8  Property, Plant and Equipment
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Plant & Machinery | 6,80,000.00 | 8,00,000.00
+  Furniture & Fixtures | 1,35,000.00 | 1,50,000.00
+  Total | 8,15,000.00 | 9,50,000.00
+  Net book values as per the books of account (fixed asset register not provided or not matching). |  | 
+### 9  Intangible assets
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Accounting Software | 60,000.00 | 60,000.00
+  Total | 60,000.00 | 60,000.00
+  Net book values as per the books of account (fixed asset register not provided or not matching). |  | 
+### 10  Capital work-in-progress
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Capital Work-in-Progress - Factory | 4,00,000.00 | -
+  Total | 4,00,000.00 | -
+  Net book values as per the books of account (fixed asset register not provided or not matching). |  | 
+### 11  Non-current investments
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Investment in Mutual Funds | 3,00,000.00 | 2,00,000.00
+  Total | 3,00,000.00 | 2,00,000.00
+### 12  Long-term loans and advances
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Security Deposit - Office | 1,50,000.00 | 1,50,000.00
+  Total | 1,50,000.00 | 1,50,000.00
+### 13  Inventories
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Stock-in-Trade - Warehouse B | 50,000.00 | 50,000.00
+  Stock-in-Trade | 3,66,275.87 | 3,97,888.41
+  Total | 4,16,275.87 | 4,47,888.41
+  Inventories are valued at the lower of cost and net realisable value. |  | 
+### 14  Trade receivables
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Unsecured |  | 
+  Considered good | 44,36,956.40 | 8,47,207.90
+  Total | 44,36,956.40 | 8,47,207.90
+  [Particulars | Outstanding for following periods from the date of the transaction | Total]
+  [Less than 6 months | 6 months - 1 year | 1-2 years | 2-3 years | More than 3 years]
+  (i) Undisputed trade receivables - considered good | 44,36,956.40 | - | - | - | - | 44,36,956.40
+  (ii) Undisputed trade receivables - considered doubtful | - | - | - | - | - | -
+  (iii) Disputed trade receivables - considered good | - | - | - | - | - | -
+  (iv) Disputed trade receivables - considered doubtful | - | - | - | - | - | -
+  Total | 44,36,956.40 | - | - | - | - | 44,36,956.40
+Ageing is computed from the date of the transaction (bill date) on a first-in, first-out basis; opening balances are aged from the beginning of the year. Due dates of payment are not available in the imported books, so this is not ageing from the due date.
+### 15  Cash and cash equivalents
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Cash on hand |  | 
+  Cash | 33,67,398.76 | 60,000.00
+  Balances with banks |  | 
+  HDFC Bank Current A/c | 85,17,140.18 | 9,00,000.00
+  Total | 1,18,84,538.94 | 9,60,000.00
+### 16  Short-term loans and advances
+  [Particulars | As at 31 March 2026 | As at 31 March 2025]
+  Advance Tax | 1,50,000.00 | -
+  Total | 1,50,000.00 | -
+### 17  Revenue from operations
+  [Particulars | For the year ended 31 March 2026 | For the year ended 31 March 2025]
+  Sales - Local | 2,86,98,260.89 | 57,16,325.81
+  Total | 2,86,98,260.89 | 57,16,325.81
+### 18  Other income
+  [Particulars | For the year ended 31 March 2026 | For the year ended 31 March 2025]
+  Interest Received | 54,698.56 | -
+  Total | 54,698.56 | -
+### 19  Purchases of Stock-in-Trade
+  [Particulars | For the year ended 31 March 2026 | For the year ended 31 March 2025]
+  Purchases - Local | 1,22,33,079.98 | 30,92,137.27
+  Total | 1,22,33,079.98 | 30,92,137.27
+### 20  Changes in inventories of finished goods, work-in-progress and Stock-in-Trade
+  [Particulars | For the year ended 31 March 2026 | For the year ended 31 March 2025]
+  Inventories at the beginning of the year | 4,47,888.41 | 3,48,212.51
+  Less: Inventories at the end of the year | (4,16,275.87) | (4,47,888.41)
+  Net (increase) / decrease in inventories | 31,612.54 | (99,675.90)
+### 21  Employee benefits expense
+  [Particulars | For the year ended 31 March 2026 | For the year ended 31 March 2025]
+  Staff Welfare | 1,00,666.03 | -
+  Salary | 5,78,980.53 | 5,65,667.88
+  Total | 6,79,646.56 | 5,65,667.88
+### 22  Finance costs
+  [Particulars | For the year ended 31 March 2026 | For the year ended 31 March 2025]
+  Interest on Term Loan | 78,871.36 | -
+  Interest on Unsecured Loans | 36,000.00 | -
+  Total | 1,14,871.36 | -
+### 23  Depreciation and amortization expense
+  [Particulars | For the year ended 31 March 2026 | For the year ended 31 March 2025]
+  Depreciation | 1,35,000.00 | 1,22,710.78
+  Total | 1,35,000.00 | 1,22,710.78
+### 24  Other expenses
+  [Particulars | For the year ended 31 March 2026 | For the year ended 31 March 2025]
+  Directors' Remuneration | 3,60,000.00 | -
+  Travelling Expenses | 23,568.99 | -
+  Office Expenses | 92,920.96 | 48,187.98
+  Printing & Stationery | 1,05,025.66 | -
+  Telephone Expenses | 92,536.01 | -
+  Conveyance | 1,11,068.33 | -
+  Rent | 3,00,000.00 | 3,00,000.00
+  Electricity Charges | 75,625.02 | 87,170.03
+  Bank Charges | 5,216.39 | -
+  Total | 11,65,961.36 | 4,35,358.01
+### 25  Tax expense
+  [Particulars | For the year ended 31 March 2026 | For the year ended 31 March 2025]
+  Income Tax Expense | 1,80,000.00 | -
+  Total | 1,80,000.00 | -
+### 26  Additional regulatory information: analytical ratios
+  [Ratio | Numerator | Denominator | March 2026 | March 2025 | Variance | Reason for variance above 25%]
+  Current ratio | Current assets | Current liabilities | 10.19 | 5.31 | 91.94% | 
+  Debt-equity ratio | Total borrowings | Owners' funds / shareholders' equity | 0.04 | 0.53 | -92.40% | 
+  Debt service coverage ratio | Profit after tax + depreciation + finance costs | Finance costs + principal repaid | 24.31 | N.A. | N.A. | 
+  Return on equity | Profit after tax | Average owners' funds | 154.54% | 76.55% | 101.89% | 
+  Inventory turnover ratio | Cost of goods sold | Average inventory | 28.39 | 6.68 | 324.85% | 
+  Trade receivables turnover ratio | Revenue from operations | Average trade receivables | 10.86 | 6.75 | 60.98% | 
+  Trade payables turnover ratio | Purchases | Average trade payables | 12.86 | 7.28 | 76.70% | 
+  Net capital turnover ratio | Revenue from operations | Working capital (current assets - current liabilities) | 1.88 | 3.12 | -39.67% | 
+  Net profit ratio | Profit after tax | Revenue from operations | 49.52% | 27.99% | 76.92% | 
+  Return on capital employed | Profit before interest and tax | Capital employed (owners' funds + borrowings) | 85.56% | 50.16% | 70.60% | 
+  Return on investment | Income from investments | Average investments | -0.00% | 0.00% | N.A. | 
+### 27  Contingent liabilities and commitments
+[Information not yet provided]
+### 28  Related party disclosures
+[Information not yet provided]
+
+## Tax audit helper (Tax_Audit_Helper_Form_3CD.xlsx)
+### Index
+  Tax audit helper: Clean Industries Private Limited
+  Applicable report: Form 3CD (section 44AB, Income-tax Act, 1961). Period: year ended 31 March 2026.
+  Clause numbers and titles follow published summaries of Form 3CD; not yet verified against the official form text.
+  18  Depreciation allowable as per the Income-tax Act  [secondary]
+  From the books: Block-wise depreciation from the fixed asset register (rates from the depreciation pack).  Your input: Block of assets for each asset; opening WDV per block.  Your judgement: Put-to-use dates, adjustments for subsidy/GST credit, actual cost.
+  21(d)  Amounts inadmissible: payments otherwise than by account payee cheque / draft / electronic mode above the limit  [secondary]
+  From the books: Cash payments above the limit from the day book (per voucher for expenses; per party per day for suppliers).  Your input: Whether the expense is claimed.  Your judgement: Exceptions under Rule 6DD; aggregation; amount inadmissible.
+  26  Sums allowable only on actual payment: closing balances to check  [secondary]
+  From the books: Closing balances of duties, taxes and similar ledgers.  Your input: Dates of payment after the year end.  Your judgement: Which sums are covered; whether paid by the due date of return.
+  31(a)/(b)/(c)  Loans and deposits taken and repaid (principal only)  [secondary]
+  From the books: Loan register from the day book: principal by mode (bank, cash, journal), interest and TDS kept apart.  Your input: PAN and address of lenders.  Your judgement: Whether each amount is a loan, deposit or specified sum; exemptions.
+  31(ba)/(bc)  Receipts of Rs 2 lakh or more otherwise than by banking channel  [secondary]
+  From the books: Cash receipts of the threshold amount or more from the day book.  Your input: Name, address and PAN of payers.  Your judgement: Aggregation by transaction or event; exempt receipts.
+  34  Expenses on which tax may have to be deducted: list to check against TDS returns  [secondary]
+  From the books: Expense ledgers and amounts.  Your input: Sections, amounts deducted and deposited, from TDS records.  Your judgement: Applicability of TDS to each payment.
+  40  Turnover, gross profit and net profit  [secondary]
+  From the books: Turnover, gross profit and net profit from the statements.  Your input: -  Your judgement: Definition of gross profit for this business.
+  44  Break-up of total expenditure by GST registration of the supplier  [secondary]
+  From the books: Expenditure by ledger.  Your input: Split by suppliers' GST status from purchase records.  Your judgement: -
+### 18 Depreciation
+  Clause 18: Depreciation allowable as per the Income-tax Act |  |  |  |  |  |  |  | 
+  s.32, Income-tax Act, 1961 [not yet verified against the official text]; Form 3CD, clause 18 [not yet verified against the official text] |  |  |  |  |  |  |  | 
+  Block | Rate % | Opening WDV | Additions 180 days or more | Additions less than 180 days | Deductions (sale value) | Depreciation | Closing WDV | Short-term capital gain
+  Fixed asset register not imported: depreciation cannot be worked out. |  |  |  |  |  |  |  | 
+### 21(d) Cash payments
+  Clause 21(d): Amounts inadmissible: payments otherwise than by account payee cheque / draft / electronic mode above the limit |  |  |  |  |  | 
+  s.40A(3)/(3A), Income-tax Act, 1961 [not yet verified against the official text]; Rule 6DD [not yet verified against the official text]; Form 3CD, clause 21(d) [not yet verified against the official text] |  |  |  |  |  | 
+  Date | Voucher | Paid to / ledger | Amount | Details | Rule 6DD exception? (auditor) | Disallowed amount (auditor)
+  No cash payment above the limit was found in the day book (a day book is needed for this test). |  |  |  |  |  | 
+### 26 Statutory dues
+  Clause 26: Sums allowable only on actual payment: closing balances to check |  |  |  |  |  | 
+  s.43B, Income-tax Act, 1961 [not yet verified against the official text]; Form 3CD, clause 26 [not yet verified against the official text] |  |  |  |  |  | 
+  Ledger | Group | Opening | Closing | Nature | Paid on or before due date of return? (auditor) | Date of payment (auditor)
+  TDS Payable | Duties & Taxes | 0 | 0 | Tax deducted at source |  | 
+  Listed by ledger name and group; amounts owed shown positive. Add any statutory due that is booked under another name. |  |  |  |  |  | 
+### 31(a)(b)(c) Loans
+  Clause 31(a)/(b)/(c): Loans and deposits taken and repaid (principal only) |  |  |  |  |  |  |  |  |  |  |  |  | 
+  s.269SS, Income-tax Act, 1961 [not yet verified against the official text]; s.269T, Income-tax Act, 1961 [not yet verified against the official text]; Form 3CD, clause 31(a) [not yet verified against the official text]; Form 3CD, clause 31(c) [not yet verified against the official text] |  |  |  |  |  |  |  |  |  |  |  |  | 
+  Lender | Address (auditor) | PAN (auditor) | Bank / Government (exempt) | Accepted: bank | Accepted: cash | Accepted: journal | Interest credited | Repaid: bank | Repaid: cash | Repaid: journal | Maximum outstanding | Squared up? | Closing
+  HDFC Bank Term Loan |  |  | Yes | 0 | 0 | 0 | 0 | 480000 | 0 | 0 | 800000 | No | 320000
+  Unsecured Loan - Rajesh Kumar |  |  |  | 0 | 0 | 0 | 32400 | 0 | 0 | 0 | 332400 | No | 332400
+  Only the principal accepted or repaid is counted; interest and TDS on interest are kept separate. Journal entries are shown for the auditor to judge the mode. |  |  |  |  |  |  |  |  |  |  |  |  | 
+### 31(ba)(bc) Cash receipts
+  Clause 31(ba)/(bc): Receipts of Rs 2 lakh or more otherwise than by banking channel |  |  |  |  | 
+  s.269ST, Income-tax Act, 1961 [not yet verified against the official text]; Form 3CD, clause 31(ba) [not yet verified against the official text] |  |  |  |  | 
+  Date | Voucher | Received from / ledger | Amount | Details | Name, address, PAN of payer (auditor)
+  None found in the day book. |  |  |  |  | 
+### 34 TDS check
+  Clause 34: Expenses on which tax may have to be deducted: list to check against TDS returns |  |  |  |  | 
+  Form 3CD, clause 34 [not yet verified against the official text] Sections are indicative; confirm the section, deduction and deposit from the TDS records. |  |  |  |  | 
+  Ledger | Shown under | Amount for the year | Likely section (indicative) | TDS deducted (auditor) | TDS deposited in time? (auditor)
+  Interest on Term Loan | Finance costs | 78871.36 | Interest other than on securities |  | 
+  Freight Inward | Other expenses | 0 | Payments to contractors (transport) |  | 
+  Rent | Other expenses | 300000 | Rent |  | 
+  Salary | Employee benefits expense | 578980.53 | Salaries |  | 
+  Interest on Unsecured Loans | Finance costs | 36000 | Interest other than on securities |  | 
+### 40 Ratios
+  Clause 40: Turnover, gross profit and net profit |  | 
+  Form 3CD, clause 40 [not yet verified against the official text] Gross profit = turnover less purchases, change in inventories and direct expenses. |  | 
+  Particulars | This year | Last year
+  Turnover (revenue from operations) | 28698260.89 | 5716325.81
+  Gross profit | 16433568.37 | 2723864.44
+  Gross profit / turnover (%) | 57.263290040430036 | 47.65061563207154
+  Net profit | 14212787.65 | 1600127.77
+  Net profit / turnover (%) | 49.524909207834575 | 27.99224227563754
+  Closing stock-in-trade | 416275.87 | 447888.41
+  Stock-in-trade / turnover (%) | 1.4505264677730092 | 7.835249859559703
+### 44 GST break-up
+  Clause 44: Break-up of total expenditure by GST registration of the supplier |  |  |  |  |  |  | 
+  Form 3CD, clause 44 [not yet verified against the official text] LedgerCraft lists the expenditure; split each amount by the suppliers' GST status from the purchase records. |  |  |  |  |  |  | 
+  Ledger | Shown under | Total expenditure | Registered: relating to exempt goods/services | Registered: composition scheme | Registered: others | Total to registered entities | Unregistered entities
+  Directors' Remuneration | Other expenses | 360000 |  |  |  |  | 
+  Interest on Term Loan | Finance costs | 78871.36 |  |  |  |  | 
+  Travelling Expenses | Other expenses | 23568.99 |  |  |  |  | 
+  Purchases - Local | Purchases of stock-in-trade | 12233079.98 |  |  |  |  | 
+  Office Expenses | Other expenses | 92920.96 |  |  |  |  | 
+  Printing & Stationery | Other expenses | 105025.66 |  |  |  |  | 
+  Telephone Expenses | Other expenses | 92536.01 |  |  |  |  | 
+  Staff Welfare | Employee benefits expense | 100666.03 |  |  |  |  | 
+  Conveyance | Other expenses | 111068.33 |  |  |  |  | 
+  Rent | Other expenses | 300000 |  |  |  |  | 
+  Electricity Charges | Other expenses | 75625.02 |  |  |  |  | 
+  Salary | Employee benefits expense | 578980.53 |  |  |  |  | 
+  Bank Charges | Other expenses | 5216.39 |  |  |  |  | 
+  Interest on Unsecured Loans | Finance costs | 36000 |  |  |  |  | 
+  Total |  | 14193559.26 |  |  |  |  | 
+
+## Legal items (81 applicable, none verified)
+format:company_div1:titles [draft]
+format:company_div1:bs:00 [draft]
+format:company_div1:bs:01 [draft]
+format:company_div1:bs:02 [draft]
+format:company_div1:bs:03 [draft]
+format:company_div1:bs:04 [draft]
+format:company_div1:bs:05 [draft]
+format:company_div1:bs:06 [draft]
+format:company_div1:bs:07 [draft]
+format:company_div1:bs:08 [draft]
+format:company_div1:bs:09 [draft]
+format:company_div1:bs:10 [draft]
+format:company_div1:bs:11 [draft]
+format:company_div1:bs:12 [draft]
+format:company_div1:bs:13 [draft]
+format:company_div1:bs:14 [draft]
+format:company_div1:bs:15 [draft]
+format:company_div1:bs:16 [draft]
+format:company_div1:bs:17 [draft]
+format:company_div1:bs:18 [draft]
+format:company_div1:bs:19 [draft]
+format:company_div1:bs:20 [draft]
+format:company_div1:bs:21 [draft]
+format:company_div1:bs:22 [draft]
+format:company_div1:bs:23 [draft]
+format:company_div1:bs:24 [draft]
+format:company_div1:bs:25 [draft]
+format:company_div1:bs:26 [draft]
+format:company_div1:bs:27 [draft]
+format:company_div1:bs:28 [draft]
+format:company_div1:bs:29 [draft]
+format:company_div1:bs:30 [draft]
+format:company_div1:pl:00 [draft]
+format:company_div1:pl:01 [draft]
+format:company_div1:pl:02 [draft]
+format:company_div1:pl:03 [draft]
+format:company_div1:pl:04 [draft]
+format:company_div1:pl:05 [draft]
+format:company_div1:pl:06 [draft]
+format:company_div1:pl:07 [draft]
+format:company_div1:pl:08 [draft]
+format:company_div1:pl:09 [draft]
+format:company_div1:pl:10 [draft]
+format:company_div1:pl:11 [draft]
+format:company_div1:pl:12 [draft]
+format:company_div1:pl:13 [draft]
+format:company_div1:pl:14 [draft]
+rule:ABNORMAL_BALANCE [unverified]
+rule:CAPITAL_IN_EXPENSE [unverified]
+rule:CASH_ASSET_PURCHASE [unverified]
+rule:CASH_PAYMENT_LIMIT [unverified]
+rule:CASH_RECEIPT_LIMIT [unverified]
+rule:LOAN_ACCEPTED_CASH [unverified]
+rule:LOAN_ACCEPTED_JOURNAL [unverified]
+rule:LOAN_REPAID_CASH [unverified]
+rule:MISC_EXP_ASSET [unverified]
+rule:MISGROUP_LOAN [unverified]
+rule:MISGROUP_OD [unverified]
+rule:MISGROUP_TAX [unverified]
+rule:PL_OPENING [unverified]
+rule:RECLASS_BANK_CR [unverified]
+rule:RECLASS_CREDITOR_DR [unverified]
+rule:RECLASS_DEBTOR_CR [unverified]
+provision:ca2013.sch3 [secondary]
+provision:ca2013.sch3.netting [secondary]
+provision:form3cd.cl21d [secondary]
+provision:form3cd.cl31a [secondary]
+provision:form3cd.cl31ba [secondary]
+provision:form3cd.cl31c [secondary]
+provision:icai.as10 [secondary]
+provision:icai.as26 [secondary]
+provision:it1961.r6DD [secondary]
+provision:it1961.s269SS [secondary]
+provision:it1961.s269ST [secondary]
+provision:it1961.s269T [secondary]
+provision:it1961.s271D [secondary]
+provision:it1961.s271DA [secondary]
+provision:it1961.s271E [secondary]
+provision:it1961.s40A3 [secondary]
+provision:it1961.s43_1_p6 [secondary]
+taxaudit:form3cd [secondary]

@@ -14,6 +14,7 @@ Commands:
      [--out folder]
   tally-companies  List companies open in Tally   [--tally-host localhost] [--tally-port 9000]
   bench          Speed test on a large generated book
-     [--vouchers 1000000] [--write file.csv]
+     [--vouchers 1000000] [--write file.csv] [--out metrics.json]
+     (import, check and export times, a pathological voucher, peak memory)
   packs          Check the shipped packs and list legal content awaiting verification
      [--out readiness.json]

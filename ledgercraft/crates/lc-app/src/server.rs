@@ -111,11 +111,15 @@ fn decode(s: &str) -> String {
         match b[i] {
             b'+' => out.push(b' '),
             b'%' if i + 2 < b.len() => {
-                if let Ok(v) = u8::from_str_radix(&s[i + 1..i + 3], 16) {
-                    out.push(v);
-                    i += 2;
-                } else {
-                    out.push(b'%');
+                // Work on bytes: the two characters after '%' may be part
+                // of a multi-byte letter (found by the fuzz test).
+                let hex = |c: u8| (c as char).to_digit(16);
+                match (hex(b[i + 1]), hex(b[i + 2])) {
+                    (Some(h), Some(l)) => {
+                        out.push((h * 16 + l) as u8);
+                        i += 2;
+                    }
+                    _ => out.push(b'%'),
                 }
             }
             c => out.push(c),
@@ -1525,11 +1529,21 @@ pub fn serve(app: Arc<App>, port: u16, on_ready: impl FnOnce(String)) -> Result<
         std::thread::spawn(move || {
             let mutating =
                 method == "POST" && !url.contains("/ai/") && !url.starts_with("/api/open-folder");
+            let run = || {
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    app.handle(&method, &url, &body)
+                }))
+                .unwrap_or_else(|_| Reply {
+                    status: 500,
+                    content_type: "application/json; charset=utf-8",
+                    body: json!({"error": "This action stopped because of an internal error in LedgerCraft. Please try again, and report it if it repeats."}).to_string().into_bytes(),
+                })
+            };
             let r = if mutating {
                 let _g = app.write.lock().unwrap_or_else(|e| e.into_inner());
-                app.handle(&method, &url, &body)
+                run()
             } else {
-                app.handle(&method, &url, &body)
+                run()
             };
             respond(req, r);
         });

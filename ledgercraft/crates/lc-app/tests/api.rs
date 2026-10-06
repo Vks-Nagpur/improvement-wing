@@ -690,10 +690,42 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         .unwrap()
         .iter()
         .any(|x| x == "thresholds"));
+    // An output made under the old pack must never change when the year
+    // moves to the new pack.
+    let ex = c
+        .call(
+            "POST",
+            &format!("/api/projects/{pid}/export"),
+            Some(json!({"mode": "draft"})),
+        )
+        .unwrap();
+    let old_out = std::path::PathBuf::from(ex["dir"].as_str().unwrap());
+    let hashes = |d: &std::path::Path| -> Vec<(String, Vec<u8>)> {
+        let mut v: Vec<(String, Vec<u8>)> = std::fs::read_dir(d)
+            .unwrap()
+            .map(|e| e.unwrap().path())
+            .filter(|p| p.is_file())
+            .map(|p| {
+                (
+                    p.file_name().unwrap().to_string_lossy().to_string(),
+                    std::fs::read(&p).unwrap(),
+                )
+            })
+            .collect();
+        v.sort();
+        v
+    };
+    let before = hashes(&old_out);
+    assert!(!before.is_empty());
     let m = c
         .call("POST", &format!("/api/projects/{pid}/rules/migrate"), None)
         .unwrap();
     assert_eq!(m["rules_from"], "2025.1-old");
+    assert_eq!(
+        hashes(&old_out),
+        before,
+        "migration changed an earlier export"
+    );
     let r = c
         .call("GET", &format!("/api/projects/{pid}/rules"), None)
         .unwrap();

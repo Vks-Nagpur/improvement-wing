@@ -40,6 +40,23 @@ impl Analysis {
 }
 
 pub fn analyse(eng: &Engagement, rules: &RulesPack) -> Analysis {
+    if let Err(msg) = eng.amounts_fit() {
+        // Nothing is computed from such books: report why and stop.
+        let empty = Engagement {
+            cy: Default::default(),
+            py: None,
+            vouchers: vec![],
+            far: None,
+            consolidation: None,
+            ..eng.clone()
+        };
+        let mut a = analyse(&empty, rules);
+        let mut f = Findings::new(rules, eng.fy_start);
+        f.add("AMOUNTS_TOO_LARGE", "amounts", &msg, Detail::default());
+        a.findings.splice(0..0, f.list);
+        a.printable = false;
+        return a;
+    }
     let ctx = Ctx::new(eng, rules);
     let mut f = Findings::new(rules, eng.fy_start);
 
@@ -355,6 +372,16 @@ fn map_tb(
             status,
             status_reason,
         });
+        // Current / non-current placed from the group: say so, and what the
+        // books cannot tell (LC-P1-024).
+        let m = out.last_mut().unwrap();
+        if let Some(which) = m.head.and_then(crate::dimensions::maturity_of) {
+            let from_group = m.source == Some(MapSource::GroupDefault) && !m.reclassified;
+            if (m.status == MapStatus::Suggested && from_group) || m.status == MapStatus::Confirmed
+            {
+                m.status_reason = crate::dimensions::maturity_evidence(m, which);
+            }
+        }
     }
     out
 }

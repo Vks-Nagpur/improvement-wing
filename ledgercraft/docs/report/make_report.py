@@ -16,7 +16,20 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 LC = ROOT / "ledgercraft"
 OUT = LC / "docs" / "report"
-HIST = Path(sys.argv[1]) if len(sys.argv) > 1 else None  # optional: extracted chat history (json)
+import argparse
+
+ap = argparse.ArgumentParser()
+ap.add_argument("history", nargs="?", help="extracted chat history (json)")
+ap.add_argument("--test-log", help="output of 'cargo test --all' to report the result of the run")
+ap.add_argument("--bench", help="metrics file from 'ledgercraft bench --out'")
+ap.add_argument("--readiness", help="file from 'ledgercraft packs --out'")
+ARGS = ap.parse_args()
+HIST = Path(ARGS.history) if ARGS.history else None
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import check_status  # noqa: E402
+
+STATUS = json.loads((Path(__file__).resolve().parents[1] / "status.json").read_text(encoding="utf-8"))
+STATUS_PROBLEMS = check_status.check(STATUS)
 
 e = html.escape
 parts = []
@@ -51,7 +64,9 @@ def sh(cmd):
 
 
 def tag(s):
-    colors = {"BUILT": "#1d6b46", "TESTED": "#1d6b46", "UNVERIFIED": "#9a5b00", "PENDING": "#a3262a", "NOT BUILT": "#a3262a", "PARTLY": "#9a5b00", "CONSIDERED": "#555"}
+    colors = {"IMPLEMENTED": "#1d6b46", "UNVERIFIED": "#9a5b00", "SECONDARY": "#9a5b00", "CONFLICTING": "#a3262a", "NOT BUILT": "#a3262a", "PARTLY": "#9a5b00", "CONSIDERED": "#555",
+              "complete": "#1d6b46", "broad": "#1d6b46", "partial": "#9a5b00", "none": "#a3262a", "unverified": "#9a5b00", "secondary": "#9a5b00",
+              "primary-source verified": "#1d6b46", "not applicable": "#555", "synthetic": "#9a5b00", "sample-real": "#1d6b46", "broad-real": "#1d6b46", "professional-reviewed": "#1d6b46"}
     return f'<b style="color:{colors.get(s, "#333")}">[{s}]</b>'
 
 
@@ -62,20 +77,25 @@ commit = sh("git -C ledgercraft rev-parse --short HEAD").strip()
 today = date.today().strftime("%d %B %Y")
 
 # ---------------------------------------------------------------- cover
-parts.append(f"""<h1>LedgerCraft: complete build report</h1>
-<p><b>What this is:</b> everything decided, built, referenced and left pending in LedgerCraft, from the first request to the current build, so it can be checked line by line.</p>
-<p><b>Build:</b> branch <code>LedgerCraft</code>, commit <code>{commit}</code>, report generated {today}. Repository: github.com/Vks-Nagpur/improvement-wing (folder <code>ledgercraft/</code>).</p>
-<p><b>How to read the status tags:</b> {tag("BUILT")} in the program and covered by automatic tests; {tag("PARTLY")} built with a stated limitation; {tag("UNVERIFIED")} built, but the legal text it relies on has not been read from the official source; {tag("NOT BUILT")} not in the program; {tag("CONSIDERED")} studied and deliberately not used.</p>
-<p><b>Honesty note:</b> nothing in this program has yet been run on real client books. All testing used generated practice books with known answers. Official government and ICAI websites could not be opened from the build environment, so several legal references rest on search results and secondary websites; each such item is marked {tag("UNVERIFIED")} below and in the app itself.</p>""")
+parts.append(f"""<h1>LedgerCraft: build report</h1>
+<p><b>What this is:</b> everything decided, built, referenced and left pending in LedgerCraft, from the first request to the current build, so it can be checked line by line. This edition follows the master correction specification: every status is given on four separate axes, and the program refuses a status that its evidence does not support.</p>
+<p><b>Build:</b> branch <code>LedgerCraft</code>, commit <code>{commit}</code>, report generated {today} from the source tree (tables of rules, formats, rates, legal items, tests, statuses and commits are read from the code at the time of generation). Repository: github.com/Vks-Nagpur/improvement-wing (folder <code>ledgercraft/</code>).</p>
+<p><b>The four status axes</b> (source: <code>docs/status.json</code>, checked by <code>docs/report/check_status.py</code>):</p>
+<ul><li><b>Implementation</b>: none / partial / complete.</li>
+<li><b>Automated tests</b>: none / partial / broad (broad means at least three named tests that exist in the code).</li>
+<li><b>Legal verification</b>: not applicable / unverified / secondary / primary-source verified (the last only with a verification record).</li>
+<li><b>Real-world validation</b>: synthetic / sample-real / broad-real / professional-reviewed (anything beyond synthetic only with a validation record).</li></ul>
+<p><b>Honesty note:</b> nothing in this program has yet been run on real client books, and no legal item has been verified against an official text. All testing used generated practice books with known answers. Official government and ICAI websites could not be opened from the build environment, so legal references rest on search results and secondary websites. The program therefore refuses a final (signing) copy until a person records the verifications in its Legal verification register.</p>
+<p><b>Status check at generation:</b> {"all statuses are supported by their evidence" if not STATUS_PROBLEMS else e("; ".join(STATUS_PROBLEMS))}.</p>""")
 
 parts.append("""<h2>Contents</h2><ol>
-<li>Your brief, in your words</li><li>Every request and what was done</li><li>Status at a glance</li>
+<li>Your brief, in your words</li><li>Every request and what was done</li><li>Status on four axes</li><li>Correction programme (master correction specification)</li>
 <li>Principles: the accounting truth model</li><li>Legal and professional basis (formats, sections, guidance notes, rates)</li>
 <li>Checks the program runs (all rules, with references)</li><li>Depreciation</li><li>Ratios, ageing and analysis</li>
 <li>Tax audit helper, reconciliations and the auditor workbook</li><li>App flow and every screen</li>
 <li>Theme and design</li><li>Imports: what files are read and how</li><li>Exports: what files are produced</li>
 <li>Technical architecture</li><li>Local AI</li><li>Testing and verification</li><li>Installation and distribution</li>
-<li>Sources consulted</li><li>Verification register (facts and their status)</li><li>Pending, unverified and known limitations</li>
+<li>Sources consulted</li><li>Verification register (every legal item and its status)</li><li>Pending, unverified and known limitations</li>
 <li>Change log (every commit)</li><li>Appendix A: Truth model (full text)</li><li>Appendix B: Your messages (verbatim)</li></ol>""")
 
 # ---------------------------------------------------------------- 1 brief
@@ -104,56 +124,71 @@ timeline = [
     ("Install design and fonts skills; alignment everywhere", "Design pass: IBM Plex Sans and Plex Devanagari bundled, spacing scale, aligned tables and buttons.", "UI"),
     ("Rename branch", "Default branch renamed by you to LedgerCraft; all work pushed there.", "Git"),
     ("Where are we lagging?", "Gap list given: disclosures, roll forward, branches, periods, Word, graphs, tax audit workbook, GST 2B / 26AS, bank reconciliation, installer, Hindi/Marathi guide, practice books, small screens.", "Chat"),
-    ("Do all of it; testing at the end", "All gap items built (see sections 5 to 17).", "Many"),
+    ("Do all of it; testing at the end", "All gap items built (see sections 6 to 18).", "Many"),
     ("External review pasted (compiler not AI; confidence mapping; three disclosure states; draft vs final; rule provenance; pinned packs; tamper-evident)", "All adopted. TRUTH-MODEL.md written; mapping status Rule/Suggested/Review/Confirmed; disclosures Known/Nil/Unknown; final copy blocked on open items; every rule carries source and verification; packs pinned per client year; audit trail called tamper-evident.", "TRUTH-MODEL.md"),
     ("Share screenshots", "14 screenshots sent.", "Chat"),
     ("How to install", "Built the Windows installer here and sent it; steps given.", "Installer"),
     ("Bento dashboard animation; remove unnecessary; clean", "Dashboard in a bento grid with entrance motion; detail tables folded; help boxes fold after first visit; extra home note removed.", "Dashboard"),
     ("Comparison from last year, important for decisions", "Every dashboard figure shows last year and the change; 'Points to look at'; 'Biggest movements'; note-by-note comparison; last-year column in Map ledgers.", "Dashboard; Map ledgers"),
-    ("This report", "This document, generated from the source code.", "docs/report"),
+    ("Detailed downloadable report", "First edition of this report (Word, PDF, HTML), generated from the source code.", "docs/report"),
+    ("Master correction specification uploaded", "Issue-by-issue plan written first (docs/correction): what is confirmed, how each will be fixed, tests, migrations, legal items needing official verification, and what will not be changed.", "docs/correction"),
+    ("Go ahead", "Nine batches implemented and pushed (section 4); this edition of the report generated with four status axes.", "Section 4"),
 ]
 table(["#", "Your request (short)", "What was done", "Where"], [[str(i + 1), e(a), e(b), e(c)] for i, (a, b, c) in enumerate(timeline)])
 
 # ---------------------------------------------------------------- 3 status
-h(2, "3. Status at a glance")
-status = [
-    ("Import: Tally one click (XML server, port 9000)", "BUILT", "Tested against a mock Tally server, not a real TallyPrime."),
-    ("Import: Zoho Books (API and Excel export)", "PARTLY", "Excel export tested; API code written against Zoho's documented endpoints but not run against a live Zoho account."),
-    ("Import: BUSY (Excel + List of Accounts)", "BUILT", "Tested on files written in BUSY's documented layout, not on a real BUSY export."),
-    ("Import: Excel/CSV trial balance, day book, FAR (incl. hand-made sheets)", "BUILT", ""),
-    ("Checks (40 rules)", "BUILT", "Legal references of several are unverified (section 6)."),
-    ("Mapping with confidence status, memory per client", "BUILT", ""),
-    ("Formats: Company Div I, LLP, Non-corporate (Firm, Proprietor, HUF, AOP, BOI)", "UNVERIFIED", "Line items not yet compared word-by-word with the official Schedule III / ICAI texts; packs marked draft."),
-    ("Notes, ageing, MSME split, partner capital, PPE schedule, cash flow (AS 3), 11 ratios", "BUILT", ""),
-    ("Depreciation: Schedule II (book) and IT block rates, 180-day rule", "UNVERIFIED", "Rates from secondary sources; new-Act section number conflicting (33 vs 34)."),
-    ("Manual adjustments", "BUILT", ""),
-    ("Disclosures: three states, final copy blocked when unknown", "BUILT", ""),
-    ("Draft vs final copy", "BUILT", ""),
-    ("Roll forward to next year", "BUILT", ""),
-    ("Branch consolidation", "BUILT", ""),
-    ("Monthly / quarterly / custom periods", "BUILT", ""),
-    ("Outputs: PDF, Excel, Word, HTML preview, auditor workbook, manifest", "BUILT", "Word opens in LibreOffice; not yet opened in Microsoft Word by us."),
-    ("Tax audit helper (Form 3CD to FY 2025-26; Form 26 from TY 2026-27)", "PARTLY", "Form 26 clause numbers not mapped (official form not read)."),
-    ("Bank reconciliation", "BUILT", "Tested on generated statements; real bank formats vary."),
-    ("GSTR-2B and 26AS reconciliation", "PARTLY", "Built to the published file layouts; not yet tried on real downloads."),
-    ("Dashboard (bento), last-year comparison, charts", "BUILT", ""),
-    ("Audit trail (hash-chained, tamper-evident)", "BUILT", ""),
-    ("Local AI (Ollama), explain/suggest only", "BUILT", "Optional."),
-    ("Help in English, Hindi, Marathi; tour; guides", "BUILT", "Hindi/Marathi wording written by us; a native-speaker review is advisable."),
-    ("Windows installer", "PARTLY", "Built and packaged; not yet installed on a real Windows PC by us; not code-signed."),
-    ("Ind AS (Div II/III), XBRL, ITR schedules, deferred tax computation", "NOT BUILT", ""),
+h(2, "3. Status on four axes")
+p("Read from <code>docs/status.json</code>. Each row names the automatic tests that support it; the report generator and CI refuse a row whose tests do not exist or are too few for its claim. Real-world validation is 'synthetic' for every row: no real client data has been used.")
+rows = []
+for f in STATUS["features"]:
+    rows.append([e(f["area"]), e(f["name"]), tag(f["implementation"]), tag(f["tests"]), tag(f["legal"]), tag(f["real_world"]),
+                 str(len(f.get("evidence", []))), e(f.get("note", ""))])
+table(["Area", "Feature", "Implementation", "Tests", "Legal", "Real world", "Named tests", "Note"], rows)
+from collections import Counter
+for axis in ["implementation", "tests", "legal", "real_world"]:
+    c = Counter(f[axis] for f in STATUS["features"])
+    p(f"<b>{axis.replace('_', '-').capitalize()}:</b> " + ", ".join(f"{e(k)} {v}" for k, v in c.most_common()))
+h(3, "3.1 Evidence behind each row")
+table(["Feature", "Tests named as evidence"], [[e(f["name"]), "<code style='font-size:8pt'>" + e(", ".join(f.get("evidence", [])) or "none") + "</code>"] for f in STATUS["features"]])
+
+# ---------------------------------------------------------------- 3b correction programme
+h(2, "4. Correction programme (master correction specification)")
+p("The specification was checked issue by issue against the code before any change (plan: <code>docs/correction/LedgerCraft-Correction-Plan.pdf</code>). Decisions taken with you: the final copy is blocked until legal items are verified (D1); verification is recorded in the app's own register (D2); client folders get stable identities with migration (D3); work in the batch order below (D4).")
+batches = [
+    ("1", "Legal readiness layer", "Every legal item (format line, rule, provision, depreciation table, tax audit form) has a content fingerprint; a person records a verification against the official text; a change to the item voids it; the final copy needs every applicable item verified. Findings say why they fired: basis, unknown facts, possible exceptions, next step; new 'Review' level.", "P0-001..004, P2-002, P2-003"),
+    ("2", "Accounting correctness", "Company managerial remuneration has its own line; book depreciation basis must be confirmed; cash flow from transactions where a day book exists, otherwise marked derived; ratios show numerator and denominator and refuse nil or negative denominators; ageing method stated; inventory shown at book value with a warning; deferred-tax policy sentence only when a deferred tax ledger exists.", "P0-006..010, P1-025..027"),
+    ("3", "Tax audit schemas and format provenance", "Form 3CD and Form 26 are separate schemas; the Form 26 helper never uses 3CD clause numbers; every format pack states its authority and source document.", "P0-005, P0-011, P0-012"),
+    ("4", "Local server and output hardening", "Random session token sent only in a header; host and origin checked; body size limits; content security policy; preview in a sandboxed frame; formula guard for CSV; AI address must be on this PC unless allowed.", "P1-001..008, P2-007"),
+    ("5", "Storage, audit trail, cache, manifest", "Atomic writes with unique temporary files; stable client folders; audit checkpoint detects a shortened or deleted trail; cache keyed by file fingerprints; export manifest records inputs, packs, legal readiness and audit head, with its own hash.", "P1-009..015"),
+    ("6", "Import safety and diagnostics", "Zip-bomb and size limits for Excel; depth, size and node limits for Tally XML; every skipped row reported with its reason; import report saved next to the file.", "P1-020..022"),
+    ("7", "Reconciliation tiers", "GSTR-2B / 26AS: identifier first, identifier in the ledger name, exact name; similar names only suggested and confirmed by you. Bank: manual matches, amount and date, cheque/UTR reference, split suggestions; stale items, duplicates and balance breaks flagged.", "P1-016..019"),
+    ("8", "Outputs and CI", "DRAFT text inside the body of every format; Excel print titles and print area; Excel header kept under its 255-character limit; pack checks, legal readiness report, dependency audit and artifact hashes in CI.", "P2-010, P2-012, P2-015"),
+    ("9", "Test corpus and this report", "Golden books for all seven entity types; adversarial books; property and fuzz-style tests; performance metrics; typed ledger facts (groundwork); four-axis status. These tests found five defects, all fixed (section 17).", "J01..J05, P1-023/024 groundwork, P2-001"),
 ]
-table(["Area", "Status", "Note"], [[e(a), tag(b), e(c)] for a, b, c in status])
+cm = {}
+for line in sh("git -C ledgercraft log --format='%h|%s'").splitlines():
+    hsh, _, subj = line.partition("|")
+    for b in [x[0] for x in batches]:
+        if f"batch {b})" in subj and b not in cm:
+            cm[b] = hsh
+for key, word in [("7", "Reconciliation tiers"), ("8", "Draft mark in every output"), ("9", "Test corpus")]:
+    for line in sh("git -C ledgercraft log --format='%h|%s'").splitlines():
+        if word in line and key not in cm:
+            cm[key] = line.split("|")[0]
+table(["Batch", "Subject", "What changed", "Issues", "Commit"], [[a, e(b), e(c), e(d), f"<code>{cm.get(a, '(this commit)')}</code>"] for a, b, c, d in batches])
+p("Not changed on purpose (as agreed in the plan): integer-paise money, immutable imports with adjustments on top, the mapping confirmation workflow, three-state disclosures, the hash-chained audit trail, versioned export folders. Not in scope: Ind AS, XBRL, inventory valuation and deferred tax computation.")
 
 # ---------------------------------------------------------------- 4 truth model summary
-h(2, "4. Principles: the accounting truth model")
+h(2, "5. Principles: the accounting truth model")
 ul([
     "LedgerCraft is a <b>financial-statement compiler</b>, not an AI accounting program: books go in, deterministic and traceable statements come out.",
     "Money is held as whole paise (integers). Debit is positive, credit negative. No floating-point rounding errors in totals.",
     "The imported books are never changed. Your adjustments sit on top and can be switched off.",
     "Mapping states: <b>Rule</b> (only one place possible), <b>Suggested</b> (LedgerCraft's proposal, needs your confirmation), <b>Review</b> (your earlier choice but the books changed), <b>Confirmed</b>, <b>Unmapped</b>. Memory is kept per client with context (group and Dr/Cr side), not just the name.",
     "Disclosures have three states: <b>given</b>, <b>explicitly Nil</b>, <b>unknown</b>. Unknown never becomes Nil; the draft prints 'information not provided'.",
-    "A <b>draft</b> can always be printed (it says how many problems are open). A <b>final signing copy</b> is refused while any blocker is open (section 4 of Appendix A).",
+    "A <b>draft</b> can always be printed; every page and sheet says DRAFT and how many problems are open. A <b>final signing copy</b> is refused while any blocker is open, any disclosure is unanswered, any applicable legal item is unverified, or the signing details are missing (section 4 and 7 of Appendix A).",
+    "<b>Legal content is never marked verified by the program.</b> Every format line, rule, provision, depreciation table and tax audit form is a legal item with a fingerprint; a person records the official source, date and their name; a later change to the item voids the record.",
+    "Books that cannot be real are refused, not half-processed: amounts too large to add up safely, and the same ledger name twice in one trial balance, are reported as 'Must fix'.",
     "Rules and formats are data with provenance (authority, document, section, effective dates, verification) and are pinned per client year; a newer pack is adopted only when you choose to migrate.",
     "The audit trail is hash-chained: editing or deleting an entry in the middle is detected. It is tamper-evident, not tamper-proof.",
     "AI is outside the trust boundary: it explains and suggests, never changes a figure, and every answer is labelled and logged.",
@@ -161,15 +196,15 @@ ul([
 p("Full text in Appendix A.")
 
 # ---------------------------------------------------------------- 5 legal basis
-h(2, "5. Legal and professional basis")
-h(3, "5.1 Which format applies to which entity")
+h(2, "6. Legal and professional basis")
+h(3, "6.1 Which format applies to which entity")
 table(["Entity", "Format followed", "Status"], [
     ["Company (not Ind AS)", "Companies Act, 2013, Schedule III, Division I (as amended by MCA notification of 24-03-2021) and ICAI Guidance Note on Division I (Non Ind AS) Schedule III (revised January 2022)", tag("UNVERIFIED") + " line items to be compared with the official text"],
     ["LLP", "ICAI Guidance Note on Financial Statements of Limited Liability Partnerships", tag("UNVERIFIED")],
     ["Partnership firm, Proprietor, HUF, AOP, BOI", "ICAI Guidance Note on Financial Statements of Non-Corporate Entities (issued August 2023). Applicability reported as phased: Phase I from periods beginning 1-4-2025 (turnover above ₹5 crore), Phase II from 1-4-2026 (all covered entities), per ICAI ASB announcement of 31-03-2026 as reported by secondary sources", tag("UNVERIFIED") + " official ICAI page could not be opened"],
     ["Company (Ind AS), NBFC", "Schedule III Divisions II and III", tag("NOT BUILT")],
 ])
-h(3, "5.2 Line items of each format (exactly as in the build)")
+h(3, "6.2 Line items of each format (exactly as in the build)")
 p("Codes: H = heading, S = sub-heading, I = line item (shown with a note number), SUM = computed total. 'keep' = printed even when nil.")
 for k, pk in packs.items():
     h(4, f"{pk['name']}  ({pk['id']}, status: {pk['status']})")
@@ -183,12 +218,12 @@ for k, pk in packs.items():
         parts.append(f"<p><b>{'Balance Sheet' if side == 'balance_sheet' else 'Statement of Profit and Loss'}</b></p>")
         table(["Type", "Line", "Built from (internal head)", ""], rows)
 
-h(3, "5.3 Income-tax: which Act and which form, by year")
+h(3, "6.3 Income-tax: which Act and which form, by year")
 table(["Year of the client", "Act used for references", "Tax audit form", "Status"], [
-    ["FY 2025-26 and earlier", "Income-tax Act, 1961", "Form 3CA / 3CB with Form 3CD", tag("BUILT")],
+    ["FY 2025-26 and earlier", "Income-tax Act, 1961", "Form 3CA / 3CB with Form 3CD", tag("IMPLEMENTED")],
     ["Tax Year 2026-27 onwards (from " + e(rules["new_act_from"]) + ")", "Income-tax Act, 2025", "Form 26 (section 63; Rule 47, Income-tax Rules 2026, G.S.R. 198(E) of 20-03-2026 as reported)", tag("UNVERIFIED") + " clause numbers of Form 26 not mapped"],
 ])
-h(3, "5.4 Old and new section numbers used")
+h(3, "6.4 Old and new section numbers used")
 table(["Item", "Income-tax Act, 1961", "Income-tax Act, 2025 (as used)", "Status"], [
     ["Cash payment of expenses above ₹10,000 (₹35,000 transporters)", "s.40A(3)", "s.36", tag("UNVERIFIED") + " per published section listings; sub-section not read"],
     ["Asset bought in cash (cost not allowed for depreciation)", "s.43(1), 6th proviso", "not confirmed (shown as 'actual-cost rule')", tag("UNVERIFIED")],
@@ -199,23 +234,23 @@ table(["Item", "Income-tax Act, 1961", "Income-tax Act, 2025 (as used)", "Status
     ["Tax audit", "s.44AB", "s.63", tag("UNVERIFIED")],
 ])
 p("In the app every unverified reference is printed with '[reference not yet verified against the official text]'.")
-h(3, "5.5 Thresholds (data in rules pack)")
+h(3, "6.5 Thresholds (data in rules pack)")
 table(["Threshold", "Value"], [[e(k), f"₹{v / 100:,.0f}"] for k, v in rules["thresholds"].items()])
-h(3, "5.6 Other legal and professional points built in")
+h(3, "6.6 Other legal and professional points built in")
 table(["Point", "Reference", "How it is built", "Status"], [
-    ["Audit trail (edit log) in accounting software", "Companies (Accounts) Rules, 2014, rule 3(1) proviso, from FY 2023-24", "Hash-chained log of every import, mapping, setting, adjustment, export and AI answer; cannot be switched off", tag("BUILT")],
-    ["UDIN", "ICAI UDIN guidelines", "Paste-only field, printed as entered; no integration (no public generation API found)", tag("BUILT")],
-    ["Rounding off", "Schedule III general instructions (units by turnover)", "Choice of ₹, thousands, lakhs, millions, crores; totals always cast exactly after rounding (largest remainder)", tag("BUILT")],
-    ["Ageing of trade receivables and payables", "Schedule III (2021 amendment): less than 6 months, 6 months-1 year, 1-2, 2-3, more than 3 years; disputed / undisputed; MSME split for payables", "Ageing note and dashboard charts", tag("BUILT")],
-    ["Ratios with reasons for change over 25%", "Schedule III (2021 amendment), 11 ratios", "Computed both years; changes over 25% flagged 'explain'", tag("BUILT")],
-    ["MSME disclosure", "MSMED Act, 2006 s.22 interest disclosures", "Six interest figures entered by you; principal from creditors tagged msme", tag("BUILT")],
-    ["Share capital, >5% holders, promoter shareholding", "Schedule III Division I", "Disclosures screen; total must agree with books or final copy is refused", tag("BUILT")],
-    ["Cash flow statement", "AS 3 (indirect method)", "Prepared; can be switched off", tag("BUILT")],
-    ["Accounting policies wording", "AS 1 / framework per entity", "Standard text per entity type, editable; a warning always reminds you to review it", tag("BUILT")],
+    ["Audit trail (edit log) in accounting software", "Companies (Accounts) Rules, 2014, rule 3(1) proviso, from FY 2023-24", "Hash-chained log of every import, mapping, setting, adjustment, export and AI answer; cannot be switched off", tag("IMPLEMENTED")],
+    ["UDIN", "ICAI UDIN guidelines", "Paste-only field, printed as entered; no integration (no public generation API found)", tag("IMPLEMENTED")],
+    ["Rounding off", "Schedule III general instructions (units by turnover)", "Choice of ₹, thousands, lakhs, millions, crores; totals always cast exactly after rounding (largest remainder)", tag("IMPLEMENTED")],
+    ["Ageing of trade receivables and payables", "Schedule III (2021 amendment): less than 6 months, 6 months-1 year, 1-2, 2-3, more than 3 years; disputed / undisputed; MSME split for payables", "Ageing note and dashboard charts", tag("IMPLEMENTED")],
+    ["Ratios with reasons for change over 25%", "Schedule III (2021 amendment), 11 ratios", "Computed both years; changes over 25% flagged 'explain'", tag("IMPLEMENTED")],
+    ["MSME disclosure", "MSMED Act, 2006 s.22 interest disclosures", "Six interest figures entered by you; principal from creditors tagged msme", tag("IMPLEMENTED")],
+    ["Share capital, >5% holders, promoter shareholding", "Schedule III Division I", "Disclosures screen; total must agree with books or final copy is refused", tag("IMPLEMENTED")],
+    ["Cash flow statement", "AS 3 (indirect method)", "Prepared; can be switched off", tag("IMPLEMENTED")],
+    ["Accounting policies wording", "AS 1 / framework per entity", "Standard text per entity type, editable; a warning always reminds you to review it", tag("IMPLEMENTED")],
 ])
 
 # ---------------------------------------------------------------- 6 rules
-h(2, "6. Checks the program runs (all rules, with references)")
+h(2, "7. Checks the program runs (all rules, with references)")
 p(f"Rules pack <code>{e(rules['pack_id'])}</code>, version <code>{e(rules['version'])}</code>. Pack-level verification note: {e(rules['verification'])}.")
 p(e(rules["note"]))
 sev = {"blocker": "Must fix", "warning": "Check", "info": "Note"}
@@ -229,11 +264,11 @@ for code, r in rules["rules"].items():
 table(["Code", "Level", "Title", "Plain meaning", "Section (old / new)", "Source", "Verification"], rows)
 
 # ---------------------------------------------------------------- 7 depreciation
-h(2, "7. Depreciation")
+h(2, "8. Depreciation")
 p(f"Pack status: {e(dep['status'])}. Residual value used for book depreciation: {dep['residual_pct']}%.")
-h(3, "7.1 Book depreciation: useful lives (Companies Act, 2013, Schedule II)")
+h(3, "8.1 Book depreciation: useful lives (Companies Act, 2013, Schedule II)")
 table(["Key", "Asset class", "Useful life (years)"], [[e(b["key"]), e(b["label"]), str(b["life"])] for b in dep["book_classes"]])
-h(3, "7.2 Income-tax depreciation: block rates")
+h(3, "8.2 Income-tax depreciation: block rates")
 table(["Key", "Block of assets", "Rate %"], [[e(b["key"]), e(b["label"]), str(b["rate"])] for b in dep["it_blocks"]])
 ul([
     "Additions put to use for less than 180 days in the year get half the rate (income-tax).",
@@ -243,12 +278,12 @@ ul([
 ])
 
 # ---------------------------------------------------------------- 8 ratios / analysis
-h(2, "8. Ratios, ageing and analysis")
+h(2, "9. Ratios, ageing and analysis")
 src = read("crates/lc-core/src/ratios.rs")
 rat = re.findall(r'push\(\s*"([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"([^"]+)"', src)
 table(["Ratio", "Numerator", "Denominator", "Unit"], [[e(a), e(b), e(c), e(d)] for a, b, c, d in rat])
 p("A ratio is flagged when it moves by more than 25% against last year.")
-h(3, "8.1 Dashboard (what it shows and how it decides)")
+h(3, "9.1 Dashboard (what it shows and how it decides)")
 ul([
     "Profit for the year with change on last year (₹ and %), margin, and revenue / other income / expenses and tax for both years.",
     "Final copy readiness: must-fix problems, placements to confirm, disclosures to answer, each with an Open button.",
@@ -260,21 +295,21 @@ ul([
 ])
 
 # ---------------------------------------------------------------- 9 tax audit etc
-h(2, "9. Tax audit helper, reconciliations and the auditor workbook")
+h(2, "10. Tax audit helper, reconciliations and the auditor workbook")
 ta = read("crates/lc-io/src/tax_audit.rs")
 sheets = sorted(set(re.findall(r'set_name\("([^"]+)"\)', ta)))
-table(["Helper workbook sheet (by clause)", "Status"], [[e(s_), tag("BUILT")] for s_ in sheets])
+table(["Helper workbook sheet (by clause)", "Status"], [[e(s_), tag("IMPLEMENTED")] for s_ in sheets])
 p("File name: Tax_Audit_Helper_Form_3CD.xlsx (up to FY 2025-26) or Tax_Audit_Helper_Form_26.xlsx (from Tax Year 2026-27). For Form 26 the sheets keep the 3CD clause subjects; Form 26 clause numbers are not yet mapped.")
 ul([
-    "Bank reconciliation: statement lines matched with the day book on the same amount, date within 10 days, cheque number when both have one. Open items: cheques issued not presented, deposits not cleared, credits and debits by the bank only, difference.",
+    "Bank reconciliation, in tiers: your own matches first; then same amount within the date window (cheque number preferred, then nearest date); then the same cheque/UTR reference within 60 days even if the date is far; split or combined payments are only suggested (subset of up to four lines), never matched by themselves. Flags items open for more than 6 months, possible duplicate statement lines and breaks in the statement's running balance. Open items: cheques issued not presented, deposits not cleared, credits and debits by the bank only, difference. You can match a pair by hand; it is logged.",
     "GSTR-2B: JSON (data.docdata b2b and cdnr) or portal Excel (B2B sheet, two header rows); ITC per supplier against books; invoices with ITC not available are left out.",
     "Form 26AS: TRACES text file (caret-separated) or Excel; TDS per deductor (TAN) against books.",
-    "Parties matched by GSTIN/TAN or a similar name (noise words removed); 'name looks alike' cases shown for you to check.",
+    "Parties matched in tiers: GSTIN/TAN in the books; GSTIN/TAN written in the ledger name; exactly the same name (only when unique). Similar names are never matched automatically: they are shown as 'suggested' or with candidates, and you confirm the party (remembered for the client and logged).",
     "Auditor workbook sheets: Summary, Index, All findings, Loan register, Adjustments, one sheet per bank reconciliation, GST 2B recon, 26AS recon.",
 ])
 
 # ---------------------------------------------------------------- 10 app flow
-h(2, "10. App flow and every screen")
+h(2, "11. App flow and every screen")
 appjs = read("crates/lc-app/src/ui/app.js")
 flows = re.findall(r'(\w+): \{ name: "([^"]+)", steps: \[([^\]]+)\]', appjs)
 idx = read("crates/lc-app/src/ui/index.html")
@@ -283,7 +318,7 @@ labels.setdefault("home", "Start")
 table(["Route (what you chose on the start screen)", "Steps shown on the left, in order"],
       [[e(n), " → ".join(e(labels.get(x.strip().strip('"'), x.strip().strip('"'))) for x in st.split(","))] for _, n, st in flows])
 p("Always available: Start (home) to change the intent; client search (Ctrl+K); Alt+1…9 jumps to a step; Help menu (language English/Hindi/Marathi, help on/off, expert mode, tour, shortcuts); 'What to do now' box with a Go button; status bar (client, save state, Act and form in use, rules version, data folder, version).")
-h(3, "10.1 Screens: title, purpose and every button")
+h(3, "11.1 Screens: title, purpose and every button")
 for m in re.finditer(r'<section data-panel="(\w+)"[^>]*>(.*?)</section>\s*(?=<!--|<section|</main>)', idx, re.S):
     view, body = m.group(1), m.group(2)
     t = re.search(r"<h1>([^<]+)</h1>", body)
@@ -299,7 +334,7 @@ for m in re.finditer(r'<section data-panel="(\w+)"[^>]*>(.*?)</section>\s*(?=<!-
 p("Buttons created by the program at run time (inside lists and tables): Open, Start next year, Delete, Restore, Choose file / Replace, Remove, Confirm, Suggest, Reset, See list, Explain, Edit, Switch off / on, Open (dashboard readiness), Import last year.")
 
 # ---------------------------------------------------------------- 11 theme
-h(2, "11. Theme and design")
+h(2, "12. Theme and design")
 css = read("crates/lc-app/src/ui/app.css")
 root = re.search(r":root\s*\{(.*?)\}", css, re.S).group(1)
 toks = re.findall(r"(--[\w-]+):\s*([^;]+);", root)
@@ -316,7 +351,7 @@ ul([
 ])
 
 # ---------------------------------------------------------------- 12 imports
-h(2, "12. Imports: what files are read and how")
+h(2, "13. Imports: what files are read and how")
 rd = read("crates/lc-io/src/read.rs")
 consts = re.findall(r"const (\w+): &\[&str\] = &\[(.*?)\];", rd, re.S)
 table(["Column kind", "Header names recognised (any case)"], [[e(n), e(", ".join(re.findall(r'"([^"]*)"', v)))] for n, v in consts])
@@ -329,7 +364,7 @@ ul([
 ])
 
 # ---------------------------------------------------------------- 13 exports
-h(2, "13. Exports: what files are produced")
+h(2, "14. Exports: what files are produced")
 table(["File", "What it is"], [
     ["Financial_Statements.pdf", "Signing-ready statements (cover, contents, Balance Sheet, P&L, Cash Flow, notes, schedules, annexures, optional charts)"],
     ["Financial_Statements.xlsx", "Same statements in Excel"],
@@ -338,12 +373,14 @@ table(["File", "What it is"], [
     ["Auditor_Reference_Workbook.xlsx", "Findings, loan register, adjustments, reconciliations"],
     ["Tax_Audit_Helper_Form_3CD.xlsx / _Form_26.xlsx", "Clause-wise supporting data (optional)"],
     ["analysis.json", "All figures and findings, machine readable"],
-    ["export-manifest.json", "SHA-256 fingerprint of every file"],
+    ["export-manifest.json", "SHA-256 fingerprint of every file; inputs, pinned packs, legal readiness and audit-trail head it was made from"],
+    ["export-manifest.sha256", "Fingerprint of the manifest itself"],
 ])
+p("Drafts carry the word DRAFT in the body of every file (PDF on every page, Word first paragraph and header, every Excel sheet's first row and print header, HTML banner), not only in the file or folder name. Excel sheets print on A4, fit to width, with the title rows repeated on each page.")
 p("Folder: Documents\\LedgerCraft Data\\Exports\\&lt;client&gt;\\FY &lt;year&gt;\\Draft-&lt;date&gt;_v&lt;n&gt; (or Final). A final copy is refused while blockers are open.")
 
 # ---------------------------------------------------------------- 14 architecture
-h(2, "14. Technical architecture")
+h(2, "15. Technical architecture")
 loc = sh("cd ledgercraft && for d in crates/*; do n=$(find $d -name '*.rs' -o -name '*.js' -o -name '*.css' -o -name '*.html' -o -name '*.typ' | xargs cat 2>/dev/null | wc -l); echo \"$d $n\"; done")
 crate_role = {"lc-core": "Engine: money, groups, mapping, checks, figures, rounding, ratios, ageing, capital, FAR, adjustments, consolidation, reconciliations, report model, charts", "lc-io": "Readers and renderers (PDF via Typst, Excel, Word, HTML), export, tax audit helper, portal files", "lc-ai": "Ollama client and guarded assistant", "lc-app": "Desktop app: local web server on 127.0.0.1 with a session token, storage, audit trail, screens", "lc-cli": "Command line (analyse books and export, list Tally companies, write practice data, benchmark)", "lc-testdata": "Practice-book generator with expected answers"}
 table(["Part", "Role", "Lines of code"], [[e(Path(l.split()[0]).name), e(crate_role.get(Path(l.split()[0]).name, "")), l.split()[1]] for l in loc.strip().splitlines()])
@@ -358,7 +395,7 @@ routes = sorted(set(re.findall(r'\("(GET|POST)", \[([^\]]*)\]\)', srv)))
 table(["Method", "Address"], [[m_, "/" + "/".join(x.strip().strip('"') for x in a.split(",")) ] for m_, a in routes])
 
 # ---------------------------------------------------------------- 15 AI
-h(2, "15. Local AI")
+h(2, "16. Local AI")
 ul([
     "Ollama on the same PC (ollama.com, free). Models offered: qwen2.5:3b (recommended; English, Hindi, Marathi; about 2 GB; 8 GB RAM PC), llama3.2:3b, qwen2.5:1.5b (older PCs).",
     "Uses: explain a finding in simple language; suggest a placement for a ledger (must be one of the allowed heads, otherwise rejected); draft a reason for a ratio change; answer questions about the engagement.",
@@ -366,9 +403,29 @@ ul([
 ])
 
 # ---------------------------------------------------------------- 16 testing
-h(2, "16. Testing and verification")
+h(2, "17. Testing and verification")
 tests = sh("cd ledgercraft && grep -rn '#\\[test\\]' -A1 crates --include=*.rs | grep -o 'fn [a-z0-9_]*' | sed 's/fn //'").split()
-p(f"{len(tests)} automatic tests (Rust), run before every push together with formatting and lint checks. Names:")
+p(f"{len(tests)} automatic tests (Rust), run before every push together with formatting and lint checks.")
+if ARGS.test_log and Path(ARGS.test_log).exists():
+    res = re.findall(r"test result: (\w+)\. (\d+) passed; (\d+) failed", Path(ARGS.test_log).read_text())
+    passed = sum(int(x[1]) for x in res)
+    failed = sum(int(x[2]) for x in res)
+    p(f"<b>Test run for this report:</b> {passed} passed, {failed} failed, in {len(res)} test groups (cargo test --all).")
+per_file = sh("cd ledgercraft && grep -rc '#\\[test\\]' crates --include=*.rs | grep -v ':0$' | sort").strip().splitlines()
+table(["File", "Tests"], [[f"<code>{e(l.rsplit(':', 1)[0])}</code>", l.rsplit(':', 1)[1]] for l in per_file])
+if ARGS.bench and Path(ARGS.bench).exists():
+    b = json.loads(Path(ARGS.bench).read_text())
+    s_ = b["seconds"]
+    table(["Benchmark (one run, " + e(b.get("os", "")) + ")", "Result"], [
+        ["Book", f"{b['vouchers']:,} vouchers, {b['lines']:,} lines"],
+        ["Import (day book CSV read back)", f"{s_['import']:.1f} s; identical: {b['import_identical']}"],
+        ["Checks and statements", f"{s_['analysis']:.1f} s; balance sheet tallies: {b['balance_sheet_tallies']}"],
+        ["Draft export (all formats)", f"{s_['export']:.1f} s"],
+        ["Pathological voucher (50,000 lines, 5,000-character ledger name)", f"{s_['pathological']:.1f} s"],
+        ["Peak memory", f"{b['peak_memory_mb']:.0f} MB" if b.get("peak_memory_mb") else "not measured"],
+    ])
+    p("Not measured: how quickly the screens respond while a long operation runs (each request has its own thread, but no timing test exists).")
+p("Test names:")
 parts.append("<p style='font-size:9pt'>" + ", ".join(e(t) for t in tests) + "</p>")
 pr = []
 for d in sorted((LC / "samples" / "practice").iterdir()):
@@ -382,29 +439,34 @@ ul([
     "Casting: printed statements must add up in 6 units across 33 books.",
     "Round trip: Excel/CSV, Tally XML (mock server) and the app must give identical results.",
     "Browser walkthrough of every screen at 1440, 1280 and 1024 px (create client, import, check, map, adjust, disclose, present, export, audit, delete/restore, search).",
-    "Performance: about 1 million vouchers checked in about 5 seconds (benchmark).",
+    "Golden books (J01): one clean book per entity type (company, LLP, firm, proprietor, HUF, AOP, BOI); statements, notes, mapping, findings, tax audit helper and legal items saved as text and compared exactly. Machine-generated, not yet reviewed by a CA (tests/golden/README.md lists points for the reviewer).",
+    "Adversarial books (J02): zero ledgers, overdrawn bank, debit creditors, credit debtors, contra ledgers, suspense, opening differences, duplicate and malformed vouchers, huge amounts, Unicode names, the same ledger name twice, part-year, 18-month period, leap day. Branch differences, non-cash purchases and disposals are covered by the branch, cash-flow and depreciation tests.",
+    "Property tests (J03): generated books always balance and give the known profit; balanced adjustments keep double entry and unbalanced ones are refused without changing anything; rounded figures always add to the rounded total; amounts survive text and Excel round trips; no final copy while a blocker is open; moving a year to a newer pack never changes an earlier export.",
+    "Fuzz-style tests (J04): damaged copies of Tally XML, CSV, Excel, bank, GSTR-2B and 26AS files, amount text and API requests (URLs, ids, JSON bodies). 400 rounds per reader in every test run; 20,000 rounds per reader were run once for this report.",
+    "Performance (J05): see the metrics below.",
+    "<b>Defects found by these tests and fixed:</b> a voucher near the largest number crashed the checks (now refused as AMOUNTS_TOO_LARGE); the same ledger name twice gave only side effects (now DUPLICATE_LEDGER); a damaged .xlsx made the Excel reader library panic (now refused as damaged; file kept as a regression test); URL decoding crashed on '%' followed by a non-ASCII letter; a crash inside a request dropped the connection (now answered with an error).",
     "<b>Not yet done:</b> real client books; real TallyPrime, Zoho, BUSY, bank, GST and 26AS files; Microsoft Word; installing on a real Windows PC.",
 ])
 
 # ---------------------------------------------------------------- 17 install
-h(2, "17. Installation and distribution")
+h(2, "18. Installation and distribution")
 ul([
     "Installer LedgerCraft-Setup-&lt;version&gt;.exe (NSIS): per-user, no administrator rights; Start menu (LedgerCraft, User guides, Practice books, Uninstall) and desktop icon; uninstall never touches Documents\\LedgerCraft Data.",
     "Not code-signed: Windows shows 'Unknown publisher' (More info → Run anyway). Free signing for open-source projects (SignPath Foundation) needs an open-source licence, which conflicts with 'no licence'.",
-    "GitHub Actions builds and tests on Ubuntu and Windows and makes the installer; Actions have not run since 3 October (they may need enabling in the repository's Actions tab).",
+    "GitHub Actions (when enabled in the repository's Actions tab) checks formatting and lint, runs every test on Ubuntu and Windows, builds release binaries, checks the shipped packs and uploads the legal readiness report, runs the benchmark and uploads its metrics, audits dependencies against the RustSec advisory database, builds the installer and publishes SHA-256 sums of the Windows files. We have not seen these runs succeed: Actions have not run on this repository since 3 October.",
     "User guides: README (English), docs/GUIDE-hi.md (Hindi), docs/GUIDE-mr.md (Marathi).",
 ])
 
 # ---------------------------------------------------------------- 18 sources
-h(2, "18. Sources consulted")
-p("Web searches made during the build (as typed). Results were read as search summaries; where a page itself was opened it is listed in 18.2.")
+h(2, "19. Sources consulted")
+p("Web searches made during the build (as typed). Results were read as search summaries; where a page itself was opened it is listed in 19.2.")
 if HIST and HIST.exists():
     hist = json.loads(HIST.read_text())
     parts.append("<ol style='font-size:9pt'>" + "".join(f"<li>{e(q)}</li>" for q in hist["searches"]) + "</ol>")
-    h(3, "18.2 Pages opened or attempted")
+    h(3, "19.2 Pages opened or attempted")
     p("Official government and several tax websites refused connection from the build environment; for those, the content rests on search-result text. The list shows every address attempted.")
     parts.append("<ol style='font-size:9pt'>" + "".join(f"<li>{e(u)}</li>" for u in hist["fetch"]) + "</ol>")
-h(3, "18.3 Official sources to be read before final use")
+h(3, "19.3 Official sources to be read before final use")
 ul([
     "Companies Act, 2013, Schedule III (as amended 24-03-2021) and Schedule II — mca.gov.in / indiacode.nic.in",
     "ICAI Guidance Notes: Division I (Non Ind AS) Schedule III (Jan 2022); Non-Corporate Entities (Aug 2023) and its applicability announcement (31-03-2026); LLPs — icai.org",
@@ -413,18 +475,37 @@ ul([
 ])
 
 # ---------------------------------------------------------------- 19 verification register
-h(2, "19. Verification register (facts and their status)")
-bp = (ROOT / "docs/financial-statements-tool/BLUEPRINT.md").read_text()
-m = re.search(r"## 17\. Verification status of facts used\n\n(.*?)\n\n", bp, re.S)
-if m:
-    lines = [l for l in m.group(1).splitlines() if l.startswith("|")][2:]
-    rows = [[re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", e(c.strip())) for c in l.strip("|").split("|")] for l in lines]
-    table(["Fact", "Status", "Source"], rows)
-p("Additional: Form 3CD clause 31 sub-clauses (a), (b), (ba), (bb), (bc), (bd), (c), (d), (e) confirmed from search results; Form 26 clause numbers not mapped; the counterpart of s.43(1) 6th proviso not confirmed.")
+h(2, "20. Verification register (every legal item and its status)")
+p("Generated from the shipped packs. 'As shipped' is the status the item carries in this build. <b>Verified by a person: none</b> in this build; verifications are recorded per installation in the app (Legal verification register screen) and are bound to each item's content fingerprint, so they are not part of the source code.")
+sec = json.loads(read("crates/lc-core/packs/sections.json"))
+h(3, "20.1 Statutory provisions (sections.json)")
+table(["Id", "Act", "Section as used", "Subject", "Effective", "As shipped", "Verified"],
+      [[f"<code>{e(k)}</code>", e(v["act"]), e(v["citation"] or "(not shown)"), e(v["title"]),
+        e(" ".join(x for x in [("from " + v["effective_from"]) if v.get("effective_from") else "", ("until " + v["effective_until"]) if v.get("effective_until") else ""] if x)),
+        tag(v["status"].upper() if v["status"] in ("conflicting",) else v["status"]), "no"]
+       for k, v in sec["provisions"].items()])
+from collections import Counter as _C
+p("Provisions by status: " + ", ".join(f"{k} {n}" for k, n in _C(v["status"] for v in sec["provisions"].values()).most_common()) + ".")
+h(3, "20.2 Packs")
+ta26 = json.loads(read("crates/lc-core/packs/taxaudit_form26.json"))
+ta3 = json.loads(read("crates/lc-core/packs/taxaudit_form3cd.json"))
+table(["Pack", "Authority / source", "As shipped", "Verified"],
+      [[e(pk["name"]), e(pk.get("authority", "") + " — " + pk.get("document", "")), e(pk["status"]), "no"] for pk in packs.values()]
+      + [["Depreciation tables", "Companies Act 2013 Schedule II; Income-tax Rules", e(dep["status"]), "no"],
+         [e(ta3["form"]), e(ta3.get("act_section", "")), e(ta3["status"]), "no"],
+         [e(ta26["form"]), e(ta26.get("act_section", "")), e(ta26["status"] + ". " + ta26.get("note", "")), "no"],
+         [f"Rules pack {e(rules['version'])}", "LedgerCraft rules with provision references", e(rules["verification"]), "no"]])
+if ARGS.readiness and Path(ARGS.readiness).exists():
+    rd_ = json.loads(Path(ARGS.readiness).read_text())
+    h(3, "20.3 Legal items that apply, by entity type and year")
+    p("Count of legal items a final copy would need verified (tax audit and depreciation included), by status as shipped. From 'ledgercraft packs'." + (" Pack check: no problems." if not rd_["problems"] else " Pack check problems: " + e("; ".join(rd_["problems"]))))
+    keys = sorted({k for r in rd_["readiness"] for k in r["shipped"]})
+    table(["Entity", "Year", "Items"] + keys, [[e(r["entity"]), e(r["year"]), str(r["applicable"])] + [str(r["shipped"].get(k, 0)) for k in keys] for r in rd_["readiness"]])
+p("Additional: Form 3CD clause 31 sub-clauses (a), (b), (ba), (bb), (bc), (bd), (c), (d), (e) confirmed from search results only; Form 26 clause numbers not mapped; the counterpart of s.43(1) sixth proviso not confirmed.")
 
 # ---------------------------------------------------------------- 20 pending
-h(2, "20. Pending, unverified and known limitations")
-h(3, "20.1 To verify against official texts")
+h(2, "21. Pending, unverified and known limitations")
+h(3, "21.1 To verify against official texts")
 ul([
     "Every line of the three format packs against Schedule III Division I and the two ICAI Guidance Notes (wording, order, sub-classification).",
     "Income-tax Act 2025 section numbers: s.36 (cash payments) and its sub-section; counterpart of s.43(1) 6th proviso; depreciation s.33 vs s.34; ss.185, 186, 188; s.63.",
@@ -434,7 +515,7 @@ ul([
     "Standard accounting-policy wording per entity type.",
     "Hindi and Marathi help text and guides (native-speaker review).",
 ])
-h(3, "20.2 Not built")
+h(3, "21.2 Not built")
 ul([
     "Ind AS formats (Schedule III Division II/III); XBRL (MCA AOC-4).",
     "ITR schedule export; deferred tax computation (AS 22) — only the policy text exists.",
@@ -442,19 +523,11 @@ ul([
     "Monthly comparison with last year's months (last year's day book is not imported).",
     "Code signing; automatic updates.",
 ])
-h(3, "20.3 Known limitations")
-ul([
-    "Not yet run on any real client's books or real exports from Tally, Zoho, BUSY, banks, GST portal or TRACES.",
-    "Zoho API path untested against a live account; Tally tested against a mock server.",
-    "Party matching for GSTR-2B/26AS uses names when GSTIN/TAN is not in the books; similar names need your check.",
-    "Bank matching window is 10 days and needs equal amounts; split or combined bank entries stay as open items.",
-    "'Points to look at' uses fixed thresholds (25%, 15 points, 2 percentage points, 0.5% materiality); they are a starting point for questions, not conclusions.",
-    "The installer has not been tried on a Windows PC by us; GitHub Actions are not running at present.",
-    "A lowercase 'ledgercraft' branch still exists on GitHub and clashes with 'LedgerCraft' on Windows; please delete it.",
-])
+h(3, "21.3 Known limitations")
+ul([e(x) for x in STATUS["limitations"]])
 
 # ---------------------------------------------------------------- 21 changelog
-h(2, "21. Change log (every commit)")
+h(2, "22. Change log (every commit)")
 log = sh("git -C ledgercraft log --reverse --format='%h|%ad|%s' --date=short").strip().splitlines()
 table(["Commit", "Date", "Summary"], [[e(a), e(b), e(c)] for a, b, c in (l.split("|", 2) for l in log)])
 

@@ -26,6 +26,9 @@ jobs:
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test --all
       - run: cargo build --release --all
+      - name: Status claims are backed by tests (docs/status.json)
+        if: runner.os == 'Linux'
+        run: python3 docs/report/check_status.py
       - name: Pack checks and legal readiness report
         run: cargo run --release -p lc-cli -- packs --out legal-readiness-${{ matrix.os }}.json
       - uses: actions/upload-artifact@v4

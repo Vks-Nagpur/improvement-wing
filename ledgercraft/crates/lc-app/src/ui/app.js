@@ -1494,6 +1494,20 @@ $("#lgAll").addEventListener("change", () => { $$("#lgTable input[data-id]").for
 $$("[data-lf]").forEach(b => b.addEventListener("click", () => { state.lgFilter = b.dataset.lf; $$("[data-lf]").forEach(x => x.classList.toggle("on", x === b)); renderLegal(); }));
 $("#lgTax").addEventListener("change", loadLegal);
 $("#lgBack").addEventListener("click", () => show("export"));
+$("#openStatus").addEventListener("click", async () => {
+  $("#helpMenu").hidePopover?.();
+  try {
+    const s = await api("GET", "/api/build-status");
+    const cls = v => ({ complete: "okb", broad: "okb", "primary-source verified": "okb", "professional-reviewed": "okb", partial: "warning", secondary: "warning", unverified: "warning", synthetic: "warning", none: "blocker" }[v] || "");
+    const b = v => `<span class="badge ${cls(v)}">${esc(v)}</span>`;
+    $("#statusTable").innerHTML = `<thead><tr><th>Part</th><th>Built</th><th>Tests</th><th>Law checked</th><th>Real books</th></tr></thead><tbody>${
+      s.features.map(f => `<tr><td>${esc(f.name)}${f.note ? `<div class="src">${esc(f.note)}</div>` : ""}</td><td>${b(f.implementation)}</td><td>${b(f.tests)}</td><td>${b(f.legal)}</td><td>${b(f.real_world)}</td></tr>`).join("")}</tbody>`;
+    $("#statusLimits").innerHTML = s.limitations.map(x => `<li>${esc(x)}</li>`).join("");
+    $("#statusDlg").showModal();
+    $("#statusDlg").scrollTop = 0;
+  } catch (e) { toast(e.message, true); }
+});
+$("#statusClose").addEventListener("click", () => $("#statusDlg").close());
 $("#openLegal").addEventListener("click", () => { $("#helpMenu").hidePopover?.(); if (pid()) show("legal"); else toast("Open a client year first.", true); });
 $("#lgForm").addEventListener("submit", async e => {
   e.preventDefault();

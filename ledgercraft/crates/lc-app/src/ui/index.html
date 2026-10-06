@@ -26,6 +26,7 @@
       <hr>
       <button type="button" class="menu-item" data-tour>How LedgerCraft works (tour)</button>
       <button type="button" class="menu-item" id="openLegal">Legal verification register</button>
+      <button type="button" class="menu-item" id="openStatus">Status of this build</button>
       <p class="menu-keys">Ctrl+K search client · Alt+1 to 9 go to a step · Alt+0 start screen</p>
     </div>
     <button class="pill" id="aiPill" type="button" aria-controls="aiPanel">Local AI: checking</button>
@@ -513,6 +514,15 @@
     <p id="cfText"></p>
     <div class="form-actions"><button value="no" type="submit">Cancel</button><button value="yes" type="submit" class="danger" id="cfYes">Delete</button></div>
   </form>
+</dialog>
+
+<dialog id="statusDlg" aria-labelledby="statusTitle" class="wide-dlg">
+  <h2 id="statusTitle">Status of this build</h2>
+  <p class="lead">Four separate questions for each part: is it built, is it tested automatically, has the law it relies on been checked against the official text, and has it been tried on real books. A status is raised only with evidence.</p>
+  <div class="table-wrap"><table class="data" id="statusTable"></table></div>
+  <h3>Known limitations</h3>
+  <ul id="statusLimits"></ul>
+  <div class="form-actions"><button type="button" class="primary" id="statusClose">Close</button></div>
 </dialog>
 
 <dialog id="tourDlg" aria-labelledby="tourTitle">

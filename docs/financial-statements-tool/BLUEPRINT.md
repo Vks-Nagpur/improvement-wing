@@ -687,3 +687,18 @@ Done and tested (see `ledgercraft/README.md` and `ledgercraft/DESIGN.md`):
 - New-Act references: ss.185 / 186 / 188 (for 269SS / 269ST / 269T) and s.33 (depreciation).
 
 Open items: verify format packs line-by-line against official texts; new-Act equivalent of s.40A(3); Word (.docx) export; real-world testing on client books; code signing for the installer.
+
+## 20. Status after the correction programme (October 2026)
+
+The master correction specification was worked through in nine batches
+(plan: `ledgercraft/docs/correction/`). The single "built" tag used above is
+replaced by four separate axes kept in
+[`ledgercraft/docs/status.json`](../../ledgercraft/docs/status.json):
+implementation, automated tests, legal verification and real-world
+validation. The build report (`ledgercraft/docs/report/`) and the app (Help →
+Status of this build) read that file; a status is refused unless its evidence
+exists. In short: most parts are implemented and tested on generated books;
+**no legal item is verified against an official text and nothing has been
+tried on real client books**, so the app refuses a final copy until a person
+records verifications in its Legal verification register. Sections 17 to 19
+above are kept as history; where they differ, `docs/status.json` is current.

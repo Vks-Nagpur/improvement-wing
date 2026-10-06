@@ -1162,3 +1162,24 @@ fn cache_follows_the_files_and_manifest_explains_the_output() {
     assert!(sum.starts_with(&format!("{:x}", sha2::Sha256::digest(text.as_bytes()))));
     let _ = c.call("POST", "/api/quit", None);
 }
+
+#[test]
+fn build_status_has_four_axes_and_no_unsupported_claims() {
+    let dir = std::env::temp_dir().join(format!("lc-app-status-{}", std::process::id()));
+    let app = App::new(dir.join("data"), "http://127.0.0.1:1").unwrap();
+    let r = app.handle("GET", "/api/build-status", b"");
+    assert_eq!(r.status, 200);
+    let v: Value = serde_json::from_slice(&r.body).unwrap();
+    let features = v["features"].as_array().unwrap();
+    assert!(features.len() > 20);
+    for f in features {
+        for axis in ["implementation", "tests", "legal", "real_world"] {
+            assert!(f[axis].is_string(), "{f}");
+        }
+        // Nothing has been verified against an official text or tried on
+        // real books yet; the status must not say otherwise.
+        assert_ne!(f["legal"], "primary-source verified", "{f}");
+        assert_eq!(f["real_world"], "synthetic", "{f}");
+    }
+    let _ = std::fs::remove_dir_all(&dir);
+}

@@ -239,6 +239,8 @@ pre.lg-content { white-space: pre-wrap; font-size: 11.5px; background: var(--lin
 dialog { width: calc(100vw - 32px); max-width: 480px; padding: var(--s6); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--paper); box-shadow: 0 18px 50px oklch(0.24 0.012 160 / 0.25); }
 dialog::backdrop { background: oklch(0.24 0.012 160 / 0.35); }
 dialog p { white-space: pre-line; color: var(--ink-2); }
+dialog.wide-dlg { max-width: 980px; max-height: 86vh; overflow: auto; }
+dialog.wide-dlg td .src { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .tour .k { margin: 0 0 var(--s1); color: var(--accent-ink); font-weight: 600; font-size: 12.5px; }
 .tour h2 { font-size: 18px; }
 #tourText { min-height: 5.5em; }

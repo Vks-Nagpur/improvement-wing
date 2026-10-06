@@ -50,7 +50,9 @@ duplicate, out-of-period vouchers; negative cash on any day; cash payments
 above ₹10,000 (₹35,000 transporters), assets bought in cash, cash receipts of
 ₹2 lakh or more; loans taken or repaid in cash with **only principal counted as
 accepted** (interest and TDS separated); fixed asset register against the
-books (net block and depreciation).
+books (net block and depreciation). Books that cannot be real are refused
+with a reason instead of being half-processed: amounts too large to add up
+safely, or the same ledger name twice in one trial balance.
 
 ### What it prints
 Cover and contents; Balance Sheet; Statement of Profit and Loss; Cash Flow
@@ -68,13 +70,18 @@ month or any period up to 18 months; depreciation is pro-rated. See
 [DESIGN.md](DESIGN.md).
 
 ### Reconciliations
-* **Bank:** each statement line is matched with the day book (same amount,
-  nearby date, cheque number when present). What is left is the bank
-  reconciliation statement: cheques not presented, deposits not cleared, bank
-  charges and interest not in the books, and any difference.
+* **Bank:** your own matches first; then the same amount on a nearby date
+  (cheque number preferred); then the same cheque/UTR number within 60 days.
+  Split or combined payments are only suggested. Old open items, possible
+  duplicate statement lines and breaks in the statement balance are flagged.
+  What is left is the bank reconciliation statement: cheques not presented,
+  deposits not cleared, bank charges and interest not in the books, and any
+  difference. You can match a pair by hand (recorded).
 * **GSTR-2B and 26AS:** input tax credit per supplier and TDS per deductor in
-  the books against the portal files; parties are matched by GSTIN/TAN or a
-  similar name, which you check. Both go into the auditor workbook.
+  the books against the portal files. Parties are matched by GSTIN/TAN (in the
+  books or written in the ledger name) or an exactly equal name; similar names
+  are only suggested and you confirm them (remembered and recorded). Both go
+  into the auditor workbook.
 
 ### Next year
 *Start next year* on a client creates the next year with this year's final
@@ -128,12 +135,17 @@ labelled and logged.
 ## For developers
 
 ```
-cargo test --all                       # 30+ tests incl. ground truth, casting, Tally/Zoho mocks, app API
+cargo test --all                       # 115+ tests: ground truth, golden books, adversarial, property, fuzz, mocks, app API
+UPDATE_GOLDEN=1 cargo test -p lc-io --test golden          # regenerate golden books after an intended change (review the diff)
+LC_FUZZ_ROUNDS=20000 cargo test --release -p lc-io --test fuzz   # longer fuzz run
+cargo run --release -p lc-cli -- packs --out readiness.json       # check shipped packs; legal items per entity and year
+python3 docs/report/check_status.py                               # refuse statuses without evidence (docs/status.json)
+python3 docs/report/make_report.py [history.json] --test-log t.txt --bench b.json --readiness r.json   # build report
 cargo run --release -p lc-app          # the desktop app (LedgerCraft)
 cargo run --release -p lc-cli -- help  # command line (ledgercraft)
 cargo run --release -p lc-cli -- practice-data --out samples/practice   # 8 practice books with answers
 makensis /DDIST=<folder> installer/ledgercraft.nsi                        # Windows installer (CI does this)
-cargo run --release -p lc-cli -- bench --vouchers 1000000
+cargo run --release -p lc-cli -- bench --vouchers 1000000 --out metrics.json   # import, check, export, memory
 cargo build --release --target x86_64-pc-windows-gnu -p lc-app   # Windows build from Linux (mingw)
 ```
 
@@ -146,13 +158,30 @@ cargo build --release --target x86_64-pc-windows-gnu -p lc-app   # Windows build
 | `lc-cli` | Command line |
 | `lc-testdata` | Practice-book generator (firm, company, LLP, HUF, head office + branch, messy Excel) with planted mistakes and the expected answers |
 
-### How correctness is proved
+### How correctness is checked (and what that does not prove)
 * Generated books (small firm to ~1 million vouchers) with planted mistakes:
   every mistake must be found, clean books must raise nothing (60 random books).
+* Golden books for all seven entity types (`crates/lc-io/tests/golden`):
+  statements, notes, mapping, findings and the tax audit helper must not
+  change unexpectedly. They are machine-generated and **not yet reviewed by a
+  Chartered Accountant**.
+* Adversarial books, property tests (double entry, rounding, round trips, no
+  final copy with a blocker, pack migration never changes old exports) and
+  fuzz-style tests of every reader and the local API.
 * The printed report must cast in 6 units across 33 books.
 * Excel/CSV, Tally XML and the app API must reproduce identical results.
-* Deliberately broken rules make the tests fail (mutation checks).
 * The Windows build was run under Wine through the full browser flow.
+* **Not yet done:** real client books; real Tally, Zoho, BUSY, bank, GST and
+  26AS files; Microsoft Word; a real Windows PC; any legal item verified
+  against its official text.
+
+### Status of this build
+Each part is rated on four separate axes (built / automated tests / law
+checked against the official text / tried on real books) in
+[docs/status.json](docs/status.json), shown in the app under **Help → Status
+of this build** and in the build report (`docs/report`). A status is raised
+only together with its evidence; `docs/report/check_status.py` and CI refuse
+anything else.
 
 ### Licence
 No licence is granted (all rights reserved by the owner). Free to use.

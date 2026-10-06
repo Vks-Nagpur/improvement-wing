@@ -312,6 +312,7 @@ impl App {
             },
             ("POST", ["api", "projects", id, "export"]) => self.do_export(id, &json_body()),
             ("GET", ["api", "projects", id, "audit"]) => self.store.project(id).map(|p| json!({"events": p.audit(), "status": p.verify_audit()})),
+            ("GET", ["api", "build-status"]) => serde_json::from_str(include_str!("../../../docs/status.json")).map_err(|e| e.to_string()),
             ("GET", ["api", "ai", "setup"]) => Ok(json!(*self.pull.lock().unwrap())),
             ("POST", ["api", "ai", "setup"]) => self.ai_setup(&json_body()),
             ("POST", ["api", "projects", id, "ai", what]) => self.ai_call(id, what, &json_body()),

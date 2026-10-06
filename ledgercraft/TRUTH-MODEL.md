@@ -113,8 +113,9 @@ primary-source verification" appears instead.
 
 * Each rule carries: its id, the law or standard it comes from (authority,
   document, section), effective-from and effective-until dates, the entity
-  types it applies to, and a verification status (`verified` against the
-  official text, or `unverified`).
+  types it applies to, and a shipped status (`draft`, `secondary`,
+  `conflicting`, `unknown`, or `internal` for pure arithmetic); verification
+  by a person is recorded separately (§10).
 * Each client year is **pinned** to the rule pack and format pack it started
   with. A newer pack is never applied silently: LedgerCraft shows what changed
   and the user chooses to move the year to it. The move is recorded in the
@@ -131,6 +132,18 @@ copy.
 
 ## 10. Status of the legal content
 
-Format packs and several legal references are marked `unverified` until each
-line is compared with the official text (see DESIGN.md §7). Verification is
-recorded in the pack, not in this document.
+Format packs and legal references ship as `draft`, `secondary`, `conflicting`
+or `unknown`; no shipped pack may claim `verified` (the test suite and
+`ledgercraft packs` refuse it). Verification is recorded by a person in the
+app's Legal verification register, per installation, bound to the content
+fingerprint of each item (§7 item 6). The status of the program itself is
+kept on four separate axes in `docs/status.json` (implementation, automated
+tests, legal verification, real-world validation); a status is raised only
+with evidence.
+
+## 11. Books that cannot be real
+
+Books are refused, not half-processed, when their amounts are too large to add
+up safely (`AMOUNTS_TOO_LARGE`) or when one trial balance has the same ledger
+name twice (`DUPLICATE_LEDGER`). Damaged import files are refused with a reason;
+skipped rows are listed in the import report.

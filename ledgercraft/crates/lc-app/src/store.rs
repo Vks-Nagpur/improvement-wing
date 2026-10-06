@@ -34,17 +34,108 @@ pub fn slug(s: &str) -> String {
     out.trim_matches('-').to_string()
 }
 
+static TMP_SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Write a file so that it is either the old or the new content, never half:
+/// a unique temporary file in the same folder, flushed to disk, then renamed
+/// over the target (rename replaces an existing file on Windows too). A
+/// rename blocked for a moment (antivirus, indexer) is retried.
 pub fn write_atomic(path: &Path, bytes: &[u8]) -> Result<(), String> {
-    if let Some(p) = path.parent() {
-        fs::create_dir_all(p).map_err(|e| e.to_string())?;
-    }
-    let tmp = path.with_extension(format!("tmp{}", std::process::id()));
+    let dir = path.parent().unwrap_or(Path::new("."));
+    fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    let n = TMP_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.subsec_nanos())
+        .unwrap_or(0);
+    let name = path.file_name().and_then(|x| x.to_str()).unwrap_or("file");
+    let tmp = dir.join(format!(".{name}.{}.{n}.{nanos}.tmp", std::process::id()));
     {
-        let mut f = fs::File::create(&tmp).map_err(|e| e.to_string())?;
+        let mut f = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&tmp)
+            .map_err(|e| e.to_string())?;
         f.write_all(bytes).map_err(|e| e.to_string())?;
         f.sync_all().map_err(|e| e.to_string())?;
     }
-    fs::rename(&tmp, path).map_err(|e| e.to_string())
+    let mut last = String::new();
+    for attempt in 0..5 {
+        match fs::rename(&tmp, path) {
+            Ok(()) => {
+                #[cfg(unix)]
+                if let Ok(d) = fs::File::open(dir) {
+                    let _ = d.sync_all();
+                }
+                return Ok(());
+            }
+            Err(e) => {
+                last = e.to_string();
+                std::thread::sleep(std::time::Duration::from_millis(50 * (attempt + 1)));
+            }
+        }
+    }
+    let _ = fs::remove_file(&tmp);
+    Err(format!("could not save {}: {last}", path.display()))
+}
+
+/// Name used to tell clients apart (case and spacing ignored).
+fn name_key(s: &str) -> String {
+    s.split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .to_lowercase()
+}
+
+/// `<data>/clients/<folder>/client.json`: the client's stable id and its
+/// display name, kept apart from the folder name.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ClientInfo {
+    pub id: String,
+    pub name: String,
+    pub created: String,
+}
+
+fn new_client_id() -> String {
+    let mut b = [0u8; 16];
+    let _ = getrandom::getrandom(&mut b);
+    b.iter().map(|x| format!("{x:02x}")).collect()
+}
+
+/// The display name of the client stored in a folder (client.json, or for
+/// folders made before client.json existed, any year's settings).
+fn client_name_in(dir: &Path) -> Option<String> {
+    if let Some(c) = fs::read_to_string(dir.join("client.json"))
+        .ok()
+        .and_then(|t| serde_json::from_str::<ClientInfo>(&t).ok())
+    {
+        return Some(c.name);
+    }
+    fs::read_dir(dir).ok()?.flatten().find_map(|e| {
+        fs::read_to_string(e.path().join("settings.json"))
+            .ok()
+            .and_then(|t| serde_json::from_str::<Value>(&t).ok())
+            .and_then(|v| v["entity_name"].as_str().map(String::from))
+    })
+}
+
+/// Make sure a client folder has its client.json (added, never replaced).
+fn ensure_client_info(dir: &Path, name: &str) -> Result<(), String> {
+    let f = dir.join("client.json");
+    if f.exists() {
+        return Ok(());
+    }
+    let info = ClientInfo {
+        id: new_client_id(),
+        name: name.trim().into(),
+        created: Local::now().to_rfc3339(),
+    };
+    write_atomic(
+        &f,
+        serde_json::to_string_pretty(&info)
+            .map_err(|e| e.to_string())?
+            .as_bytes(),
+    )
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
@@ -174,6 +265,15 @@ fn event_hash(
         serde_json::to_string(details).unwrap_or_default()
     );
     format!("{:x}", Sha256::digest(body.as_bytes()))
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct Checkpoint {
+    pub events: usize,
+    pub head: String,
+    /// Set once if the trail was found deleted; never cleared.
+    pub lost: Option<String>,
 }
 
 /// Result of checking the audit trail.
@@ -358,6 +458,19 @@ impl Project {
         self.dir.join("audit.jsonl")
     }
 
+    fn checkpoint_path(&self) -> PathBuf {
+        self.dir.join("audit.checkpoint.json")
+    }
+
+    /// Last known length and head of the audit trail (kept beside it so a
+    /// shortened or deleted trail is noticed). Tamper-evident, not tamper-proof:
+    /// someone who deletes both files can hide the history.
+    pub fn checkpoint(&self) -> Option<Checkpoint> {
+        fs::read_to_string(self.checkpoint_path())
+            .ok()
+            .and_then(|t| serde_json::from_str(&t).ok())
+    }
+
     pub fn audit(&self) -> Vec<AuditEvent> {
         fs::read_to_string(self.audit_path())
             .map(|s| {
@@ -371,7 +484,23 @@ impl Project {
 
     /// Append an event (append-only; cannot be switched off).
     pub fn log(&self, actor: &str, action: &str, details: Value) -> Result<AuditEvent, String> {
+        let mut cp = self.checkpoint().unwrap_or_default();
         let events = self.audit();
+        if events.is_empty() && cp.events > 0 && cp.lost.is_none() {
+            // The trail was deleted: say so for ever, and record it first.
+            cp.lost = Some(format!(
+                "{} events (last fingerprint {}) were missing on {}",
+                cp.events,
+                cp.head,
+                Local::now().to_rfc3339()
+            ));
+            write_atomic(
+                &self.checkpoint_path(),
+                serde_json::to_string_pretty(&cp)
+                    .map_err(|e| e.to_string())?
+                    .as_bytes(),
+            )?;
+        }
         let (seq, prev) = events
             .last()
             .map(|e| (e.seq + 1, e.hash.clone()))
@@ -399,6 +528,14 @@ impl Project {
         )
         .map_err(|e| e.to_string())?;
         f.sync_all().map_err(|e| e.to_string())?;
+        cp.events = ev.seq as usize;
+        cp.head = ev.hash.clone();
+        write_atomic(
+            &self.checkpoint_path(),
+            serde_json::to_string_pretty(&cp)
+                .map_err(|e| e.to_string())?
+                .as_bytes(),
+        )?;
         Ok(ev)
     }
 
@@ -436,11 +573,123 @@ impl Project {
             prev = e.hash;
             n += 1;
         }
+        if let Some(cp) = self.checkpoint() {
+            if let Some(l) = &cp.lost {
+                return ChainStatus {
+                    events: n,
+                    intact: false,
+                    problem: Some(format!(
+                        "The audit trail was deleted: {l}. A new trail was started after that."
+                    )),
+                };
+            }
+            if n < cp.events {
+                return ChainStatus { events: n, intact: false, problem: Some(format!("{} event(s) are missing from the end of the audit trail (last known count {}).", cp.events - n, cp.events)) };
+            }
+            if n == cp.events && prev != cp.head {
+                return ChainStatus {
+                    events: n,
+                    intact: false,
+                    problem: Some(
+                        "The last audit event does not match the recorded fingerprint.".into(),
+                    ),
+                };
+            }
+        }
         ChainStatus {
             events: n,
             intact: true,
             problem: None,
         }
+    }
+
+    /// Fingerprint of everything an analysis depends on: settings, mapping
+    /// memory, pinned packs, every imported file, and the legal register.
+    pub fn fingerprint(&self, data_root: &Path) -> String {
+        let mut h = Sha256::new();
+        let mut file = |p: &Path| {
+            h.update(p.to_string_lossy().as_bytes());
+            if let Ok(b) = fs::read(p) {
+                h.update(Sha256::digest(&b));
+            }
+        };
+        file(&self.dir.join("settings.json"));
+        file(&self.client_dir.join("mapping.json"));
+        file(&self.client_dir.join("mapping_context.json"));
+        file(&self.pins_dir().join("rules.json"));
+        file(&self.pins_dir().join("format.json"));
+        file(&data_root.join("legal-verifications.json"));
+        let mut inputs: Vec<PathBuf> = fs::read_dir(self.dir.join("inputs"))
+            .map(|r| r.flatten().map(|e| e.path()).collect())
+            .unwrap_or_default();
+        inputs.sort();
+        for p in inputs {
+            if let Ok(m) = fs::metadata(&p) {
+                h.update(p.to_string_lossy().as_bytes());
+                h.update(m.len().to_le_bytes());
+                if let Ok(t) = m.modified().and_then(|t| {
+                    t.duration_since(std::time::UNIX_EPOCH)
+                        .map_err(std::io::Error::other)
+                }) {
+                    h.update(t.as_nanos().to_le_bytes());
+                }
+            }
+        }
+        format!("{:x}", h.finalize())
+    }
+
+    /// What an export is made from, for its manifest.
+    pub fn provenance(&self) -> Value {
+        let sha = |p: &Path| {
+            fs::read(p)
+                .map(|b| format!("{:x}", Sha256::digest(&b)))
+                .unwrap_or_default()
+        };
+        let mut inputs = serde_json::Map::new();
+        let mut files: Vec<PathBuf> = fs::read_dir(self.dir.join("inputs"))
+            .map(|r| {
+                r.flatten()
+                    .map(|e| e.path())
+                    .filter(|p| p.is_file())
+                    .collect()
+            })
+            .unwrap_or_default();
+        files.sort();
+        for f in files {
+            inputs.insert(
+                f.file_name()
+                    .map(|x| x.to_string_lossy().to_string())
+                    .unwrap_or_default(),
+                Value::String(sha(&f)),
+            );
+        }
+        let rules = self.rules_pack().map(|r| r.version).unwrap_or_default();
+        let fmt = self.format_pack().map(|f| f.id).unwrap_or_default();
+        let (head, events, st) = self.audit_head();
+        serde_json::json!({
+            "app_version": env!("CARGO_PKG_VERSION"),
+            "app_commit": option_env!("LC_COMMIT").unwrap_or("not recorded"),
+            "inputs_sha256": inputs,
+            "settings_sha256": sha(&self.dir.join("settings.json")),
+            "mapping_sha256": sha(&self.client_dir.join("mapping.json")),
+            "mapping_context_sha256": sha(&self.client_dir.join("mapping_context.json")),
+            "rules_pack": {"version": rules, "sha256": sha(&self.pins_dir().join("rules.json"))},
+            "format_pack": {"id": fmt, "sha256": sha(&self.pins_dir().join("format.json"))},
+            "depreciation_pack": {"version": lc_core::far::DepPack::builtin().version},
+            "sections_pack": {"version": lc_core::rules::Sections::builtin().version},
+            "audit_trail": {"head": head, "events": events, "intact": st.intact, "problem": st.problem, "note": "state before this export was recorded"},
+        })
+    }
+
+    /// Fingerprint of the last audit event and the chain status (for manifests).
+    pub fn audit_head(&self) -> (String, usize, ChainStatus) {
+        let st = self.verify_audit();
+        let head = self
+            .audit()
+            .last()
+            .map(|e| e.hash.clone())
+            .unwrap_or_default();
+        (head, st.events, st)
     }
 
     // ---- building the engagement ---------------------------------------------
@@ -605,7 +854,56 @@ impl Store {
     pub fn new(root: PathBuf) -> Result<Store, String> {
         fs::create_dir_all(root.join("clients"))
             .map_err(|e| format!("cannot create data folder {}: {e}", root.display()))?;
+        // Folders made before client.json existed get one (nothing else changes).
+        if let Ok(rd) = fs::read_dir(root.join("clients")) {
+            for e in rd.flatten().filter(|e| e.path().is_dir()) {
+                if let Some(n) = client_name_in(&e.path()) {
+                    let _ = ensure_client_info(&e.path(), &n);
+                }
+            }
+        }
         Ok(Store { root })
+    }
+
+    /// Folder for a client: its name made safe; when another client already
+    /// uses that folder (different name, same safe form), a number is added.
+    pub fn client_folder(&self, name: &str) -> Result<String, String> {
+        let base = slug(name);
+        if base.is_empty() {
+            return Err("The name must contain letters or digits.".into());
+        }
+        let clients = self.root.join("clients");
+        let existing: Vec<String> = fs::read_dir(&clients)
+            .map(|r| {
+                r.flatten()
+                    .filter(|e| e.path().is_dir())
+                    .map(|e| e.file_name().to_string_lossy().to_string())
+                    .collect()
+            })
+            .unwrap_or_default();
+        // The same client (case and spacing ignored) keeps its folder.
+        for f in &existing {
+            if client_name_in(&clients.join(f))
+                .map(|x| name_key(&x) == name_key(name))
+                .unwrap_or(false)
+            {
+                return Ok(f.clone());
+            }
+        }
+        // Otherwise a folder name not used by anyone (compared without case,
+        // as Windows does).
+        let taken: Vec<String> = existing.iter().map(|f| f.to_lowercase()).collect();
+        for n in 1..1000 {
+            let f = if n == 1 {
+                base.clone()
+            } else {
+                format!("{base}-{n}")
+            };
+            if !taken.contains(&f.to_lowercase()) {
+                return Ok(f);
+            }
+        }
+        Err("Too many clients with similar names.".into())
     }
 
     /// Project id is "<client>~<fy>".
@@ -637,8 +935,9 @@ impl Store {
         let (start, _) =
             lc_core::date::parse_fy(fy).ok_or("Financial year must look like 2025-26.")?;
         let fy = lc_core::date::fy_label(start);
-        let id = format!("{}~{}", slug(name), fy);
-        let client_dir = self.root.join("clients").join(slug(name));
+        let folder = self.client_folder(name)?;
+        let id = format!("{folder}~{fy}");
+        let client_dir = self.root.join("clients").join(&folder);
         let dir = client_dir.join(&fy);
         if dir.join("settings.json").exists() {
             return Err(format!(
@@ -646,6 +945,7 @@ impl Store {
             ));
         }
         fs::create_dir_all(dir.join("inputs")).map_err(|e| e.to_string())?;
+        ensure_client_info(&client_dir, name)?;
         let p = Project { dir, client_dir };
         // Carry presentation choices and sign-off from the previous year, if any.
         let mut s = Settings {

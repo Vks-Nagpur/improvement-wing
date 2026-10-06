@@ -69,7 +69,9 @@ pub struct App {
     pub store: Store,
     pub ollama_url: String,
     pub model: Mutex<String>,
-    pub cache: Mutex<HashMap<String, Analysis>>,
+    /// Analyses by client year, with the fingerprint of everything they were
+    /// computed from; a different fingerprint means recompute.
+    pub cache: Mutex<HashMap<String, (String, Analysis)>>,
     pub pull: Arc<Mutex<PullState>>,
     pub quit: Mutex<bool>,
     /// Per-run secret: every /api call must carry it (blocks other websites).
@@ -686,15 +688,21 @@ impl App {
     fn analysis(&self, id: &str) -> Result<(lc_core::Engagement, Analysis), String> {
         let p = self.store.project(id)?;
         let eng = p.engagement()?;
-        if let Some(a) = self.cache.lock().unwrap().get(id) {
-            return Ok((eng, a.clone()));
+        let fp = p.fingerprint(&self.store.root);
+        if let Some((f, a)) = self.cache.lock().unwrap().get(id) {
+            if *f == fp {
+                return Ok((eng, a.clone()));
+            }
         }
         let mut pack = p.rules_pack()?;
         if let Ok(r) = self.legal(id, true) {
             pack.verified = lc_core::legal::verified_ids(&r);
         }
         let a = lc_core::analyse(&eng, &pack);
-        self.cache.lock().unwrap().insert(id.to_string(), a.clone());
+        self.cache
+            .lock()
+            .unwrap()
+            .insert(id.to_string(), (fp, a.clone()));
         Ok((eng, a))
     }
 
@@ -1240,6 +1248,7 @@ impl App {
                     .map(|(g, t)| g.into_iter().chain(t).collect())
                     .unwrap_or_default(),
                 legal: Some(self.legal(id, want("tax_audit"))?),
+                provenance: p.provenance(),
             };
             if !(o.pdf
                 || o.statements_xlsx

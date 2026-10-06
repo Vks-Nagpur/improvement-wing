@@ -47,6 +47,9 @@ pub struct ExportOptions {
     /// Legal content readiness for this output (TRUTH-MODEL.md §7). A final
     /// copy is refused unless it is assessed and every applicable item is verified.
     pub legal: Option<lc_core::legal::Readiness>,
+    /// What the output was made from (input hashes, packs, audit head …),
+    /// recorded in the manifest so the output can be explained later.
+    pub provenance: serde_json::Value,
 }
 
 impl Default for ExportOptions {
@@ -66,6 +69,7 @@ impl Default for ExportOptions {
             bank_recs: Vec::new(),
             portal_recons: Vec::new(),
             legal: None,
+            provenance: serde_json::Value::Null,
         }
     }
 }
@@ -88,6 +92,10 @@ struct Manifest<'a> {
     mode: &'a str,
     created: String,
     files: Vec<(String, String)>,
+    /// Legal content readiness at the time of export.
+    legal_readiness: serde_json::Value,
+    /// Inputs, packs, application build and audit-trail head.
+    provenance: &'a serde_json::Value,
 }
 
 fn safe(s: &str) -> String {
@@ -274,10 +282,23 @@ pub fn export(
             mode: if draft { "draft" } else { "signing" },
             created: Local::now().to_rfc3339(),
             files,
+            legal_readiness: match &opt.legal {
+                Some(r) => {
+                    serde_json::json!({"ready": r.ready, "applicable": r.applicable, "verified": r.verified, "pending": r.pending, "stale": r.stale})
+                }
+                None => serde_json::json!("not assessed"),
+            },
+            provenance: &opt.provenance,
         };
+        // Canonical JSON (fixed field order, sorted keys) and its own checksum.
+        let text = serde_json::to_string_pretty(&m).map_err(|e| e.to_string())?;
+        fs::write(tmp.join("export-manifest.json"), &text).map_err(|e| e.to_string())?;
         fs::write(
-            tmp.join("export-manifest.json"),
-            serde_json::to_string_pretty(&m).map_err(|e| e.to_string())?,
+            tmp.join("export-manifest.sha256"),
+            format!(
+                "{:x}  export-manifest.json\n",
+                Sha256::digest(text.as_bytes())
+            ),
         )
         .map_err(|e| e.to_string())?;
         Ok(())

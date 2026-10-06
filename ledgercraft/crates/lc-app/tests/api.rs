@@ -1032,3 +1032,76 @@ fn ai_address_must_be_local() {
         assert!(!is_local_url(u), "{u}");
     }
 }
+
+#[test]
+fn cache_follows_the_files_and_manifest_explains_the_output() {
+    let dir = std::env::temp_dir().join(format!("lc-cache-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let app = Arc::new(App::new(dir.clone(), "http://127.0.0.1:1").unwrap());
+    let (tx, rx) = std::sync::mpsc::channel();
+    let a2 = app.clone();
+    std::thread::spawn(move || serve(a2, 0, |addr| tx.send(addr).unwrap()));
+    let c = Client {
+        base: rx.recv().unwrap(),
+        token: app.token.clone(),
+    };
+    let s = lc_testdata::scenarios::clean(lc_testdata::scenarios::Kind::Firm, 1, 10, 6, 4);
+    let f = dir.join("files");
+    std::fs::create_dir_all(&f).unwrap();
+    lc_io::write_inputs::write_trial_balance(&s.engagement.cy, &f.join("tb.xlsx")).unwrap();
+    let id = c
+        .call(
+            "POST",
+            "/api/projects",
+            Some(json!({"name": "Cache Traders", "entity_type": "firm", "fy": "2025-26"})),
+        )
+        .unwrap()["id"]
+        .as_str()
+        .unwrap()
+        .to_string();
+    c.upload(&id, "tb", &f.join("tb.xlsx")).unwrap();
+    let a1 = c
+        .call("POST", &format!("/api/projects/{id}/analyse"), None)
+        .unwrap();
+    assert_eq!(a1["summary"]["entity"], json!("Cache Traders"));
+    // A change made on disk, without going through the app: the next analysis sees it.
+    let p = app.store.project(&id).unwrap();
+    let path = p.dir.join("settings.json");
+    let mut st: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+    st["entity_name"] = json!("Renamed On Disk");
+    std::fs::write(&path, serde_json::to_string_pretty(&st).unwrap()).unwrap();
+    let a2 = c
+        .call("POST", &format!("/api/projects/{id}/analyse"), None)
+        .unwrap();
+    assert_eq!(
+        a2["summary"]["entity"],
+        json!("Renamed On Disk"),
+        "stale cached analysis"
+    );
+    // Manifest: provenance, legal readiness, and its own checksum.
+    let ex = c
+        .call(
+            "POST",
+            &format!("/api/projects/{id}/export"),
+            Some(json!({"mode": "draft"})),
+        )
+        .unwrap();
+    let d = std::path::PathBuf::from(ex["dir"].as_str().unwrap());
+    let text = std::fs::read_to_string(d.join("export-manifest.json")).unwrap();
+    let m: Value = serde_json::from_str(&text).unwrap();
+    for k in [
+        "inputs_sha256",
+        "settings_sha256",
+        "rules_pack",
+        "format_pack",
+        "audit_trail",
+        "app_version",
+    ] {
+        assert!(!m["provenance"][k].is_null(), "manifest lacks {k}");
+    }
+    assert_eq!(m["legal_readiness"]["ready"], json!(false));
+    let sum = std::fs::read_to_string(d.join("export-manifest.sha256")).unwrap();
+    use sha2::Digest;
+    assert!(sum.starts_with(&format!("{:x}", sha2::Sha256::digest(text.as_bytes()))));
+    let _ = c.call("POST", "/api/quit", None);
+}

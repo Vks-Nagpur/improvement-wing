@@ -60,6 +60,10 @@ pub struct ReportOptions {
     /// Address, CIN / LLPIN / PAN lines printed under the entity name.
     pub entity_details: Vec<String>,
     pub inventory_cost_formula: String,
+    /// The preparer confirmed that income-tax rates are the entity's book
+    /// depreciation policy (book and tax depreciation are separate computations).
+    #[serde(default)]
+    pub depreciation_basis_confirmed: bool,
     /// Reasons for ratio changes above 25% (ratio name → text).
     pub ratio_explanations: BTreeMap<String, String>,
     /// Statements left out of the output by the user ("balance_sheet",
@@ -91,6 +95,7 @@ impl Default for ReportOptions {
             draft: true,
             entity_details: Vec::new(),
             inventory_cost_formula: "first-in, first-out (FIFO)".into(),
+            depreciation_basis_confirmed: false,
             ratio_explanations: BTreeMap::new(),
             hidden_sections: Vec::new(),
             disclosures: Default::default(),

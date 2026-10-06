@@ -325,3 +325,48 @@ fn branch_books_combine_and_cancel_out() {
     assert_eq!(a.statements.profit.0, bb.profit_cy);
     assert_eq!(a.statements.total_assets, a.statements.total_liabilities);
 }
+
+#[test]
+fn company_managerial_remuneration_is_its_own_head_and_old_choices_reopen() {
+    use lc_core::mapping::{Head, MapStatus};
+    let mut s = scenarios::clean(Kind::Company, 2, 25, 15, 12);
+    let key = lc_core::model::norm_name("Directors' Remuneration");
+    // A choice remembered under the old shared head.
+    s.engagement
+        .mapping_memory
+        .insert(key.clone(), "PARTNERS_REMUNERATION".into());
+    s.engagement.mapping_context.insert(key, "x".into());
+    let a = run(&s);
+    let m = a
+        .mapping
+        .iter()
+        .find(|m| m.name == "Directors' Remuneration")
+        .unwrap();
+    assert_eq!(m.head, Some(Head::ManagerialRemuneration));
+    assert_eq!(m.status, MapStatus::Review, "{}", m.status_reason);
+    assert_eq!(
+        a.statements.profit.0, s.expected.profit_cy,
+        "profit unchanged"
+    );
+    let line = a
+        .statements
+        .profit_loss
+        .iter()
+        .find(|r| r.label.contains("Managerial remuneration"))
+        .unwrap();
+    assert!(line.cy.unwrap_or_default().is_dr());
+    // A firm never shows managerial remuneration.
+    let mut f = scenarios::clean(Kind::Firm, 1, 10, 6, 4);
+    f.engagement.mapping_memory.insert(
+        lc_core::model::norm_name("Partners' Remuneration"),
+        "MANAGERIAL_REMUNERATION".into(),
+    );
+    let a = run(&f);
+    let m = a
+        .mapping
+        .iter()
+        .find(|m| m.name == "Partners' Remuneration")
+        .unwrap();
+    assert_eq!(m.head, Some(Head::PartnersRemuneration));
+    assert_eq!(m.status, MapStatus::Review);
+}

@@ -60,12 +60,14 @@ pub fn analyse(eng: &Engagement, rules: &RulesPack) -> Analysis {
     });
 
     let pack = FormatPack::of(eng);
+    let rem = remuneration_head(&pack);
     let mapping = map_tb(
         &eng.cy,
         &ctx.classes,
         &eng.mapping_memory,
         &eng.mapping_context,
         pack.profit_to,
+        rem,
         Some(&mut f),
     );
     // Placements that need the user (TRUTH-MODEL.md §4–5): one finding each kind.
@@ -115,6 +117,7 @@ pub fn analyse(eng: &Engagement, rules: &RulesPack) -> Analysis {
             &eng.mapping_memory,
             &HashMap::new(),
             pack.profit_to,
+            rem,
             None,
         )
     });
@@ -195,12 +198,28 @@ pub fn analyse(eng: &Engagement, rules: &RulesPack) -> Analysis {
     }
 }
 
+/// The remuneration head this format uses (company formats: managerial;
+/// older pinned company packs and all others: partners').
+fn remuneration_head(pack: &FormatPack) -> Head {
+    let uses = |h: Head| {
+        pack.profit_loss
+            .iter()
+            .any(|r| r.head == Some(h) || r.heads.contains(&h))
+    };
+    if uses(Head::ManagerialRemuneration) {
+        Head::ManagerialRemuneration
+    } else {
+        Head::PartnersRemuneration
+    }
+}
+
 fn map_tb(
     tb: &TrialBalance,
     classes: &[Option<Class>],
     memory: &HashMap<String, String>,
     context: &HashMap<String, String>,
     profit_to: Head,
+    rem_head: Head,
     mut findings: Option<&mut Findings>,
 ) -> Vec<MappedLedger> {
     let mut out = Vec::with_capacity(tb.ledgers.len());
@@ -258,8 +277,32 @@ fn map_tb(
                 }
             }
         }
+        // Partners' and managerial remuneration are different things: use the
+        // one this entity's format has. A remembered choice of the other one
+        // is re-opened for review, never silently reinterpreted.
+        let mut rem_changed = false;
+        if let Some(h) = head {
+            if matches!(h, Head::PartnersRemuneration | Head::ManagerialRemuneration)
+                && h != rem_head
+            {
+                head = Some(rem_head);
+                rem_changed = remembered.is_some();
+            }
+        }
         let key = norm_name(&l.name);
         let (status, status_reason) = match (head, source) {
+            (Some(_), Some(MapSource::Memory)) if rem_changed => (
+                MapStatus::Review,
+                format!(
+                    "Your earlier choice used '{}'; this format uses '{}'. Confirm it.",
+                    if rem_head == Head::ManagerialRemuneration {
+                        Head::PartnersRemuneration.label()
+                    } else {
+                        Head::ManagerialRemuneration.label()
+                    },
+                    rem_head.label()
+                ),
+            ),
             (None, _) | (_, None) => (MapStatus::Unmapped, "No line chosen yet".to_string()),
             (Some(_), Some(MapSource::Memory)) => match context.get(&key) {
                 Some(ctx) if *ctx != memory_context(&l.group, l.closing) => {

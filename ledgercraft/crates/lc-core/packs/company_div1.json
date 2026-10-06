@@ -207,8 +207,9 @@
     },
     {
       "t": "i",
-      "head": "PARTNERS_REMUNERATION",
-      "label": "Managerial remuneration"
+      "head": "MANAGERIAL_REMUNERATION",
+      "label": "Managerial remuneration",
+      "verify_note": "Placement to be verified: whether managerial remuneration is a separate line on the face of the Statement of Profit and Loss under Schedule III Division I or is disclosed in notes within employee benefits / other expenses."
     },
     {
       "t": "i",
@@ -223,7 +224,7 @@
         "EMPLOYEE_BENEFITS",
         "FINANCE_COSTS",
         "DEPRECIATION",
-        "PARTNERS_REMUNERATION",
+        "MANAGERIAL_REMUNERATION",
         "OTHER_EXPENSES"
       ],
       "label": "Total expenses"

@@ -319,6 +319,16 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
             opt.unit.long()
         ));
     }
+    if let Some(far) = &eng.far {
+        if far.basis == crate::far::BookBasis::IncomeTaxRates {
+            if !opt.depreciation_basis_confirmed {
+                c.blockers.push("Book depreciation is computed at income-tax rates. Book and tax depreciation are separate computations: confirm on the Import screen that this is the entity's accounting policy, or choose Schedule II.".into());
+            }
+            if eng.entity_type.is_company() {
+                c.warnings.push("Company using income-tax rates for book depreciation: review against Schedule II to the Companies Act, 2013 (applicability not verified by LedgerCraft).".into());
+            }
+        }
+    }
     for m in opt.disclosures.missing(eng.entity_type.is_company()) {
         c.blockers.push(format!("Not answered yet: {m} (Notes and disclosures). Enter the particulars or mark it as nil."));
     }
@@ -341,6 +351,9 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
             .collect();
         notes.list.push((1, "Entity information".into(), info));
         let has_inv = !c.cy.head(Head::Inventories).is_zero();
+        if has_inv {
+            c.warnings.push("Inventories are shown at the book value in the trial balance; LedgerCraft does not value stock. Check the valuation and the cost formula stated in the accounting policy.".into());
+        }
         let has_emp = !c.cy.head(Head::EmployeeBenefits).is_zero();
         let mut blocks = Vec::new();
         let d = &opt.disclosures;
@@ -448,8 +461,19 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
     };
     if cf_on {
         match a.facts_py.as_ref().map(|p| p.rounded(g)) {
-            Some(pyr) => match cashflow::build(&c.cy, &pyr, eng.entity_type.is_company()) {
-                Ok(lines) => {
+            Some(pyr) => match cashflow::build(eng, &c.cy, &pyr, &a.facts_cy, a.facts_py.as_ref().unwrap(), g) {
+                Ok(cf) => {
+                    let lines = cf.lines;
+                    for w in &cf.review {
+                        c.warnings.push(format!("Cash Flow Statement: {w}"));
+                    }
+                    let app = cashflow::applicability(eng);
+                    c.warnings.push(format!("Cash Flow Statement applicability: requires your review. {} ({})", app.reason, app.source));
+                    let method_note = if cf.method == "transactions" {
+                        "Investing and financing cash flows are taken from the cash and bank entries of the day book."
+                    } else {
+                        "Investing and financing cash flows are derived from the movement in balance-sheet items (no complete day book); lines marked 'derived' are estimates."
+                    };
                     let (h1, _) = c.period_heads(false);
                     let rows: Vec<Row> = lines
                         .into_iter()
@@ -477,7 +501,7 @@ pub fn build(eng: &Engagement, a: &Analysis, opt: &ReportOptions, signoff: &Sign
                                 landscape: false,
                                 dense: false,
                             }),
-                            Block::Para { text: "The Cash Flow Statement has been prepared under the indirect method set out in Accounting Standard 3 'Cash Flow Statements'. Previous year figures are not presented as balances at the beginning of the previous year are not available.".into() },
+                            Block::Para { text: format!("The Cash Flow Statement has been prepared under the indirect method set out in Accounting Standard 3 'Cash Flow Statements'. {method_note} Income taxes paid are worked out from the tax expense and the movement in tax balances. Previous year figures are not presented as balances at the beginning of the previous year are not available.") },
                         ],
                         closing_note: closing.clone(),
                         signature: Some(sig.clone()),
@@ -1307,7 +1331,7 @@ fn ageing_block(c: &mut Ctx, h: Head) -> Vec<Block> {
             landscape: false,
             dense: true,
         }),
-        Block::Para { text: "Ageing is computed from the date of the transaction on a first-in, first-out basis; opening balances are aged from the beginning of the year.".into() },
+        Block::Para { text: "Ageing is computed from the date of the transaction (bill date) on a first-in, first-out basis; opening balances are aged from the beginning of the year. Due dates of payment are not available in the imported books, so this is not ageing from the due date.".into() },
     ]
 }
 

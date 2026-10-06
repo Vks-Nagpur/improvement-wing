@@ -43,7 +43,11 @@ pub enum Head {
     EmployeeBenefits,
     FinanceCosts,
     Depreciation,
+    /// Partners' remuneration and interest (firms, LLPs).
     PartnersRemuneration,
+    /// Directors' / managerial remuneration (companies). Kept apart from
+    /// partners' remuneration: different law, ratios and cash flow treatment.
+    ManagerialRemuneration,
     OtherExpenses,
     TaxExpense,
 }
@@ -90,7 +94,8 @@ impl Head {
             EmployeeBenefits => "Employee benefits expense",
             FinanceCosts => "Finance costs",
             Depreciation => "Depreciation and amortisation",
-            PartnersRemuneration => "Partners' / managerial remuneration",
+            PartnersRemuneration => "Partners' remuneration and interest",
+            ManagerialRemuneration => "Managerial remuneration (companies)",
             OtherExpenses => "Other expenses",
             TaxExpense => "Tax expense",
         }
@@ -111,11 +116,18 @@ impl Head {
             | CurrentInvestments | Inventories | TradeReceivables | CashBank | StLoansAdvances
             | OtherCurrentAssets => Nature::Asset,
             RevenueOps | OtherIncome => Nature::Income,
-            Purchases | ChangeInInventories | EmployeeBenefits | FinanceCosts | Depreciation
-            | PartnersRemuneration | OtherExpenses | TaxExpense => Nature::Expense,
+            Purchases
+            | ChangeInInventories
+            | EmployeeBenefits
+            | FinanceCosts
+            | Depreciation
+            | PartnersRemuneration
+            | ManagerialRemuneration
+            | OtherExpenses
+            | TaxExpense => Nature::Expense,
         }
     }
-    pub const ALL: [Head; 31] = {
+    pub const ALL: [Head; 32] = {
         use Head::*;
         [
             Capital,
@@ -147,6 +159,7 @@ impl Head {
             FinanceCosts,
             Depreciation,
             PartnersRemuneration,
+            ManagerialRemuneration,
             OtherExpenses,
             TaxExpense,
         ]

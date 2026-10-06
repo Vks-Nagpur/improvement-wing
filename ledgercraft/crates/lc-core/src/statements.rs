@@ -22,6 +22,9 @@ pub struct PackRow {
     pub side: Option<String>,
     #[serde(default)]
     pub calc: Option<String>,
+    /// What a verifier must check about this line (printed in the register).
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub verify_note: String,
     /// Show even when nil in both years (keeps fixed numbering intact).
     #[serde(default)]
     pub keep: bool,

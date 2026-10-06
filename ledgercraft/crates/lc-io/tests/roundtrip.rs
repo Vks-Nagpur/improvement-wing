@@ -83,6 +83,13 @@ fn export_is_versioned_and_signing_copy_needs_no_blockers() {
             .answers
             .insert(k.into(), "nil".into());
     }
+    // Income-tax rates as the book basis need an explicit confirmation.
+    let err = export(&root, &ok.engagement, &a, &signoff, &opt).unwrap_err();
+    assert!(
+        err.contains("Book depreciation is computed at income-tax rates"),
+        "{err}"
+    );
+    opt.report.depreciation_basis_confirmed = true;
     // Accounting blockers closed is not enough: legal content must be verified by a person.
     let err = export(&root, &ok.engagement, &a, &signoff, &opt).unwrap_err();
     assert!(err.contains("readiness was not assessed"), "{err}");

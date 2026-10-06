@@ -813,7 +813,11 @@ impl App {
         let mut st = p.load_settings()?;
         let before = serde_json::to_value(&st).map_err(|e| e.to_string())?;
         if let Some(o) = b.get("options") {
+            let confirmed = st.options.depreciation_basis_confirmed;
             st.options = serde_json::from_value(o.clone()).map_err(|e| format!("options: {e}"))?;
+            if o.get("depreciation_basis_confirmed").is_none() {
+                st.options.depreciation_basis_confirmed = confirmed;
+            }
         }
         if let Some(o) = b.get("signoff") {
             st.signoff = serde_json::from_value(o.clone()).map_err(|e| format!("sign-off: {e}"))?;
@@ -833,8 +837,19 @@ impl App {
             };
         }
         if let Some(o) = b.get("depreciation_basis") {
-            st.depreciation_basis = serde_json::from_value(o.clone())
+            let nb = serde_json::from_value(o.clone())
                 .map_err(|e| format!("depreciation basis: {e}"))?;
+            if nb != st.depreciation_basis {
+                // A new basis needs a new confirmation.
+                st.options.depreciation_basis_confirmed = false;
+            }
+            st.depreciation_basis = nb;
+        }
+        if let Some(c) = b
+            .get("depreciation_basis_confirmed")
+            .and_then(|x| x.as_bool())
+        {
+            st.options.depreciation_basis_confirmed = c;
         }
         p.save_settings(&st)?;
         let after = serde_json::to_value(&st).map_err(|e| e.to_string())?;

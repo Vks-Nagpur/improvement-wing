@@ -336,7 +336,9 @@ pub fn build(eng: &Engagement, a: &Analysis, font: &str) -> Vec<(String, String)
             ),
             (
                 "Employees".into(),
-                f.head(Head::EmployeeBenefits) + f.head(Head::PartnersRemuneration),
+                f.head(Head::EmployeeBenefits)
+                    + f.head(Head::PartnersRemuneration)
+                    + f.head(Head::ManagerialRemuneration),
             ),
             ("Finance costs".into(), f.head(Head::FinanceCosts)),
             ("Depreciation".into(), f.head(Head::Depreciation)),

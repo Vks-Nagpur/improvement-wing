@@ -653,6 +653,13 @@ impl Store {
             entity_type: entity_type.into(),
             fy: fy.clone(),
             created: Local::now().to_rfc3339(),
+            // Never a silent tax-rate default for books: companies start on
+            // Schedule II; others choose (income-tax rates need confirmation).
+            depreciation_basis: if entity_type == "company" {
+                BookBasis::ScheduleIiWdv
+            } else {
+                BookBasis::IncomeTaxRates
+            },
             ..Default::default()
         };
         let prev_fy = lc_core::date::fy_label(start.with_year_safe(-1));

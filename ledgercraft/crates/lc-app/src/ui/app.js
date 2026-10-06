@@ -424,6 +424,8 @@ async function openProject(id) {
   $("#openExport").disabled = true; $("#eResult").hidden = true;
   renderFiles(); renderBranches();
   $("#depBasis").value = st.depreciation_basis;
+  $("#depConfirmRow").hidden = st.depreciation_basis !== "income_tax_rates";
+  $("#depConfirm").checked = !!st.options.depreciation_basis_confirmed;
   loadProjects();
   store.set("last", { id, name: st.entity_name, fy: st.fy, intent: state.intent });
   show(flowNext());
@@ -502,9 +504,14 @@ $("#branchAdd").addEventListener("submit", async e => {
   try { await api("POST", `/api/projects/${pid()}/branches`, { name: $("#branchName").value }); $("#branchName").value = ""; await reloadSettings(); state.analysis = null; renderBranches(); toast("Branch added. Now import its trial balance."); }
   catch (err) { toast(err.message, true); }
 });
+$("#depConfirm").addEventListener("change", async () => {
+  await api("POST", `/api/projects/${pid()}/settings`, { depreciation_basis_confirmed: $("#depConfirm").checked });
+  state.analysis = null; await reloadSettings(); toast("Saved.");
+});
 $("#depBasis").addEventListener("change", async () => {
   await api("POST", `/api/projects/${pid()}/settings`, { depreciation_basis: $("#depBasis").value });
-  state.analysis = null; toast("Depreciation basis saved.");
+  $("#depConfirmRow").hidden = $("#depBasis").value !== "income_tax_rates"; $("#depConfirm").checked = false;
+  state.analysis = null; await reloadSettings(); toast("Depreciation basis saved.");
 });
 $("#tFind").addEventListener("click", async () => {
   setStatus($("#tStatus"), "Connecting to Tally...");
@@ -681,7 +688,7 @@ async function renderMap() {
     const sel = tr.querySelector("select");
     const fill = () => {
       if (sel.dataset.full) return; sel.dataset.full = "1";
-      sel.innerHTML = (m.head ? "" : '<option value="" selected>Not placed: choose a line</option>') + state.heads.map(h => `<option value="${h.id}" ${h.id === m.head ? "selected" : ""}>${esc(h.label)}</option>`).join("");
+      sel.innerHTML = (m.head ? "" : '<option value="" selected>Not placed: choose a line</option>') + state.heads.filter(h => h.id === m.head || (state.settings?.entity_type === "company" ? h.id !== "PARTNERS_REMUNERATION" : h.id !== "MANAGERIAL_REMUNERATION")).map(h => `<option value="${h.id}" ${h.id === m.head ? "selected" : ""}>${esc(h.label)}</option>`).join("");
     };
     sel.addEventListener("mousedown", fill); sel.addEventListener("focus", fill); sel.addEventListener("keydown", fill);
     sel.addEventListener("change", e => e.target.value && e.target.value !== m.head && setHead(m, e.target.value));
@@ -1009,7 +1016,7 @@ function bento(a, KPIS, delta) {
   if (a.ratios.length) {
     const f = (v, u) => (v == null ? "-" : v.toFixed(2) + (u === "%" ? "%" : ""));
     const flagged = a.ratios.filter(r => r.needs_explanation).length;
-    h += tile("ratios", `<p class="tk">Ratios, this year and last year <span class="muted">(${flagged ? `${flagged} changed by more than 25%: marked explain` : "none changed by more than 25%"})</span></p><ul class="ratio-list">${a.ratios.map(r => `<li class="${r.needs_explanation ? "flag" : ""}"><span>${esc(r.name)}</span><b>${f(r.cy, r.unit)}</b><span class="muted">${f(r.py, r.unit)}</span></li>`).join("")}</ul>`);
+    h += tile("ratios", `<p class="tk">Ratios, this year and last year <span class="muted">(${flagged ? `${flagged} changed by more than 25%: marked explain` : "none changed by more than 25%"})</span></p><ul class="ratio-list">${a.ratios.map(r => `<li class="${r.needs_explanation ? "flag" : ""}" title="${esc([r.numerator + " / " + r.denominator, ...(r.notes || [])].join(" · "))}"><span>${esc(r.name)}${r.review ? ' <span class="muted small">· check figures</span>' : ""}</span><b>${f(r.cy, r.unit)}</b><span class="muted">${f(r.py, r.unit)}</span></li>`).join("")}</ul>`);
   }
   return `<div class="bento">${h}</div>`;
 }
@@ -1055,9 +1062,10 @@ function renderAnalysis() {
   if (a.ratios.length) {
     const f = v => (v == null ? "-" : v.toFixed(2));
     h += `<div class="box"><h2>Ratios</h2><table class="grid dense"><thead><tr><th>Ratio</th><th>Formula</th><th class="num">This year</th><th class="num">Last year</th><th class="num">Change</th></tr></thead><tbody>` +
-      a.ratios.map(r => `<tr class="${r.needs_explanation ? "flag" : ""}"><td>${esc(r.name)}</td><td class="muted small">${esc(r.numerator)} / ${esc(r.denominator)}</td><td class="num">${f(r.cy)}${r.unit === "%" ? "%" : ""}</td><td class="num">${f(r.py)}${r.unit === "%" && r.py != null ? "%" : ""}</td><td class="num">${r.variance_pct == null ? "-" : r.variance_pct.toFixed(1) + "%"}${r.needs_explanation ? ' <span class="badge warning">over 25%</span>' : ""}</td></tr>`).join("") + "</tbody></table></div>";
+      a.ratios.map(r => `<tr class="${r.needs_explanation ? "flag" : ""}"><td>${esc(r.name)}${(r.notes || []).length ? `<div class="muted small">${r.notes.map(esc).join("<br>")}</div>` : ""}</td><td class="muted small">${esc(r.numerator)} / ${esc(r.denominator)}${r.num_cy != null ? `<div>This year: ₹${rupees(Math.round(r.num_cy * 100))} / ₹${rupees(Math.round((r.den_cy || 0) * 100))}</div>` : ""}${r.num_py != null ? `<div>Last year: ₹${rupees(Math.round(r.num_py * 100))} / ₹${rupees(Math.round((r.den_py || 0) * 100))}</div>` : ""}</td><td class="num">${f(r.cy)}${r.unit === "%" ? "%" : ""}</td><td class="num">${f(r.py)}${r.unit === "%" && r.py != null ? "%" : ""}</td><td class="num">${r.variance_pct == null ? "-" : r.variance_pct.toFixed(1) + "%"}${r.needs_explanation ? ' <span class="badge warning">over 25%</span>' : ""}</td></tr>`).join("") + "</tbody></table></div>";
   }
   // Ageing
+  h += `<p class="muted small">Ageing is from the bill (transaction) date, payments applied to the oldest bills first. Due dates are not in the imported books, so this is not ageing from the due date.</p>`;
   for (const [k, title] of [["receivables", "Ageing of debtors (₹)"], ["payables", "Ageing of creditors (₹)"]]) {
     const ag = a.ageing[k];
     if (!ag || !ag.rows.length) continue;

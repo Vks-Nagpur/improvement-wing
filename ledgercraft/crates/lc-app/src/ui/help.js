@@ -45,7 +45,8 @@ const HELP = {
       "Tick the files you want and press <b>Save and export</b>. Then press <b>Open export folder</b>.",
     ],
     analysis: [
-      "Key figures compare this year with last year.",
+      "Each tile compares this year (dark bar) with last year (light bar).",
+      "<b>Final copy</b> shows what still blocks a signing copy; <b>Open</b> takes you there. Detailed tables are at the bottom.",
       "<b>Items for tax audit</b> counts cash payments, cash receipts and loans in cash. Press <b>See list</b> for each case.",
       "<b>Save auditor workbook</b> (top right) writes everything to an Excel file for the auditor.",
     ],
@@ -121,7 +122,8 @@ const HELP = {
       "चाहिए वे फ़ाइलें चुनें और <b>Save and export</b> दबाएँ। फिर <b>Open export folder</b> दबाएँ।",
     ],
     analysis: [
-      "मुख्य आँकड़े इस वर्ष की तुलना पिछले वर्ष से करते हैं।",
+      "हर टाइल इस वर्ष (गहरी पट्टी) की तुलना पिछले वर्ष (हल्की पट्टी) से करती है।",
+      "<b>Final copy</b> बताता है कि अंतिम प्रति में क्या बाकी है; <b>Open</b> वहाँ ले जाता है। विस्तृत तालिकाएँ नीचे हैं।",
       "<b>Items for tax audit</b> नकद भुगतान, नकद प्राप्ति और नकद ऋण गिनता है। हर मामले के लिए <b>See list</b> दबाएँ।",
       "ऊपर दाईं ओर <b>Save auditor workbook</b> सब कुछ ऑडिटर के लिए Excel फ़ाइल में लिखता है।",
     ],
@@ -197,7 +199,8 @@ const HELP = {
       "हव्या त्या फाइल्स निवडा आणि <b>Save and export</b> दाबा. मग <b>Open export folder</b> दाबा.",
     ],
     analysis: [
-      "मुख्य आकडे या वर्षाची तुलना मागील वर्षाशी करतात.",
+      "प्रत्येक टाइल या वर्षाची (गडद पट्टी) तुलना मागील वर्षाशी (फिकट पट्टी) करते.",
+      "<b>Final copy</b> अंतिम प्रतीसाठी काय बाकी आहे ते दाखवते; <b>Open</b> तिथे नेते. तपशीलवार तक्ते खाली आहेत.",
       "<b>Items for tax audit</b> रोख देयके, रोख प्राप्ती आणि रोख कर्जे मोजते. प्रत्येक प्रकरणासाठी <b>See list</b> दाबा.",
       "वर उजवीकडे <b>Save auditor workbook</b> सर्व काही ऑडिटरसाठी Excel फाइलमध्ये लिहिते.",
     ],

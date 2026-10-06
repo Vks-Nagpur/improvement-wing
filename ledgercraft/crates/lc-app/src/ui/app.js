@@ -61,7 +61,9 @@ function renderGuides() {
   for (const g of $$(".guide")) {
     const steps = lang()[g.dataset.guide] || [];
     g.hidden = !on || !steps.length;
-    g.innerHTML = `<p class="gt">${esc(lang()._title)}</p><ol>${steps.map(s => `<li>${s}</li>`).join("")}</ol>`;
+    // Open on the first visit to a screen, folded after that (the user can reopen it).
+    const seen = store.get("guideSeen", {})[g.dataset.guide];
+    g.innerHTML = `<details${seen ? "" : " open"}><summary class="gt">${esc(lang()._title)}</summary><ol>${steps.map(s => `<li>${s}</li>`).join("")}</ol></details>`;
   }
 }
 $("#helpLang").value = store.get("lang", "en");
@@ -107,13 +109,18 @@ function stepStatus() {
   mark("present", `In ${st.options.unit}, ${st.options.layout}`);
   const dd = st.options.disclosures || {};
   const nd = ["share_classes", "contingent_liabilities", "commitments", "related_parties", "notes", "extra_policies"].reduce((n, k) => n + (dd[k] || []).length, 0) + Object.keys(dd.policy_text || {}).length;
-  const req = ["contingent", "related_parties", "msme"].concat(st.entity_type === "company" ? ["share_capital"] : []);
-  const has = { share_capital: (dd.share_classes || []).length, contingent: (dd.contingent_liabilities || []).length + (dd.commitments || []).length, related_parties: (dd.related_parties || []).length, msme: 0 };
-  const open = req.filter(k => (dd.pending_review || []).includes(k) || (!has[k] && !(dd.answers || {})[k])).length;
+  const open = openDisclosures(st);
   mark("disclose", open ? `${open} section${open === 1 ? "" : "s"} not answered` : `All answered${nd ? `, ${nd} items` : ""}`, open ? "todo" : "ok");
   mark("analysis", a ? `${a.ratios.length} ratios, ${a.loans.length} loans` : "", a ? "ok" : "");
   const fb = a ? a.summary.must_fix + (a.blockers || []).length : 0;
   mark("export", a ? (fb ? "Draft only" : "Ready to sign") : "", a && !fb ? "ok" : "");
+}
+// Disclosure sections still to be answered (never assumed nil).
+function openDisclosures(st) {
+  const dd = st.options.disclosures || {};
+  const req = ["contingent", "related_parties", "msme"].concat(st.entity_type === "company" ? ["share_capital"] : []);
+  const has = { share_capital: (dd.share_classes || []).length, contingent: (dd.contingent_liabilities || []).length + (dd.commitments || []).length, related_parties: (dd.related_parties || []).length, msme: 0 };
+  return req.filter(k => (dd.pending_review || []).includes(k) || (!has[k] && !(dd.answers || {})[k])).length;
 }
 function nextAction() {
   const L = lang().next, st = state.settings, a = state.analysis;
@@ -141,7 +148,7 @@ function renderNext() {
 
 // ---- what the user wants to do (sets the steps) --------------------------------
 const FLOWS = {
-  statements: { name: "Financial statements", steps: ["projects", "import", "check", "map", "bank", "portal", "adjust", "disclose", "present", "export", "audit"] },
+  statements: { name: "Financial statements", steps: ["projects", "import", "check", "analysis", "map", "bank", "portal", "adjust", "disclose", "present", "export", "audit"] },
   analysis: { name: "Check and analyse", steps: ["projects", "import", "check", "analysis", "bank", "portal", "map", "adjust", "audit"] },
   taxaudit: { name: "Tax audit help", steps: ["projects", "import", "check", "analysis", "bank", "portal", "adjust", "export", "audit"] },
 };
@@ -202,6 +209,9 @@ function show(view) {
   if (view === "analysis") { if (state.analysis) renderAnalysis(); else if (state.settings?.inputs.tb) runChecks(); }
   $$(".steps button[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === view));
   $$("section[data-panel]").forEach(s => (s.hidden = s.dataset.panel !== view));
+  // Remember that this screen's help was shown once.
+  const gs = store.get("guideSeen", {});
+  if (!gs[view]) { setTimeout(() => { const m = store.get("guideSeen", {}); m[view] = true; store.set("guideSeen", m); }, 0); }
   if (view === "present") loadPresent();
   if (view === "export") loadSign();
   if (view === "audit") loadAudit();
@@ -881,6 +891,76 @@ const TAX_ITEMS = [
 const newAct = () => Number(String(state.settings?.fy || "").slice(0, 4)) >= 2026;
 const compactRs = p => { const r = p / 100, a = Math.abs(r); return "₹ " + (a >= 1e7 ? (r / 1e7).toFixed(2) + " Cr" : a >= 1e5 ? (r / 1e5).toFixed(2) + " L" : r.toLocaleString("en-IN", { maximumFractionDigits: 0 })); };
 const pct = (c, p) => (p ? (((c - p) / Math.abs(p)) * 100).toFixed(1) + "%" : "");
+// ---- dashboard (bento) --------------------------------------------------------
+const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+// This year against last year as two thin bars (shared scale).
+function pair(c, p) {
+  const top = Math.max(Math.abs(c || 0), Math.abs(p || 0)) || 1;
+  const bar = (v, cls, l) => `<span class="mb-row"><span class="mb-l">${l}</span><span class="mb-t"><i class="${cls}" style="--w:${(Math.abs(v || 0) / top).toFixed(3)}"></i></span></span>`;
+  return `<div class="mbar">${bar(c, "cy", "This year")}${p == null ? "" : bar(p, "py", "Last year")}</div>`;
+}
+function bento(a, KPIS, delta) {
+  const st = state.settings, cy = a.key.cy, py = a.key.py;
+  let i = 0;
+  const tile = (cls, body) => `<section class="tile ${cls}" style="--i:${i++}">${body}</section>`;
+  const fig = (k, label, cls) => tile(`kpi-t ${cls || ""}`, `<p class="tk">${label}</p><p class="tv" data-count="${cy[k] || 0}">${esc(compactRs(cy[k]))}</p>${delta(cy[k], py && py[k])}${pair(cy[k], py ? py[k] : null)}`);
+  // Profit, the headline.
+  const margin = cy.revenue ? ((cy.profit / cy.revenue) * 100).toFixed(1) + "% of revenue" : "";
+  const spent = (cy.revenue || 0) + (cy.other_income || 0) - (cy.profit || 0);
+  const flow = [["Revenue", cy.revenue], ["Other income", cy.other_income], ["Expenses and tax", -spent]]
+    .map(([l, v]) => `<li><span>${l}</span><span>${v < 0 ? "(" + esc(compactRs(-v)) + ")" : esc(compactRs(v || 0))}</span></li>`).join("");
+  let h = tile("hero", `<p class="tk">Profit / (loss) for the year</p><p class="tv big" data-count="${cy.profit || 0}">${esc(compactRs(cy.profit))}</p>${delta(cy.profit, py && py.profit)}<p class="muted small">${margin}</p><ul class="flow">${flow}<li class="tot"><span>Profit / (loss)</span><span>${esc(compactRs(cy.profit || 0))}</span></li></ul>${pair(cy.profit, py ? py.profit : null)}`);
+  // Ready for a final copy?
+  const pend = a.mapping.filter(m => !m.head || ["suggested", "review"].includes(m.status)).length;
+  const items = [
+    ["Must-fix problems", a.summary.must_fix, "check"],
+    ["Placements to confirm", pend, "map"],
+    ["Disclosures to answer", st ? openDisclosures(st) : 0, "disclose"],
+  ];
+  const done = items.filter(x => !x[1]).length, C = 213.6;
+  h += tile("ready", `<p class="tk">Final copy</p><div class="ring-row"><svg class="ring" viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="34" class="ring-bg"/><circle cx="40" cy="40" r="34" class="ring-fg" style="--off:${(C * (1 - done / items.length)).toFixed(1)}"/></svg><div><p class="tv">${done === items.length ? "Ready to sign" : `${items.length - done} of ${items.length} open`}</p><p class="muted small">${done === items.length ? "Nothing blocks a final copy." : "A draft can be printed now."}</p></div></div><ul class="ready-list">${items.map(([l, n, v]) => `<li class="${n ? "open" : "ok"}"><span>${n ? "●" : "✓"}</span><span>${l}</span><b>${n || ""}</b>${n ? `<button type="button" class="small" data-go="${v}">Open</button>` : ""}</li>`).join("")}</ul>`);
+  h += fig("revenue", "Revenue", "sm");
+  h += fig("total_assets", "Total assets", "sm");
+  for (const [k, l] of [["cash_bank", "Cash and bank"], ["receivables", "Debtors"], ["payables", "Creditors"], ["borrowings", "Borrowings"]]) h += fig(k, l, "q");
+  const ch = a.charts || [];
+  const chart = (c, cls) => tile(cls, `<figure class="chart">${c.svg}<figcaption class="sr">${esc(c.title)}</figcaption></figure>`);
+  const monthly = ch.filter(c => /month/i.test(c.title)), ageing = ch.filter(c => /^age/i.test(c.title)), other = ch.filter(c => !monthly.includes(c) && !ageing.includes(c));
+  for (const c of monthly) h += chart(c, "c-wide");
+  // Tax audit items (cases and amounts, from the findings).
+  const rows = TAX_ITEMS.map(([code, label, oldSec, newSec]) => {
+    const fs = a.findings.filter(f => f.code === code);
+    return { code, label, sec: newAct() ? newSec : oldSec, n: fs.length, amt: fs.reduce((s, f) => s + Math.abs(f.amount || 0), 0) };
+  });
+  const hit = rows.filter(r => r.n);
+  h += tile("tax", `<p class="tk">Items for tax audit <span class="muted">(${newAct() ? "Income-tax Act, 2025 · Form 26" : "Income-tax Act, 1961 · Form 3CD"})</span></p>` +
+    (hit.length ? `<ul class="tax-list">${hit.map(r => `<li><span>${r.label}${r.sec ? ` <span class="muted">${r.sec}</span>` : ""}</span><b>${r.n}</b><span class="num">₹ ${rupees(r.amt)}</span><button type="button" class="small" data-code="${r.code}" data-label="${esc(r.label)}">See list</button></li>`).join("")}</ul><p class="muted small">Loans count only principal; interest and TDS are kept apart.</p>` : `<p class="tv">None found</p><p class="muted small">No cash or loan items above the limits.</p>`));
+  for (const c of other) h += chart(c, "c-wide");
+  for (const c of ageing) h += chart(c, "c-half");
+  if (a.ratios.length) {
+    const f = (v, u) => (v == null ? "-" : v.toFixed(2) + (u === "%" ? "%" : ""));
+    const flagged = a.ratios.filter(r => r.needs_explanation).length;
+    h += tile("ratios", `<p class="tk">Ratios, this year and last year <span class="muted">(${flagged ? `${flagged} changed by more than 25%: explain in the notes` : "none changed by more than 25%"})</span></p><ul class="ratio-list">${a.ratios.map(r => `<li class="${r.needs_explanation ? "flag" : ""}"><span>${esc(r.name)}</span><b>${f(r.cy, r.unit)}</b><span class="muted">${f(r.py, r.unit)}</span></li>`).join("")}</ul>`);
+  }
+  return `<div class="bento">${h}</div>`;
+}
+// Entrance: tiles rise in turn, bars grow, lines draw, figures count up.
+// Played once per set of results, never on keyboard navigation repeats.
+function playBento(box, a) {
+  const g = box.querySelector(".bento");
+  if (!g || state.bentoPlayed === a || reduceMotion()) { state.bentoPlayed = a; return; }
+  state.bentoPlayed = a;
+  g.classList.add("play");
+  for (const el of $$("[data-count]", g)) {
+    const to = Number(el.dataset.count), t0 = performance.now(), dur = 600;
+    const tick = t => {
+      const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = compactRs(Math.round(to * e));
+      if (k < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  setTimeout(() => g.classList.remove("play"), 1600);
+}
 function renderAnalysis() {
   const a = state.analysis, box = $("#anBody");
   if (!a) { box.innerHTML = '<p class="empty">Run the checks first.</p>'; return; }
@@ -894,19 +974,9 @@ function renderAnalysis() {
     const ch = ((c - p) / Math.abs(p)) * 100;
     return `<span class="kd ${ch >= 0 ? "up" : "down"}">${ch >= 0 ? "▲" : "▼"} ${Math.abs(ch).toFixed(1)}% on last year</span>`;
   };
-  let h = `<div class="kpis">${KPIS.map(([k, l]) => `<div class="kpi"><div class="kk">${l}</div><div class="kv">${esc(compactRs(cy[k]))}</div>${delta(cy[k], py && py[k])}</div>`).join("")}</div>`;
-  if ((a.charts || []).length) h += `<div class="charts">${a.charts.map(c => `<figure class="box chart">${c.svg}<figcaption class="sr">${esc(c.title)}: figures are in the tables below.</figcaption></figure>`).join("")}</div>`;
-  h += `<div class="two"><div class="box"><h2>Key figures (₹)</h2><table class="grid dense"><thead><tr><th>Item</th><th class="num">This year</th>${py ? '<th class="num">Last year</th><th class="num">Change</th>' : ""}</tr></thead><tbody>` +
-    KEY.map(([k, l]) => `<tr><td>${l}</td><td class="num">${money(cy[k])}</td>${py ? `<td class="num">${money(py[k])}</td><td class="num">${pct(cy[k], py[k])}</td>` : ""}</tr>`).join("") + "</tbody></table></div>";
-  // Tax-audit sensitive items, from the findings.
-  h += `<div class="box"><h2>Items for tax audit</h2><table class="grid dense"><thead><tr><th>Item</th><th>Section</th><th class="num">Cases</th><th class="num">Amount (₹)</th><th class="act"></th></tr></thead><tbody>`;
-  for (const [code, label, oldSec, newSec] of TAX_ITEMS) {
-    const sec = newAct() ? newSec : oldSec;
-    const fs = a.findings.filter(f => f.code === code);
-    const total = fs.reduce((s, f) => s + Math.abs(f.amount || 0), 0);
-    h += `<tr class="${fs.length ? "" : "nil"}"><td>${label}</td><td class="muted">${sec}</td><td class="num">${fs.length}</td><td class="num">${fs.length ? rupees(total) : "-"}</td><td class="act">${fs.length ? `<button type="button" class="small" data-code="${code}" data-label="${esc(label)}">See list</button>` : ""}</td></tr>`;
-  }
-  h += `</tbody></table><p class="muted small">${newAct() ? "Sections of the Income-tax Act, 2025; reported in Form 26 (tax audit under section 63)." : "Sections of the Income-tax Act, 1961; reported in Form 3CA/3CB with Form 3CD."} Loans count only the principal accepted or repaid; interest and TDS are kept apart.</p></div></div>`;
+  let h = bento(a, KPIS, delta);
+  h += `<details class="more"><summary>Detailed tables: key figures, loans, ratios and ageing</summary><div class="two"><div class="box"><h2>Key figures (₹)</h2><table class="grid dense"><thead><tr><th>Item</th><th class="num">This year</th>${py ? '<th class="num">Last year</th><th class="num">Change</th>' : ""}</tr></thead><tbody>` +
+    KEY.map(([k, l]) => `<tr><td>${l}</td><td class="num">${money(cy[k])}</td>${py ? `<td class="num">${money(py[k])}</td><td class="num">${pct(cy[k], py[k])}</td>` : ""}</tr>`).join("") + "</tbody></table></div></div>";
   // Loans
   const loans = a.loans || [];
   h += `<div class="box"><h2>Loans and deposits taken (₹)</h2>` + (loans.length ? `<div class="scroll"><table class="grid dense"><thead><tr><th>Lender</th><th class="num">Opening</th><th class="num">Taken by bank</th><th class="num">Taken in cash</th><th class="num">By journal</th><th class="num">Interest</th><th class="num">Repaid by bank</th><th class="num">Repaid in cash</th><th class="num">Closing</th><th class="num">Highest balance</th></tr></thead><tbody>` +
@@ -924,7 +994,10 @@ function renderAnalysis() {
     h += `<div class="box"><h2>${title}</h2><div class="scroll"><table class="grid dense"><thead><tr><th>Category</th>${ag.bucket_labels.map(b => `<th class="num">${esc(b)}</th>`).join("")}</tr></thead><tbody>` +
       ag.rows.map(r => `<tr><td>${esc(r.category)}</td>${r.buckets.map(v => `<td class="num">${v ? rupees(Math.abs(v)) : "-"}</td>`).join("")}</tr>`).join("") + "</tbody></table></div></div>";
   }
+  h += "</details>";
   box.innerHTML = h;
+  playBento(box, a);
+  $$("[data-go]", box).forEach(b => b.addEventListener("click", () => show(b.dataset.go)));
   $$("[data-code]", box).forEach(b => b.addEventListener("click", () => {
     state.codes = [b.dataset.code]; state.codesLabel = b.dataset.label; show("check"); renderCheck();
   }));

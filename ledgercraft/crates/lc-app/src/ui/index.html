@@ -43,7 +43,7 @@
     <button data-view="bank" disabled><b>5</b><span><span class="sn">Bank reconciliation</span><small class="ss" data-ss="bank">Optional</small></span></button>
     <button data-view="portal" disabled><b>5</b><span><span class="sn">GST and TDS (2B, 26AS)</span><small class="ss" data-ss="portal">Optional</small></span></button>
     <button data-view="adjust" disabled><b>5</b><span><span class="sn">Adjustments</span><small class="ss" data-ss="adjust">Optional</small></span></button>
-    <button data-view="analysis" disabled><b>5</b><span><span class="sn">Analysis</span><small class="ss" data-ss="analysis"></small></span></button>
+    <button data-view="analysis" disabled><b>5</b><span><span class="sn">Dashboard</span><small class="ss" data-ss="analysis"></small></span></button>
     <button data-view="disclose" disabled><b>6</b><span><span class="sn">Notes and disclosures</span><small class="ss" data-ss="disclose"></small></span></button>
     <button data-view="present" disabled><b>6</b><span><span class="sn">Presentation</span><small class="ss" data-ss="present"></small></span></button>
     <button data-view="export" disabled><b>7</b><span><span class="sn">Sign and export</span><small class="ss" data-ss="export"></small></span></button>
@@ -62,24 +62,20 @@
         <button type="button" class="intent" data-intent="statements">
           <span class="in-k">1</span><span class="in-t">Make financial statements</span>
           <span class="in-d">Balance Sheet, Profit and Loss, Cash Flow and Notes in the legal format (Schedule III, ICAI formats for firms, LLPs and others). PDF and Excel, ready to sign.</span>
-          <span class="in-s">Client → Import → Check → Map → Adjust → Print → Sign</span>
+          <span class="in-s">Client → Import → Check → Dashboard → Map → Adjust → Print → Sign</span>
         </button>
         <button type="button" class="intent" data-intent="analysis">
           <span class="in-k">2</span><span class="in-t">Check and analyse books</span>
           <span class="in-d">Find mistakes, wrong grouping, opening differences, cash limits, loans in cash, ratios, ageing of debtors and creditors. Nothing to print.</span>
-          <span class="in-s">Client → Import → Check → Analysis</span>
+          <span class="in-s">Client → Import → Check → Dashboard</span>
         </button>
         <button type="button" class="intent" data-intent="taxaudit">
           <span class="in-k">3</span><span class="in-t">Tax audit help</span>
           <span class="in-d">Cash payments above the limit, cash receipts, loans taken and repaid (principal only), with an Excel workbook for the auditor. Form 26 under the Income-tax Act, 2025 from Tax Year 2026-27; Form 3CD for FY 2025-26 and earlier.</span>
-          <span class="in-s">Client → Import → Check → Analysis → Auditor workbook</span>
+          <span class="in-s">Client → Import → Check → Dashboard → Auditor workbook</span>
         </button>
       </div>
       <div class="box continue" id="continueBox" hidden></div>
-      <div class="soon">
-        <p class="k">Also inside every route</p>
-        <p class="muted small">Bank reconciliation, GSTR-2B and 26AS matching, branch consolidation (Import), monthly or quarterly statements and a charts annexure (Presentation), Word output (Export). Practice books with known answers are in the <b>samples/practice</b> folder.</p>
-      </div>
     </section>
 
     <!-- 1. Projects -->
@@ -319,10 +315,10 @@
       <p class="status" id="dStatus" role="status"></p>
     </section>
 
-    <!-- Analysis -->
+    <!-- Dashboard -->
     <section data-panel="analysis" hidden>
       <header class="screen-head">
-        <div><h1>Analysis</h1><p class="lead">Key figures, items that matter for tax audit, loans, ratios and ageing. Figures include your adjustments.</p></div>
+        <div><h1>Dashboard</h1><p class="lead">This year against last year, what still blocks a final copy, and items for tax audit. Figures include your adjustments.</p></div>
         <div class="actions">
           <button type="button" id="anRerun">Run checks again</button>
           <button type="button" id="anWorkbook">Save auditor workbook</button>

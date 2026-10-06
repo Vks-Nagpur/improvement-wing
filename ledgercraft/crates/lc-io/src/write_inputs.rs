@@ -86,12 +86,12 @@ pub fn write_vouchers_csv(vouchers: &[Voucher], path: &Path) -> Result<(), Strin
             };
             w.write_record([
                 v.date.format("%d-%m-%Y").to_string(),
-                v.vtype.clone(),
-                v.number.clone(),
-                l.ledger.clone(),
+                crate::table::guard(&v.vtype),
+                crate::table::guard(&v.number),
+                crate::table::guard(&l.ledger),
                 dr,
                 cr,
-                v.narration.clone(),
+                crate::table::guard(&v.narration),
             ])
             .map_err(|e| e.to_string())?;
         }

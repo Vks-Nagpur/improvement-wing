@@ -46,6 +46,11 @@ fn main() {
         .map(PathBuf::from)
         .unwrap_or_else(default_data_dir);
     let ollama = get("--ollama").unwrap_or_else(|| "http://127.0.0.1:11434".into());
+    // Client data must not leave this computer unless the user says so.
+    if !server::is_local_url(&ollama) && !args.iter().any(|a| a == "--allow-remote-ai") {
+        eprintln!("The AI address {ollama} is not on this computer. Client data would be sent there. Start with --allow-remote-ai only if you accept that.");
+        std::process::exit(2);
+    }
     let port: u16 = get("--port").and_then(|p| p.parse().ok()).unwrap_or(7878);
     let browser = !args.iter().any(|a| a == "--no-browser");
     let app = match server::App::new(data.clone(), &ollama) {

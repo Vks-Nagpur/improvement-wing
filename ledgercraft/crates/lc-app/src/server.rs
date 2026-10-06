@@ -76,6 +76,8 @@ pub struct App {
     pub token: String,
     /// Requests run in parallel; changes to saved data run one at a time.
     pub write: Mutex<()>,
+    /// Export folders written in this session (may be outside the data folder).
+    pub opened_ok: Mutex<Vec<PathBuf>>,
 }
 
 pub struct Reply {
@@ -128,6 +130,63 @@ fn query(q: &str) -> HashMap<String, String> {
         .collect()
 }
 
+/// The AI endpoint is on this computer (127.0.0.1, localhost or ::1).
+pub fn is_local_url(u: &str) -> bool {
+    let rest = u
+        .trim_start_matches("http://")
+        .trim_start_matches("https://");
+    let host = rest.split('/').next().unwrap_or("");
+    let host = if host.starts_with('[') {
+        host.split(']').next().unwrap_or("").trim_start_matches('[')
+    } else {
+        host.split(':').next().unwrap_or("")
+    };
+    matches!(host, "127.0.0.1" | "localhost" | "::1")
+}
+
+/// Session token: 256 bits from the operating system's random source.
+fn new_token() -> Result<String, String> {
+    let mut b = [0u8; 32];
+    getrandom::getrandom(&mut b).map_err(|e| format!("no secure random source: {e}"))?;
+    Ok(b.iter().map(|x| format!("{x:02x}")).collect())
+}
+
+/// Comparison whose time does not depend on where the strings differ.
+pub fn same_secret(a: &str, b: &str) -> bool {
+    let (a, b) = (a.as_bytes(), b.as_bytes());
+    if a.len() != b.len() {
+        return false;
+    }
+    a.iter().zip(b).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+}
+
+/// Request size limits: file uploads may be large; everything else is small.
+pub fn body_limit(url: &str) -> usize {
+    if url.contains("/upload") {
+        200 << 20
+    } else {
+        2 << 20
+    }
+}
+
+/// Host must be exactly this app's address (DNS rebinding protection).
+pub fn host_allowed(host: &str, port: u16) -> bool {
+    host == format!("127.0.0.1:{port}") || host == format!("localhost:{port}")
+}
+
+/// A browser request must come from this app's own page.
+pub fn origin_allowed(origin: Option<&str>, fetch_site: Option<&str>, port: u16) -> bool {
+    if matches!(fetch_site, Some("cross-site") | Some("same-site")) {
+        return false;
+    }
+    match origin {
+        None => true,
+        Some(o) => {
+            o == format!("http://127.0.0.1:{port}") || o == format!("http://localhost:{port}")
+        }
+    }
+}
+
 /// Show a folder in Explorer (Finder / file manager elsewhere).
 fn open_folder(path: &str) -> Result<Value, String> {
     let p = PathBuf::from(path);
@@ -162,22 +221,8 @@ impl App {
             pull: Arc::new(Mutex::new(PullState::default())),
             quit: Mutex::new(false),
             write: Mutex::new(()),
-            token: {
-                use std::hash::{BuildHasher, Hasher};
-                let mut t = String::new();
-                for _ in 0..2 {
-                    let mut h = std::collections::hash_map::RandomState::new().build_hasher();
-                    h.write_u128(
-                        std::time::SystemTime::now()
-                            .duration_since(std::time::UNIX_EPOCH)
-                            .map(|d| d.as_nanos())
-                            .unwrap_or(0),
-                    );
-                    h.write_u32(std::process::id());
-                    t.push_str(&format!("{:016x}", h.finish()));
-                }
-                t
-            },
+            token: new_token()?,
+            opened_ok: Mutex::new(Vec::new()),
         })
     }
 
@@ -215,7 +260,7 @@ impl App {
                 self.invalidate(id);
                 self.store.delete(id).map(|to| json!({"ok": true, "moved_to": to}))
             }
-            ("POST", ["api", "open-folder"]) => open_folder(&s(&json_body(), "path")),
+            ("POST", ["api", "open-folder"]) => self.open_folder_checked(&json_body()),
             ("GET", ["api", "recycle-bin"]) => Ok(json!(self.store.deleted())),
             ("POST", ["api", "recycle-bin", item, "restore"]) => self.store.restore(item).map(|id| json!({"id": id})),
             ("GET", ["api", "projects", id, "policies"]) => self.policies(id),
@@ -290,7 +335,7 @@ impl App {
             "app": "LedgerCraft",
             "version": env!("CARGO_PKG_VERSION"),
             "data_dir": self.store.root.display().to_string(),
-            "ai": {"running": running, "version": version, "models": models, "model": c.model, "recommended": lc_ai::RECOMMENDED_MODELS.iter().map(|(m, d)| json!({"name": m, "about": d})).collect::<Vec<_>>()},
+            "ai": {"running": running, "version": version, "models": models, "model": c.model, "endpoint": self.ollama_url, "local": is_local_url(&self.ollama_url), "recommended": lc_ai::RECOMMENDED_MODELS.iter().map(|(m, d)| json!({"name": m, "about": d})).collect::<Vec<_>>()},
         })
     }
 
@@ -365,6 +410,33 @@ impl App {
         // Every client's references may change: drop all cached analyses.
         self.cache.lock().unwrap().clear();
         self.legal(id, true).map(|r| json!(r))
+    }
+
+    /// Only LedgerCraft's data folder, or an export folder this session wrote.
+    fn open_folder_checked(&self, b: &Value) -> Result<Value, String> {
+        let path = s(b, "path");
+        let p =
+            std::fs::canonicalize(&path).map_err(|_| "That folder does not exist.".to_string())?;
+        let root = std::fs::canonicalize(&self.store.root).map_err(|e| e.to_string())?;
+        let ok = p.starts_with(&root)
+            || self
+                .opened_ok
+                .lock()
+                .unwrap()
+                .iter()
+                .any(|d| p.starts_with(d));
+        if !ok {
+            return Err("Only LedgerCraft's own folders can be opened from here.".into());
+        }
+        let r = open_folder(&p.display().to_string())?;
+        if let Ok(pr) = self.store.project(&s(b, "project")) {
+            let _ = pr.log(
+                "user",
+                "folder_opened",
+                json!({"path": p.display().to_string()}),
+            );
+        }
+        Ok(r)
     }
 
     fn invalidate(&self, id: &str) {
@@ -1111,12 +1183,21 @@ impl App {
         let (eng, a) = self.analysis(id)?;
         let mut o = st.options.clone();
         o.draft = true;
-        Ok(lc_io::render::html::render(&lc_core::report::build(
-            &eng,
-            &a,
-            &o,
-            &st.signoff,
-        )))
+        let mut rep = lc_core::report::build(&eng, &a, &o, &st.signoff);
+        if let Ok(r) = self.legal(id, false) {
+            if !r.ready {
+                let n = format!(
+                    "legal content not verified ({} of {} items verified)",
+                    r.verified, r.applicable
+                );
+                rep.meta.draft_note = if rep.meta.draft_note.is_empty() {
+                    n
+                } else {
+                    format!("{}; {n}", rep.meta.draft_note)
+                };
+            }
+        }
+        Ok(lc_io::render::html::render(&rep))
     }
 
     fn do_export(&self, id: &str, b: &Value) -> Result<Value, String> {
@@ -1176,6 +1257,9 @@ impl App {
             .ok()
             .and_then(|t| serde_json::from_str(&t).ok())
             .unwrap_or(Value::Null);
+        if let Ok(d) = std::fs::canonicalize(&ex.dir) {
+            self.opened_ok.lock().unwrap().push(d);
+        }
         p.log("user", "exported", json!({"mode": if mode == Mode::Signing { "final" } else { "draft" }, "folder": ex.dir.display().to_string(), "files": manifest.get("files"), "udin": st.signoff.udin}))?;
         Ok(
             json!({"dir": ex.dir.display().to_string(), "files": manifest.get("files"), "warnings": ex.warnings}),
@@ -1314,34 +1398,71 @@ pub fn serve(app: Arc<App>, port: u16, on_ready: impl FnOnce(String)) -> Result<
         "http://{}",
         server.server_addr().to_ip().ok_or("no address")?
     );
+    let port = server
+        .server_addr()
+        .to_ip()
+        .map(|a| a.port())
+        .unwrap_or(port);
     on_ready(addr);
     for mut req in server.incoming_requests() {
         let method = req.method().as_str().to_string();
         let url = req.url().to_string();
-        // Only this app, on this machine: check Host and the session token.
-        let host_ok = req
+        let heads: Vec<(String, String)> = req
             .headers()
             .iter()
-            .find(|h| h.field.equiv("Host"))
             .map(|h| {
-                let v = h.value.as_str();
-                v.starts_with("127.0.0.1:") || v.starts_with("localhost:")
+                (
+                    h.field.as_str().as_str().to_ascii_lowercase(),
+                    h.value.as_str().to_string(),
+                )
             })
+            .collect();
+        let header = |name: &str| {
+            heads
+                .iter()
+                .find(|(k, _)| k == &name.to_ascii_lowercase())
+                .map(|(_, v)| v.clone())
+        };
+        // Only this app, on this machine: exact Host, same-origin browser
+        // requests, and the session token in a header (never in the address).
+        let host_ok = header("Host")
+            .map(|h| host_allowed(&h, port))
             .unwrap_or(false);
-        let token_ok = req
-            .headers()
-            .iter()
-            .any(|h| h.field.equiv("X-LC-Token") && h.value.as_str() == app.token)
-            || url.contains(&format!("t={}", app.token));
-        if !host_ok || (url.starts_with("/api/") && !token_ok) {
+        let origin_ok = method == "GET"
+            || origin_allowed(
+                header("Origin").as_deref(),
+                header("Sec-Fetch-Site").as_deref(),
+                port,
+            );
+        let token_ok = header("X-LC-Token")
+            .map(|t| same_secret(&t, &app.token))
+            .unwrap_or(false);
+        if !host_ok || !origin_ok || (url.starts_with("/api/") && !token_ok) {
             let _ =
                 req.respond(tiny_http::Response::from_string("forbidden").with_status_code(403));
             continue;
         }
+        let limit = body_limit(&url);
+        if req.body_length().map(|n| n > limit).unwrap_or(false) {
+            let _ = req.respond(
+                tiny_http::Response::from_string("request too large").with_status_code(413),
+            );
+            continue;
+        }
         let mut body = Vec::new();
-        if let Err(e) = req.as_reader().take(1 << 30).read_to_end(&mut body) {
+        if let Err(e) = req
+            .as_reader()
+            .take(limit as u64 + 1)
+            .read_to_end(&mut body)
+        {
             let _ = req.respond(
                 tiny_http::Response::from_string(format!("read error: {e}")).with_status_code(400),
+            );
+            continue;
+        }
+        if body.len() > limit {
+            let _ = req.respond(
+                tiny_http::Response::from_string("request too large").with_status_code(413),
             );
             continue;
         }
@@ -1379,6 +1500,15 @@ fn respond(req: tiny_http::Request, r: Reply) {
         )
         .with_header(
             tiny_http::Header::from_bytes(&b"X-Content-Type-Options"[..], &b"nosniff"[..]).unwrap(),
+        )
+        .with_header(tiny_http::Header::from_bytes(&b"Referrer-Policy"[..], &b"no-referrer"[..]).unwrap())
+        .with_header(tiny_http::Header::from_bytes(&b"X-Frame-Options"[..], &b"DENY"[..]).unwrap())
+        .with_header(
+            tiny_http::Header::from_bytes(
+                &b"Content-Security-Policy"[..],
+                &b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; object-src 'none'"[..],
+            )
+            .unwrap(),
         );
     let _ = req.respond(resp);
 }

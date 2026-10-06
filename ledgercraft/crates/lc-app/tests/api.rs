@@ -179,14 +179,19 @@ fn full_flow_through_the_app() {
         ),
     )
     .unwrap();
-    let preview = ureq::get(&format!(
+    // The token in the address is no longer accepted.
+    assert!(ureq::get(&format!(
         "{base}/api/projects/{pid}/preview?t={}",
         app.token
     ))
     .call()
-    .unwrap()
-    .into_string()
-    .unwrap();
+    .is_err());
+    let preview = ureq::get(&format!("{base}/api/projects/{pid}/preview"))
+        .set("X-LC-Token", &app.token)
+        .call()
+        .unwrap()
+        .into_string()
+        .unwrap();
     assert!(preview.contains("GLITCHY TRADERS") && preview.contains("₹ lakhs"));
     // Final copy refused until placements are confirmed and disclosures answered.
     let err = c
@@ -505,14 +510,12 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         Some(json!({"options": o})),
     )
     .unwrap();
-    let html = ureq::get(&format!(
-        "{}/api/projects/{pid}/preview?t={}",
-        c.base, c.token
-    ))
-    .call()
-    .unwrap()
-    .into_string()
-    .unwrap();
+    let html = ureq::get(&format!("{}/api/projects/{pid}/preview", c.base))
+        .set("X-LC-Token", &c.token)
+        .call()
+        .unwrap()
+        .into_string()
+        .unwrap();
     assert!(html.contains("Balance Sheet as at"));
     assert!(!html.contains("Cash Flow Statement for"));
     assert!(!html.contains("Notes to the financial statements"));
@@ -553,14 +556,12 @@ fn adjustments_hiding_removal_and_recycle_bin() {
         Some(json!({"period": {"start": "2025-04-01", "end": "2025-06-30", "comparative": "2025-03-31"}})),
     )
     .unwrap();
-    let html = ureq::get(&format!(
-        "{}/api/projects/{pid}/preview?t={}",
-        c.base, c.token
-    ))
-    .call()
-    .unwrap()
-    .into_string()
-    .unwrap();
+    let html = ureq::get(&format!("{}/api/projects/{pid}/preview", c.base))
+        .set("X-LC-Token", &c.token)
+        .call()
+        .unwrap()
+        .into_string()
+        .unwrap();
     assert!(
         html.contains("for the period from 1 April 2025 to 30 June 2025"),
         "period heading"
@@ -940,4 +941,94 @@ fn bank_statement_is_matched_and_reconciled() {
     assert_eq!(rec["difference"], 0, "reconciles exactly: {rec}");
     let _ = c.call("POST", "/api/quit", None);
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn local_server_refuses_foreign_hosts_origins_url_tokens_and_huge_bodies() {
+    use lc_app::server::{body_limit, host_allowed, origin_allowed, same_secret};
+    assert!(host_allowed("127.0.0.1:7878", 7878) && host_allowed("localhost:7878", 7878));
+    for h in [
+        "127.0.0.1:7879",
+        "127.0.0.1.evil.com:7878",
+        "evil.com",
+        "127.0.0.1:7878.evil",
+        "localhost.evil:7878",
+    ] {
+        assert!(!host_allowed(h, 7878), "{h}");
+    }
+    assert!(
+        origin_allowed(None, None, 7878)
+            && origin_allowed(Some("http://127.0.0.1:7878"), Some("same-origin"), 7878)
+    );
+    for o in [
+        "http://evil.com",
+        "http://127.0.0.1:9999",
+        "null",
+        "http://127.0.0.1:7878.evil.com",
+    ] {
+        assert!(!origin_allowed(Some(o), None, 7878), "{o}");
+    }
+    assert!(!origin_allowed(None, Some("cross-site"), 7878));
+    assert!(same_secret("abc", "abc") && !same_secret("abc", "abd") && !same_secret("abc", "ab"));
+    assert!(body_limit("/api/projects/x/settings") < body_limit("/api/projects/x/upload?kind=tb"));
+
+    let dir = std::env::temp_dir().join(format!("lc-sec-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let app = Arc::new(App::new(dir.clone(), "http://127.0.0.1:1").unwrap());
+    assert_eq!(app.token.len(), 64, "256-bit token");
+    let (tx, rx) = std::sync::mpsc::channel();
+    let a2 = app.clone();
+    std::thread::spawn(move || serve(a2, 0, |addr| tx.send(addr).unwrap()));
+    let base = rx.recv().unwrap();
+    // No token, token in the address, wrong Origin: refused.
+    assert!(ureq::get(&format!("{base}/api/projects")).call().is_err());
+    assert!(ureq::get(&format!("{base}/api/projects?t={}", app.token))
+        .call()
+        .is_err());
+    let bad = ureq::post(&format!("{base}/api/projects"))
+        .set("X-LC-Token", &app.token)
+        .set("Origin", "http://evil.com")
+        .send_string("{}");
+    assert!(matches!(bad, Err(ureq::Error::Status(403, _))));
+    // Oversized settings body: 413.
+    let big = "x".repeat(3 << 20);
+    let r = ureq::post(&format!("{base}/api/projects/x/settings"))
+        .set("X-LC-Token", &app.token)
+        .send_string(&big);
+    assert!(matches!(r, Err(ureq::Error::Status(413, _))), "{r:?}");
+    // Security headers on the page.
+    let page = ureq::get(&format!("{base}/")).call().unwrap();
+    assert!(page
+        .header("Content-Security-Policy")
+        .unwrap()
+        .contains("frame-ancestors 'none'"));
+    assert_eq!(page.header("Referrer-Policy"), Some("no-referrer"));
+    // Folder outside LedgerCraft's data: refused.
+    let r = ureq::post(&format!("{base}/api/open-folder"))
+        .set("X-LC-Token", &app.token)
+        .send_json(json!({"path": std::env::temp_dir().display().to_string()}));
+    assert!(r.is_err());
+    let _ = ureq::post(&format!("{base}/api/quit"))
+        .set("X-LC-Token", &app.token)
+        .call();
+}
+
+#[test]
+fn ai_address_must_be_local() {
+    use lc_app::server::is_local_url;
+    for u in [
+        "http://127.0.0.1:11434",
+        "http://localhost:11434/",
+        "http://[::1]:11434",
+    ] {
+        assert!(is_local_url(u), "{u}");
+    }
+    for u in [
+        "http://10.0.0.5:11434",
+        "https://ollama.example.com",
+        "http://127.0.0.1.evil.com:11434",
+        "http://localhost.evil:1",
+    ] {
+        assert!(!is_local_url(u), "{u}");
+    }
 }

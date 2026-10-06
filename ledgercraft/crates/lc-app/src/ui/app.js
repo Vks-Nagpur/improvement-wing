@@ -243,6 +243,9 @@ async function refreshStatus() {
     const have = s.ai.running && s.ai.models.some(m => m.replace(":latest", "") === s.ai.model.replace(":latest", ""));
     pill.textContent = !s.ai.running ? "Local AI: off" : have ? "Local AI: ready" : "Local AI: set up";
     pill.classList.toggle("on", have);
+    $("#aiPrivacy").textContent = s.ai.local
+      ? `AI address: ${s.ai.endpoint} (this computer). What is sent: the finding, ledger names or your question; nothing leaves this computer. Not installed or stopped = AI off; LedgerCraft works fully without it.`
+      : `Warning: the AI address ${s.ai.endpoint} is NOT on this computer. Findings, ledger names and questions are sent there.`;
     $("#aiState").textContent = !s.ai.running
       ? "Ollama is not running on this computer. Install it free from ollama.com, start it, then reopen this panel. LedgerCraft works fully without it."
       : `Ollama ${s.ai.version} is running. Models on this computer: ${s.ai.models.length ? s.ai.models.join(", ") : "none yet"}.`;
@@ -288,7 +291,7 @@ $("#quitBtn").addEventListener("click", async () => {
 });
 
 async function openFolder(path) {
-  try { await api("POST", "/api/open-folder", { path }); } catch (e) { toast(e.message, true); }
+  try { await api("POST", "/api/open-folder", { path, project: pid() || "" }); } catch (e) { toast(e.message, true); }
 }
 
 // ---- 1. projects ----------------------------------------------------------
@@ -1304,7 +1307,14 @@ function renderRatioBox() {
   }
 }
 $("#oRatiosOn").addEventListener("change", renderRatioBox);
-function refreshPreview() { $("#preview").src = `/api/projects/${pid()}/preview?t=${TOKEN}&ts=${Date.now()}`; }
+// The preview is fetched with the token in a header and shown in a sandboxed
+// frame (the token never appears in an address).
+async function refreshPreview() {
+  try {
+    const r = await fetch(`/api/projects/${pid()}/preview`, { headers: { "X-LC-Token": TOKEN } });
+    $("#preview").srcdoc = await r.text();
+  } catch (e) { toast(e.message, true); }
+}
 $("#refreshPreview").addEventListener("click", refreshPreview);
 function readOpts() {
   const o = state.settings.options;

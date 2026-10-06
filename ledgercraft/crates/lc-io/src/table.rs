@@ -64,7 +64,7 @@ fn read_table_raw(path: &Path, prefer_sheets: &[&str]) -> Result<Vec<Vec<String>
         let mut out = Vec::new();
         for rec in rdr.records() {
             let rec = rec.map_err(|e| format!("{}: {e}", path.display()))?;
-            out.push(rec.iter().map(|s| s.trim().to_string()).collect());
+            out.push(rec.iter().map(|s| unguard(s.trim())).collect());
         }
         out
     } else {
@@ -162,5 +162,23 @@ impl Table {
         col.and_then(|c| row.get(c))
             .map(|s| s.as_str())
             .unwrap_or("")
+    }
+}
+
+/// Text written by LedgerCraft's CSV writer with a leading apostrophe so a
+/// spreadsheet does not run it as a formula: the apostrophe is removed again.
+pub fn unguard(s: &str) -> String {
+    match s.strip_prefix('\'') {
+        Some(rest) if rest.starts_with(['=', '+', '-', '@']) => rest.to_string(),
+        _ => s.to_string(),
+    }
+}
+
+/// Text that a spreadsheet would treat as a formula gets a leading apostrophe.
+pub fn guard(s: &str) -> String {
+    if s.starts_with(['=', '+', '-', '@', '\t', '\r']) {
+        format!("'{s}")
+    } else {
+        s.to_string()
     }
 }

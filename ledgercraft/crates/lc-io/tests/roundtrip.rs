@@ -316,3 +316,83 @@ fn form26_helper_never_uses_form_3cd_clause_numbers() {
         assert!(!all.contains("3CD") && !all.contains("1961"), "{all}");
     }
 }
+
+#[test]
+fn hostile_names_never_become_spreadsheet_formulas() {
+    let mut s = lc_testdata::scenarios::clean(lc_testdata::scenarios::Kind::Firm, 1, 10, 6, 4);
+    let evil = "=HYPERLINK(\"http://x.invalid\",\"click\")";
+    s.engagement.entity_name = "=1+1 Traders".into();
+    let old = s.engagement.cy.ledgers[0].name.clone();
+    for tb in std::iter::once(&mut s.engagement.cy).chain(s.engagement.py.iter_mut()) {
+        for l in tb.ledgers.iter_mut().filter(|l| l.name == old) {
+            l.name = evil.into();
+        }
+    }
+    for v in s.engagement.vouchers.iter_mut() {
+        v.narration = "@SUM(1+1)".into();
+        for l in v.lines.iter_mut().filter(|l| l.ledger == old) {
+            l.ledger = evil.into();
+        }
+    }
+    let d = tmp("evil");
+    // CSV: guarded on write, restored exactly on read.
+    write_vouchers_csv(&s.engagement.vouchers, &d.join("v.csv")).unwrap();
+    let raw = std::fs::read_to_string(d.join("v.csv")).unwrap();
+    assert!(
+        !raw.lines()
+            .skip(1)
+            .any(|l| l.split(',').any(|c| c.trim_matches('"').starts_with('='))),
+        "unguarded formula in CSV"
+    );
+    assert_eq!(
+        read_vouchers(&d.join("v.csv")).unwrap(),
+        s.engagement.vouchers
+    );
+    // Excel outputs: text cells only, no formula anywhere.
+    let a = analyse(&s.engagement, &RulesPack::builtin());
+    let ex = export(
+        &d,
+        &s.engagement,
+        &a,
+        &SignOff::default(),
+        &ExportOptions::default(),
+    )
+    .unwrap();
+    for f in [
+        "Financial_Statements.xlsx",
+        "Auditor_Reference_Workbook.xlsx",
+        "Tax_Audit_Helper_Form_3CD.xlsx",
+    ] {
+        let mut book: calamine::Xlsx<_> = calamine::open_workbook(ex.dir.join(f)).unwrap();
+        for sheet in calamine::Reader::sheet_names(&book) {
+            let fr = calamine::Reader::worksheet_formula(&mut book, &sheet).unwrap();
+            assert!(
+                fr.used_cells().all(|(_, _, v)| v.is_empty()),
+                "{f}/{sheet} has a formula"
+            );
+        }
+    }
+    let _ = std::fs::remove_dir_all(&d);
+}
+
+#[test]
+fn preview_html_escapes_names() {
+    let mut s = lc_testdata::scenarios::clean(lc_testdata::scenarios::Kind::Firm, 1, 10, 6, 4);
+    s.engagement.entity_name = "<script>alert(1)</script> Traders".into();
+    let n = s.engagement.cy.ledgers.len() - 1;
+    let old = s.engagement.cy.ledgers[n].name.clone();
+    s.engagement.cy.ledgers[n].name = format!("<img src=x onerror=alert(2)> {old}");
+    let a = analyse(&s.engagement, &RulesPack::builtin());
+    let rep = lc_io::export::report(
+        &s.engagement,
+        &a,
+        &SignOff::default(),
+        &ExportOptions::default(),
+    );
+    let html = lc_io::render::html::render(&rep);
+    assert!(
+        !html.contains("<script>alert") && !html.contains("<img src=x"),
+        "unescaped name in preview"
+    );
+    assert!(html.contains("&lt;script&gt;") || html.contains("&lt;SCRIPT&gt;"));
+}

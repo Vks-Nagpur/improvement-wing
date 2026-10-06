@@ -394,7 +394,7 @@
           <fieldset id="ratioBox"><legend>Reasons for ratio changes above 25%</legend><div id="ratioRows"></div></fieldset>
           <p class="status" id="oStatus" role="status"></p>
         </form>
-        <iframe id="preview" title="Preview of the financial statements"></iframe>
+        <iframe id="preview" title="Preview of the financial statements" sandbox></iframe>
       </div>
     </section>
 
@@ -494,6 +494,7 @@
     <div class="title-row"><h2>Local AI</h2><button class="ghost" type="button" id="aiClose" aria-label="Close">Close</button></div>
     <p class="muted small">Runs on this computer through Ollama. It only suggests and explains; it never changes figures. Every answer is recorded in the audit trail.</p>
     <p id="aiState"></p>
+    <p class="muted small" id="aiPrivacy"></p>
     <div class="field"><label for="aiModel">Model</label><select id="aiModel"></select></div>
     <button type="button" id="aiSetup">Download model</button>
     <div class="bar" hidden id="aiBar"><span></span></div>

@@ -19,8 +19,8 @@ typst-pdf = "0.15"
 quick-xml = "0.37"
 ureq = "2"
 docx-rs = "0.4.22"
+zip = { version = "2", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
 lc-testdata = { path = "../lc-testdata" }
 tiny_http = "0.12"
-zip = { version = "2", default-features = false, features = ["deflate"] }

@@ -460,6 +460,7 @@ function renderFiles() {
       try {
         const r = await api("POST", `/api/projects/${pid()}/upload?kind=${kind}&name=${encodeURIComponent(f.name)}`, undefined, await f.arrayBuffer());
         setStatus($("#fStatus"), `${f.name}: ${r.contents} loaded.`);
+        showImportReport(f.name, r.report);
         await reloadSettings(); state.analysis = null; renderFiles(); renderNext();
       } catch (e) { setStatus($("#fStatus"), e.message, true); }
     });
@@ -472,6 +473,16 @@ function renderFiles() {
   }
 }
 // Branches: each has its own trial balance and day book.
+// Rows a reader did not take, with the reason (nothing is dropped silently).
+function showImportReport(name, rep) {
+  const box = $("#importReport"); if (!box) return;
+  const sk = (rep && rep.skipped) || [];
+  box.hidden = !sk.length && !(rep && rep.warnings && rep.warnings.length);
+  if (box.hidden) return;
+  box.innerHTML = `<details><summary>${esc(name)}: ${rep.accepted} row(s) read, ${sk.length} row(s) not used. See which and why</summary>
+    <table class="grid dense"><thead><tr><th class="num">Row</th><th>Why it was not used</th><th>Row starts with</th></tr></thead><tbody>${sk.slice(0, 200).map(x => `<tr><td class="num">${x.row}</td><td>${esc(x.reason)}</td><td class="muted">${esc(x.text)}</td></tr>`).join("")}</tbody></table>
+    ${sk.length > 200 ? `<p class="muted small">First 200 shown; the full list is saved with the import.</p>` : ""}</details>`;
+}
 function renderBranches() {
   const box = $("#branchRows"); box.innerHTML = "";
   const list = state.settings.inputs.branches || [];

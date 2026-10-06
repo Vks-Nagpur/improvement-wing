@@ -116,7 +116,19 @@ pub fn sanitize(bytes: &[u8]) -> String {
         .collect()
 }
 
+/// Limits on a Tally response: size, nesting and number of elements.
+pub const MAX_XML_BYTES: usize = 1 << 30;
+pub const MAX_XML_DEPTH: usize = 64;
+pub const MAX_XML_NODES: usize = 40_000_000;
+
 pub fn parse_xml(xml: &str) -> Result<Node, String> {
+    if xml.len() > MAX_XML_BYTES {
+        return Err(format!(
+            "Tally response is too large ({} MB).",
+            xml.len() >> 20
+        ));
+    }
+    let mut nodes: usize = 0;
     let mut r = Reader::from_str(xml);
     r.config_mut().trim_text(true);
     let mut stack: Vec<Node> = vec![Node {
@@ -139,6 +151,13 @@ pub fn parse_xml(xml: &str) -> Result<Node, String> {
                         .push((String::from_utf8_lossy(a.key.as_ref()).into_owned(), v));
                 }
                 stack.push(n);
+                nodes += 1;
+                if stack.len() > MAX_XML_DEPTH {
+                    return Err("Tally response is nested too deeply; refused.".into());
+                }
+                if nodes > MAX_XML_NODES {
+                    return Err("Tally response has too many elements; refused.".into());
+                }
             }
             Ok(Event::Empty(e)) => {
                 let mut n = Node {
@@ -154,6 +173,10 @@ pub fn parse_xml(xml: &str) -> Result<Node, String> {
                         .push((String::from_utf8_lossy(a.key.as_ref()).into_owned(), v));
                 }
                 stack.last_mut().unwrap().children.push(n);
+                nodes += 1;
+                if nodes > MAX_XML_NODES {
+                    return Err("Tally response has too many elements; refused.".into());
+                }
             }
             Ok(Event::Text(t)) => {
                 let s = t

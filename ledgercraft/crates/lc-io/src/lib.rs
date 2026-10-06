@@ -1,5 +1,6 @@
 //! File input/output for LedgerCraft. All business logic stays in `lc-core`.
 
+pub mod diag;
 pub mod export;
 pub mod portal;
 pub mod read;

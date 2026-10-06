@@ -531,7 +531,7 @@ impl App {
         // Validate before accepting, so a wrong file never replaces a good one.
         let tmp = p.inputs_dir().join(format!("check-{file}"));
         write_atomic(&tmp, body)?;
-        let checked = match kind {
+        let (checked, report) = lc_io::diag::collect(|| match kind {
             "tb" | "py_tb" | "branch_tb" => lc_io::read::read_trial_balance_with(
                 &tmp,
                 st.inputs
@@ -553,7 +553,7 @@ impl App {
                 .map(|r| format!("{} assets", r.assets.len())),
             "accounts_master" => Ok("account master".to_string()),
             _ => Err("unknown file kind".to_string()),
-        };
+        });
         let what = match checked {
             Ok(w) => w,
             Err(e) => {
@@ -592,9 +592,21 @@ impl App {
             st.inputs.tally_company = None;
         }
         p.save_settings(&st)?;
-        p.log("user", "file_imported", json!({"kind": kind, "branch": branch, "original_name": name, "bytes": body.len(), "sha256": digest, "contents": what}))?;
+        // Import record: where the file came from and what was read from it.
+        let record = json!({
+            "original_name": name, "stored_as": file, "kind": kind, "branch": branch,
+            "sha256": digest, "bytes": body.len(), "imported_at": chrono::Local::now().to_rfc3339(),
+            "parser": format!("lc-io {}", env!("CARGO_PKG_VERSION")), "contents": what, "report": report,
+        });
+        write_atomic(
+            &p.inputs_dir().join(format!("{file}.import.json")),
+            serde_json::to_string_pretty(&record)
+                .map_err(|e| e.to_string())?
+                .as_bytes(),
+        )?;
+        p.log("user", "file_imported", json!({"kind": kind, "branch": branch, "original_name": name, "bytes": body.len(), "sha256": digest, "contents": what, "rows_accepted": report.accepted, "rows_skipped": report.skipped.len()}))?;
         self.invalidate(id);
-        Ok(json!({"ok": true, "contents": what}))
+        Ok(json!({"ok": true, "contents": what, "report": report}))
     }
 
     fn tally(&self, id: &str, b: &Value) -> Result<Value, String> {

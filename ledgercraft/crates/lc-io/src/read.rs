@@ -159,12 +159,18 @@ pub fn read_trial_balance_with(path: &Path, master: Option<&Path>) -> Result<Tri
     for (row, &line) in t.rows.iter().zip(&t.source_rows) {
         let name = t.get(row, Some(lc)).to_string();
         let lower = name.to_ascii_lowercase();
-        if name.is_empty()
-            || lower == "total"
+        if name.is_empty() {
+            if row.iter().any(|c| !c.is_empty()) {
+                crate::diag::skip(line, "no ledger name", row);
+            }
+            continue;
+        }
+        if lower == "total"
             || lower == "grand total"
             || lower.starts_with("total for")
             || lower.starts_with("total ")
         {
+            crate::diag::skip(line, "total row (worked out again by LedgerCraft)", row);
             continue;
         }
         let opening = amount(
@@ -209,6 +215,11 @@ pub fn read_trial_balance_with(path: &Path, master: Option<&Path>) -> Result<Tri
             section = zoho_type_group(&name)
                 .map(String::from)
                 .unwrap_or_else(|| name.clone());
+            crate::diag::skip(
+                line,
+                "section heading (used as the group of the ledgers below it)",
+                row,
+            );
             continue;
         }
         let group = explicit_group
@@ -228,6 +239,7 @@ pub fn read_trial_balance_with(path: &Path, master: Option<&Path>) -> Result<Tri
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .collect();
+        crate::diag::accept();
         ledgers.push(Ledger {
             name,
             group,
@@ -308,6 +320,7 @@ pub fn read_vouchers(path: &Path) -> Result<Vec<Voucher>, String> {
             ledger: t.get(row, Some(lc)).to_string(),
             amount: amt,
         };
+        crate::diag::accept();
         let same = out
             .last()
             .map(|v| v.date == date && v.number == number && v.vtype == vtype)

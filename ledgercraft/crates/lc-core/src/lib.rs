@@ -20,6 +20,7 @@ pub mod legal;
 pub mod mapping;
 pub mod model;
 pub mod money;
+pub mod packcheck;
 pub mod ratios;
 pub mod recon;
 pub mod report;

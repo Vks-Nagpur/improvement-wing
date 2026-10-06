@@ -25,7 +25,26 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test --all
+      - run: cargo build --release --all
+      - name: Pack checks and legal readiness report
+        run: cargo run --release -p lc-cli -- packs --out legal-readiness-${{ matrix.os }}.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legal-readiness-${{ matrix.os }}
+          path: ledgercraft/legal-readiness-${{ matrix.os }}.json
       - run: cargo run --release -p lc-cli -- bench --vouchers 200000
+
+  audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ledgercraft
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install cargo-audit --locked
+      - name: Dependency security audit (RustSec advisory database)
+        run: cargo audit
 
   windows-app:
     needs: test
@@ -58,6 +77,13 @@ jobs:
           & $nsis /V2 "/DVERSION=$ver" "/DDIST=$PWD\dist" installer\ledgercraft.nsi
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Remove-Item -Recurse dist/docs, dist/practice
+      - name: Artifact hashes
+        shell: pwsh
+        run: |
+          Get-ChildItem dist -File | Where-Object Name -ne 'SHA256SUMS.txt' | ForEach-Object {
+            "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name
+          } | Set-Content -Encoding ascii dist/SHA256SUMS.txt
+          Get-Content dist/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: LedgerCraft-windows

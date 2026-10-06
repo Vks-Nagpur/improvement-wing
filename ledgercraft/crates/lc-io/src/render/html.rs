@@ -101,10 +101,18 @@ pub fn render(r: &Report) -> String {
         },
         if m.draft { " draft" } else { "" }
     ));
-    if m.draft && !m.draft_note.is_empty() {
+    if m.draft {
+        // Visible text in the page itself, not only the CSS watermark.
         h.push_str(&format!(
-            "<p class=\"draftnote\">Draft: {}. A final copy is available once they are resolved.</p>",
-            esc(&m.draft_note)
+            "<p class=\"draftnote\"><strong>DRAFT – for discussion only.</strong>{}</p>",
+            if m.draft_note.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    " {}. A final copy is available once they are resolved.",
+                    esc(&m.draft_note)
+                )
+            }
         ));
     }
     if m.cover {

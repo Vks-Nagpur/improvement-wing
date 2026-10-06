@@ -180,6 +180,43 @@ fn table(
     Ok(())
 }
 
+fn draft_text(note: &str) -> String {
+    if note.is_empty() {
+        "DRAFT – for discussion only".to_string()
+    } else {
+        format!("DRAFT – for discussion only · {note}")
+    }
+}
+
+/// Excel drops a page header longer than 255 characters entirely, which
+/// would lose the DRAFT mark: shorten the entity and the note to fit.
+fn header_text(entity: &str, draft: bool, note: &str) -> String {
+    let cut = |s: &str, n: usize| -> String {
+        if s.chars().count() <= n {
+            s.to_string()
+        } else {
+            format!(
+                "{}…",
+                s.chars().take(n.saturating_sub(1)).collect::<String>()
+            )
+        }
+    };
+    let right = if !draft {
+        String::new()
+    } else if note.is_empty() {
+        "DRAFT".to_string()
+    } else {
+        format!("DRAFT ({})", cut(&note.replace('&', "and"), 90))
+    };
+    let h = format!(
+        "&L&\"{FONT}\"&8{}&R&\"{FONT}\"&8{}",
+        cut(entity, 50).replace('&', "&&"),
+        right
+    );
+    debug_assert!(h.chars().count() <= 255);
+    h
+}
+
 pub fn render(r: &Report) -> Result<Vec<u8>, String> {
     let st = Style {
         boxed: r.meta.layout == Layout::Boxed,
@@ -219,6 +256,24 @@ pub fn render(r: &Report) -> Result<Vec<u8>, String> {
         }
         let mut row = 0u32;
         let center = |f: Format| f.set_align(FormatAlign::Center);
+        if r.meta.draft {
+            // In the sheet itself, not only in the print header.
+            x(ws.merge_range(
+                row,
+                0,
+                row,
+                ncols - 1,
+                &draft_text(&r.meta.draft_note),
+                &center(
+                    st.base()
+                        .set_bold()
+                        .set_font_size(10)
+                        .set_font_color(Color::RGB(0x9C_2A_00))
+                        .set_background_color(Color::RGB(0xFF_F4_DC)),
+                ),
+            ))?;
+            row += 1;
+        }
         x(ws.merge_range(
             row,
             0,
@@ -259,6 +314,7 @@ pub fn render(r: &Report) -> Result<Vec<u8>, String> {
                 .set_font_size(9)
                 .set_align(FormatAlign::Right),
         ))?;
+        let title_rows = row;
         row += 2;
         for b in &s.blocks {
             match b {
@@ -310,21 +366,16 @@ pub fn render(r: &Report) -> Result<Vec<u8>, String> {
         }
         ws.set_print_fit_to_pages(1, 0);
         ws.set_margins(0.6, 0.5, 0.8, 0.7, 0.3, 0.3);
-        ws.set_header(format!(
-            "&L&\"{FONT}\"&8{}&R&\"{FONT}\"&8{}",
-            r.meta.entity.replace('&', "&&"),
-            if r.meta.draft {
-                if r.meta.draft_note.is_empty() {
-                    "DRAFT".to_string()
-                } else {
-                    format!("DRAFT ({})", r.meta.draft_note)
-                }
-            } else {
-                String::new()
-            }
+        ws.set_header(header_text(
+            &r.meta.entity,
+            r.meta.draft,
+            &r.meta.draft_note,
         ));
         ws.set_footer(format!("&C&\"{FONT}\"&8Page &P of &N"));
         ws.set_screen_gridlines(false);
+        // Title rows repeat on every printed page; print only what was written.
+        x(ws.set_repeat_rows(0, title_rows))?;
+        x(ws.set_print_area(0, 0, row.max(title_rows) + 8, ncols - 1))?;
     }
     x(wb.save_to_buffer())
 }

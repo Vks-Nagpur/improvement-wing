@@ -396,3 +396,84 @@ fn preview_html_escapes_names() {
     );
     assert!(html.contains("&lt;script&gt;") || html.contains("&lt;SCRIPT&gt;"));
 }
+
+fn zip_text(bytes: &[u8], prefix: &str) -> String {
+    use std::io::Read;
+    let mut z = zip::ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
+    let mut out = String::new();
+    for i in 0..z.len() {
+        let mut f = z.by_index(i).unwrap();
+        if f.name().starts_with(prefix) {
+            f.read_to_string(&mut out).unwrap();
+        }
+    }
+    out
+}
+
+#[test]
+fn draft_mark_is_in_the_body_of_every_format_and_absent_from_final() {
+    let s = lc_testdata::scenarios::clean(lc_testdata::scenarios::Kind::Company, 3, 8, 5, 3);
+    let a = analyse(&s.engagement, &RulesPack::builtin());
+    let mut rep = lc_io::export::report(
+        &s.engagement,
+        &a,
+        &SignOff::default(),
+        &ExportOptions::default(),
+    );
+    rep.meta.draft = true;
+    // A long note with "&" must not push the mark out of Excel's header.
+    rep.meta.draft_note = format!("open items & questions {}", "x".repeat(400));
+    let mark = "DRAFT – for discussion only";
+
+    let pages = lc_io::render::pdf::page_texts(&rep).unwrap();
+    assert!(pages.len() > 1);
+    for (i, p) in pages.iter().enumerate() {
+        assert!(p.contains("DRAFT"), "PDF page {} has no DRAFT mark", i + 1);
+    }
+
+    let html = lc_io::render::html::render(&rep);
+    let body = &html[html.find("<body").unwrap()..];
+    assert!(body.contains(mark), "HTML body has no visible draft text");
+
+    let docx = lc_io::render::docx::render(&rep).unwrap();
+    assert!(zip_text(&docx, "word/document.xml").contains(mark));
+    assert!(zip_text(&docx, "word/header").contains("DRAFT"));
+
+    let xlsx = lc_io::render::xlsx::render(&rep).unwrap();
+    let mut book: calamine::Xlsx<_> =
+        <calamine::Xlsx<_> as calamine::Reader<_>>::new(std::io::Cursor::new(xlsx.clone()))
+            .unwrap();
+    let sheets = calamine::Reader::sheet_names(&book);
+    for sheet in &sheets {
+        let r = calamine::Reader::worksheet_range(&mut book, sheet).unwrap();
+        let first = r
+            .get_value((0, 0))
+            .map(|v| v.to_string())
+            .unwrap_or_default();
+        assert!(first.starts_with(mark), "{sheet}: first row is {first:?}");
+    }
+    let sheet_xml = zip_text(&xlsx, "xl/worksheets/sheet");
+    assert_eq!(
+        sheet_xml.matches("<oddHeader>").count(),
+        sheets.len(),
+        "every sheet keeps its print header"
+    );
+    assert!(sheet_xml.matches("DRAFT (").count() >= sheets.len());
+    // Print setup: A4, fit to width, titles repeated, print area set.
+    assert!(sheet_xml.contains("paperSize=\"9\"") && sheet_xml.contains("fitToHeight=\"0\""));
+    let wb_xml = zip_text(&xlsx, "xl/workbook.xml");
+    assert_eq!(wb_xml.matches("_xlnm.Print_Titles").count(), sheets.len());
+    assert_eq!(wb_xml.matches("_xlnm.Print_Area").count(), sheets.len());
+
+    // Final copy: no draft text anywhere.
+    rep.meta.draft = false;
+    rep.meta.draft_note.clear();
+    for p in lc_io::render::pdf::page_texts(&rep).unwrap() {
+        assert!(!p.contains("DRAFT"));
+    }
+    assert!(!lc_io::render::html::render(&rep).contains(mark));
+    let docx = lc_io::render::docx::render(&rep).unwrap();
+    assert!(!zip_text(&docx, "word/").contains("DRAFT"));
+    let xlsx = lc_io::render::xlsx::render(&rep).unwrap();
+    assert!(!zip_text(&xlsx, "xl/").contains("DRAFT"));
+}

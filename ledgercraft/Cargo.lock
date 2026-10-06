@@ -1442,6 +1442,7 @@ dependencies = [
  "tiny_http",
  "typst",
  "typst-as-lib",
+ "typst-layout",
  "typst-pdf",
  "ureq",
  "zip 2.4.2",

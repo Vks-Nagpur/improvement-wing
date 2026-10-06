@@ -1,5 +1,5 @@
 {
-  "version": "2026.10-r1",
+  "version": "2026.10-r2",
   "pack_id": "in-rules",
   "verification": "Item-level: each rule with legal content lists its provisions (sections.json); none is verified against the official text until recorded in the Legal verification register.",
   "note": "Thresholds and legal references are data. New-Act numbers 185/186/188 and 33 per incometaxindia.gov.in section pages and TaxTMI; s.36 as the counterpart of s.40A(3) per published section listings (statute text not yet read); the counterpart of s.43(1) 6th proviso is not yet confirmed. Tax audit: Form 26 under s.63 / Rule 47 (Income-tax Rules 2026, G.S.R. 198(E), 20-03-2026) from Tax Year 2026-27; Form 3CA/3CB/3CD for FY 2025-26 and earlier.",
@@ -112,7 +112,8 @@
       "refs_new": [
         "ca2013.sch3"
       ],
-      "scope": "statements"
+      "scope": "statements",
+      "next_step": "Find why the income or expense ledger was carried forward; move the opening balance to the capital or reserves account in the books."
     },
     "UNKNOWN_GROUP": {
       "severity": "blocker",
@@ -358,7 +359,8 @@
       "refs_new": [
         "ca2013.sch3"
       ],
-      "scope": "statements"
+      "scope": "statements",
+      "next_step": "Look at the ledger's entries and find why the balance is on the unusual side; correct the entry or the grouping, or record why it is right."
     },
     "RECLASS_DEBTOR_CR": {
       "severity": "info",
@@ -380,7 +382,8 @@
       "refs_new": [
         "ca2013.sch3.netting"
       ],
-      "scope": "statements"
+      "scope": "statements",
+      "next_step": "Confirm the customer advance with the party ledger; keep it under Other Current Liabilities, or correct the entry if it is a posting error."
     },
     "RECLASS_CREDITOR_DR": {
       "severity": "info",
@@ -402,7 +405,8 @@
       "refs_new": [
         "ca2013.sch3.netting"
       ],
-      "scope": "statements"
+      "scope": "statements",
+      "next_step": "Confirm the supplier advance with the party ledger; keep it under Loans and Advances, or correct the entry if it is a posting error."
     },
     "RECLASS_BANK_CR": {
       "severity": "info",
@@ -424,7 +428,8 @@
       "refs_new": [
         "ca2013.sch3"
       ],
-      "scope": "statements"
+      "scope": "statements",
+      "next_step": "Confirm whether the bank account is a sanctioned overdraft or an unpresented-cheque position, and keep or change the presentation accordingly."
     },
     "MISGROUP_LOAN": {
       "severity": "review",
@@ -481,7 +486,8 @@
       "refs_new": [
         "ca2013.sch3"
       ],
-      "scope": "statements"
+      "scope": "statements",
+      "next_step": "Confirm the account is an overdraft or cash credit; if so, map it under Short-term Borrowings (Map ledgers) and disclose the security."
     },
     "MISGROUP_TAX": {
       "severity": "warning",
@@ -503,7 +509,8 @@
       "refs_new": [
         "ca2013.sch3"
       ],
-      "scope": "statements"
+      "scope": "statements",
+      "next_step": "Confirm the ledger is a GST/TDS or other statutory ledger; if so, map it under Other Current Liabilities (statutory dues)."
     },
     "CAPITAL_IN_EXPENSE": {
       "severity": "info",
@@ -525,7 +532,8 @@
       "refs_new": [
         "icai.as10"
       ],
-      "scope": "statements"
+      "scope": "statements",
+      "next_step": "Open the bills behind this ledger. If an item gives benefit beyond the year, capitalise it through an adjustment and add it to the fixed asset register."
     },
     "MISC_EXP_ASSET": {
       "severity": "warning",
@@ -547,7 +555,8 @@
       "refs_new": [
         "icai.as26"
       ],
-      "scope": "statements"
+      "scope": "statements",
+      "next_step": "Check what the balance is made of; expense it through an adjustment unless the applicable standard allows it to be carried."
     },
     "CASH_PAYMENT_LIMIT": {
       "severity": "review",

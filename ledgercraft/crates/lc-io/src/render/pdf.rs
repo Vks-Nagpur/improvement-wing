@@ -38,3 +38,38 @@ pub fn render(report: &Report) -> Result<Vec<u8>, String> {
     typst_pdf::pdf(&doc, &typst_pdf::PdfOptions::default())
         .map_err(|e| format!("PDF export failed: {e:?}"))
 }
+
+/// The text laid out on each PDF page (header, body, footer and background),
+/// for checks such as "every page of a draft says DRAFT".
+pub fn page_texts(report: &Report) -> Result<Vec<String>, String> {
+    use typst::layout::{Frame, FrameItem};
+    use typst_layout::PagedDocument;
+    fn walk(f: &Frame, out: &mut String) {
+        for (_, item) in f.items() {
+            match item {
+                FrameItem::Group(g) => walk(&g.frame, out),
+                FrameItem::Text(t) => {
+                    out.push_str(t.text.as_str());
+                    out.push(' ');
+                }
+                _ => {}
+            }
+        }
+    }
+    let json = serde_json::to_string(report).map_err(|e| e.to_string())?;
+    let mut input = Dict::new();
+    input.insert("data".into(), json.into_value());
+    let doc: PagedDocument = engine()
+        .compile_with_input(input)
+        .output
+        .map_err(|e| format!("PDF layout failed: {e:?}"))?;
+    Ok(doc
+        .pages()
+        .iter()
+        .map(|p| {
+            let mut s = String::new();
+            walk(&p.frame, &mut s);
+            s
+        })
+        .collect())
+}

@@ -374,6 +374,19 @@ pub fn render(r: &Report) -> Result<Vec<u8>, String> {
     }
 
     let mut first = true;
+    if m.draft {
+        // In the body as well as the header and footer.
+        let note = if m.draft_note.is_empty() {
+            "DRAFT – for discussion only".to_string()
+        } else {
+            format!("DRAFT – for discussion only · {}", m.draft_note)
+        };
+        d = d.add_paragraph(
+            Paragraph::new()
+                .align(AlignmentType::Center)
+                .add_run(run(&note, 10.0).bold().color("9C2A00")),
+        );
+    }
     if m.cover {
         d = d
             .add_paragraph(para("", 12.0))

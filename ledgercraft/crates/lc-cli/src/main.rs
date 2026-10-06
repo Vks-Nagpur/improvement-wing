@@ -5,6 +5,7 @@
 //!                        [--out folder] [--final] [--expert] [--verifications file]
 //!   ledgercraft practice-data --out folder      (writes sample books with known answers)
 //!   ledgercraft bench --vouchers 1000000        (speed test on a large clean book)
+//!   ledgercraft packs [--out readiness.json]     (check the shipped packs; legal readiness report)
 
 use lc_core::rules::{RulesPack, Severity};
 use lc_core::{analyse, EntityType};
@@ -39,6 +40,7 @@ fn main() -> ExitCode {
         "analyse" | "analyze" => cmd_analyse(&a),
         "practice-data" => cmd_practice(&a),
         "bench" => cmd_bench(&a),
+        "packs" => cmd_packs(&a),
         "tally-companies" => {
             let port: u16 = a
                 .get("tally-port")
@@ -68,6 +70,41 @@ fn main() -> ExitCode {
             eprintln!("Error: {e}");
             ExitCode::FAILURE
         }
+    }
+}
+
+/// Check the shipped packs and report how much legal content awaits
+/// verification by a person, for each entity type and year.
+fn cmd_packs(a: &HashMap<String, String>) -> Result<(), String> {
+    let errs = lc_core::packcheck::validate();
+    let rows = lc_core::packcheck::readiness_matrix(&[2025, 2026]);
+    println!("Legal content as shipped (nothing is verified until a person records it):");
+    for r in &rows {
+        let parts: Vec<String> = r.shipped.iter().map(|(k, v)| format!("{k} {v}")).collect();
+        println!(
+            "  {:<10} {}  {:>4} items  ({})",
+            r.entity,
+            r.year,
+            r.applicable,
+            parts.join(", ")
+        );
+    }
+    if let Some(out) = a.get("out") {
+        let v = serde_json::json!({"problems": errs, "readiness": rows});
+        std::fs::write(
+            out,
+            serde_json::to_string_pretty(&v).map_err(|e| e.to_string())?,
+        )
+        .map_err(|e| format!("{out}: {e}"))?;
+    }
+    if errs.is_empty() {
+        println!("Packs: all checks passed.");
+        Ok(())
+    } else {
+        for e in &errs {
+            eprintln!("  {e}");
+        }
+        Err(format!("{} problem(s) in the shipped packs", errs.len()))
     }
 }
 

@@ -689,7 +689,7 @@ fn portal_sheet(wb: &mut Workbook, f: &Fmts, r: &lc_core::recon::Recon) -> Resul
         "Ledger in the books",
         if gst { "GSTIN" } else { "TAN" },
         "Name on the portal",
-        "Matched by",
+        "Match status",
         if gst {
             "Purchases (books)"
         } else {
@@ -716,7 +716,20 @@ fn portal_sheet(wb: &mut Workbook, f: &Fmts, r: &lc_core::recon::Recon) -> Resul
             2,
             x_.portal_name.as_deref().unwrap_or("(not on the portal)"),
         ))?;
-        x(ws.write_string(row, 3, &x_.matched_by))?;
+        x(ws.write_string(
+            row,
+            3,
+            format!(
+                "{} {}",
+                x_.status,
+                if x_.matched_by.is_empty() {
+                    String::new()
+                } else {
+                    format!("({})", x_.matched_by)
+                }
+            )
+            .trim(),
+        ))?;
         for (c, m) in [
             x_.books_base,
             x_.books_tax,

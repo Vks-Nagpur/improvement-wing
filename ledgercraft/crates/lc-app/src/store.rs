@@ -638,6 +638,72 @@ impl Project {
         format!("{:x}", h.finalize())
     }
 
+    /// Party confirmations for GSTR-2B / 26AS matching: kind → (normalised
+    /// ledger name → GSTIN / TAN). Kept per client, reused every year.
+    pub fn recon_confirmations(&self) -> BTreeMap<String, BTreeMap<String, String>> {
+        fs::read_to_string(self.client_dir.join("recon_confirmations.json"))
+            .ok()
+            .and_then(|t| serde_json::from_str(&t).ok())
+            .unwrap_or_default()
+    }
+
+    pub fn confirm_recon(&self, kind: &str, ledger: &str, portal_id: &str) -> Result<(), String> {
+        if !matches!(kind, "gstr2b" | "26as") || ledger.trim().is_empty() {
+            return Err("Say which reconciliation and which ledger.".into());
+        }
+        let mut all = self.recon_confirmations();
+        let m = all.entry(kind.into()).or_default();
+        let key = lc_core::model::norm_name(ledger);
+        if portal_id.trim().is_empty() {
+            m.remove(&key);
+        } else {
+            m.insert(key, portal_id.trim().to_ascii_uppercase());
+        }
+        write_atomic(
+            &self.client_dir.join("recon_confirmations.json"),
+            serde_json::to_string_pretty(&all)
+                .map_err(|e| e.to_string())?
+                .as_bytes(),
+        )?;
+        self.log(
+            "user",
+            "party_match_confirmed",
+            serde_json::json!({"kind": kind, "ledger": ledger, "portal_id": portal_id}),
+        )?;
+        Ok(())
+    }
+
+    /// Bank entries matched by the preparer: normalised bank ledger → matches.
+    pub fn bank_matches(&self) -> BTreeMap<String, Vec<lc_core::bankrec::ManualMatch>> {
+        fs::read_to_string(self.dir.join("bank_matches.json"))
+            .ok()
+            .and_then(|t| serde_json::from_str(&t).ok())
+            .unwrap_or_default()
+    }
+
+    pub fn add_bank_match(
+        &self,
+        ledger: &str,
+        m: lc_core::bankrec::ManualMatch,
+    ) -> Result<(), String> {
+        if ledger.trim().is_empty() || m.voucher.trim().is_empty() {
+            return Err("Say which bank ledger and which voucher.".into());
+        }
+        let mut all = self.bank_matches();
+        let list = all.entry(lc_core::model::norm_name(ledger)).or_default();
+        if !list.contains(&m) {
+            list.push(m.clone());
+        }
+        write_atomic(
+            &self.dir.join("bank_matches.json"),
+            serde_json::to_string_pretty(&all)
+                .map_err(|e| e.to_string())?
+                .as_bytes(),
+        )?;
+        self.log("user", "bank_entry_matched", serde_json::json!({"ledger": ledger, "voucher": m.voucher, "bank_date": m.bank_date, "amount": m.amount}))?;
+        Ok(())
+    }
+
     /// What an export is made from, for its manifest.
     pub fn provenance(&self) -> Value {
         let sha = |p: &Path| {

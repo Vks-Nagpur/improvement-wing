@@ -939,6 +939,31 @@ fn bank_statement_is_matched_and_reconciled() {
     assert_eq!(rec["debited_by_bank_only"].as_array().unwrap().len(), 1);
     assert_eq!(rec["deposited_not_cleared"].as_array().unwrap().len(), 0);
     assert_eq!(rec["difference"], 0, "reconciles exactly: {rec}");
+    // A match by hand needs a proper date; a valid one is stored and logged.
+    let path = format!("/api/projects/{id}/bankrec/match");
+    let bad = c.call(
+        "POST",
+        &path,
+        Some(json!({"ledger": bank, "voucher": "V1", "bank_date": "31/03/2026", "amount": 100})),
+    );
+    assert!(bad.is_err(), "date must be YYYY-MM-DD");
+    let ok = c.call(
+        "POST",
+        &path,
+        Some(json!({"ledger": bank, "voucher": "V1", "bank_date": "2026-03-31", "amount": 100})),
+    );
+    assert!(ok.is_ok(), "{ok:?}");
+    let ok = c.call(
+        "POST",
+        &format!("/api/projects/{id}/portal/confirm"),
+        Some(json!({"kind": "gstr2b", "ledger": "Some Supplier", "portal_id": "27AAAAA0000A1Z5"})),
+    );
+    assert!(ok.is_ok(), "{ok:?}");
+    let audit = c
+        .call("GET", &format!("/api/projects/{id}/audit"), None)
+        .unwrap()
+        .to_string();
+    assert!(audit.contains("bank_entry_matched") && audit.contains("party_match_confirmed"));
     let _ = c.call("POST", "/api/quit", None);
     let _ = std::fs::remove_dir_all(&dir);
 }

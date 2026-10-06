@@ -765,8 +765,27 @@ async function loadBank() {
         <p class="${diff == null ? "muted" : diff === 0 ? "okt" : "errt"} small mt">${diff == null ? "The statement has no balance column: compare the worked-out balance with the statement yourself." : diff === 0 ? `Reconciled: ${r.matched.length} entries matched, nothing unexplained.` : `Difference of ${m(diff)} not explained by the open items. Check the period of the statement and entries outside the matching window.`}</p>`;
       const list = (title, items, isBook) => items.length ? `<details><summary>${esc(title)} (${items.length})</summary><table class="grid dense"><tbody>${items.map(x => `<tr><td>${esc(x.date)}</td><td>${esc(isBook ? x.voucher : `${x.reference} ${x.narration}`)}</td><td class="num">${m(Math.abs(x.amount))}</td></tr>`).join("")}</tbody></table></details>` : "";
       body += list("Deposited, not yet credited by the bank", r.deposited_not_cleared, true) + list("Payments not yet presented", r.issued_not_presented, true) + list("Credited by the bank only", r.credited_by_bank_only, false) + list("Debited by the bank only", r.debited_by_bank_only, false);
+      const byMethod = r.matched.reduce((o, x) => ((o[x.method || "amount and date"] = (o[x.method || "amount and date"] || 0) + 1), o), {});
+      body += `<p class="muted small">Matched: ${Object.entries(byMethod).map(([k, n]) => `${n} by ${esc(k)}`).join(", ") || "none"}. Open: ${r.deposited_not_cleared.length + r.issued_not_presented.length} in the books, ${r.credited_by_bank_only.length + r.debited_by_bank_only.length} on the statement.</p>`;
+      const warns = [];
+      if (r.stale.length) warns.push(`${r.stale.length} cheque(s) issued more than 90 days ago are still not presented: check whether they are stale.`);
+      if (r.duplicates.length) warns.push(`${r.duplicates.length} statement line(s) appear twice (same date, amount, reference and narration): check the statement file.`);
+      for (const b of r.balance_breaks.slice(0, 5)) warns.push(`Statement balance: ${b}`);
+      if (warns.length) body += `<ul class="small warnlist">${warns.map(w => `<li>${esc(w)}</li>`).join("")}</ul>`;
+      if (r.suggestions.length) body += `<details><summary>Possible splits to check (${r.suggestions.length}): not matched until you decide</summary><ul class="small">${r.suggestions.map(x => `<li>${esc(x.kind)}: books ${x.book.map(b => `${esc(b.voucher)} ${m(Math.abs(b.amount))}`).join(" + ")} / bank ${x.bank.map(b => `${esc(b.date)} ${m(Math.abs(b.amount))}`).join(" + ")}</li>`).join("")}</ul></details>`;
+      // Manual matching: an open book entry and an open statement line of the same amount.
+      const openBank = r.credited_by_bank_only.concat(r.debited_by_bank_only);
+      const pairs = r.deposited_not_cleared.concat(r.issued_not_presented).map(b => [b, openBank.filter(x => x.amount === b.amount)]).filter(p => p[1].length);
+      if (pairs.length) body += `<details><summary>Match by hand (${pairs.length} open book entr${pairs.length === 1 ? "y has" : "ies have"} a statement line of the same amount)</summary><table class="grid dense"><tbody>${pairs.map(([b, c], i) => `<tr><td>${esc(b.date)} ${esc(b.voucher)}</td><td class="num">${m(Math.abs(b.amount))}</td><td><select data-mi="${i}">${c.map(x => `<option value="${esc(x.date)}">${esc(x.date)} ${esc(x.reference || "")} ${esc(x.narration)}</option>`).join("")}</select> <button type="button" class="small" data-mm="${i}">Match</button></td></tr>`).join("")}</tbody></table></details>`;
+      card._pairs = pairs;
     }
     card.innerHTML = body;
+    card.querySelectorAll("[data-mm]").forEach(btn => btn.addEventListener("click", async () => {
+      const [bk] = card._pairs[+btn.dataset.mm];
+      const date = card.querySelector(`[data-mi="${btn.dataset.mm}"]`).value;
+      try { await api("POST", `/api/projects/${pid()}/bankrec/match`, { ledger: l.name, voucher: bk.voucher, bank_date: date, amount: bk.amount }); toast("Matched and recorded."); loadBank(); }
+      catch (e) { toast(e.message, true); }
+    }));
     const input = card.querySelector("input[type=file]");
     card.querySelector("[role=button]").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
     input.addEventListener("change", async () => {
@@ -785,7 +804,11 @@ function reconTable(r, gst) {
   const m = p => (p < 0 ? `(${rupees(-p)})` : rupees(p));
   const off = r.rows.filter(x => x.difference !== 0).length;
   const head = gst ? ["Ledger in the books", "Supplier on 2B (GSTIN)", "ITC in books", "ITC in 2B", "Difference"] : ["Ledger in the books", "Deductor on 26AS (TAN)", "TDS in books", "TDS in 26AS", "Difference"];
-  const rows = r.rows.map(x => `<tr class="${x.difference ? "flag" : ""}"><td>${x.ledger ? esc(x.ledger) : '<span class="muted">not in the books</span>'}${x.matched_by === "close" ? ' <span class="badge warning">name looks alike: check</span>' : ""}</td>
+  const kind = gst ? "gstr2b" : "26as";
+  const act = x => x.status === "suggested" ? `<button type="button" class="small" data-rc="${esc(kind)}" data-l="${esc(x.ledger)}" data-p="${esc(x.portal_id)}">Confirm same party</button>`
+    : x.status === "review" ? x.candidates.map(c => `<button type="button" class="small" data-rc="${esc(kind)}" data-l="${esc(x.ledger)}" data-p="${esc(c.id)}" title="Name similarity ${Math.round(c.score * 100)}%">Is ${esc(c.name)}?</button>`).join(" ")
+    : x.status === "matched" ? '<span class="badge okb">same party</span>' : "";
+  const rows = r.rows.map(x => `<tr class="${x.difference ? "flag" : ""}"><td>${x.ledger ? esc(x.ledger) : '<span class="muted">not in the books</span>'}${x.status === "suggested" ? ' <span class="badge warning">same name: confirm</span>' : x.status === "review" ? ' <span class="badge review">similar names: choose</span>' : ""}<div class="small">${act(x)}</div></td>
     <td>${x.portal_name ? `${esc(x.portal_name)} <span class="muted small">${esc(x.portal_id || "")}</span>` : `<span class="badge warning">${gst ? "not in 2B: supplier may not have filed" : "not in 26AS"}</span>`}</td>
     <td class="num">${m(x.books_tax)}</td><td class="num">${m(x.portal_tax)}</td><td class="num">${x.difference ? m(x.difference) : "-"}</td></tr>`).join("");
   return `<p class="${off ? "errt" : "okt"} small">${off ? `${off} part${off === 1 ? "y differs" : "ies differ"}.` : "Books agree with the portal for every party."} Books ${m(r.books_total)}, portal ${m(r.portal_total)}.</p>
@@ -796,6 +819,10 @@ async function loadPortal() {
     const d = await api("GET", `/api/projects/${pid()}/portal`);
     if (d.gst) $("#gstBody").innerHTML = reconTable(d.gst, true);
     if (d.tds) $("#tdsBody").innerHTML = reconTable(d.tds, false);
+    $$("[data-rc]").forEach(btn => btn.addEventListener("click", async () => {
+      try { await api("POST", `/api/projects/${pid()}/portal/confirm`, { kind: btn.dataset.rc, ledger: btn.dataset.l, portal_id: btn.dataset.p }); toast("Confirmed and remembered."); loadPortal(); }
+      catch (e) { toast(e.message, true); }
+    }));
   } catch (e) { toast(e.message, true); }
 }
 $$("[data-portal]").forEach(input => {

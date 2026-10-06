@@ -266,7 +266,12 @@ impl App {
             ("GET", ["api", "recycle-bin"]) => Ok(json!(self.store.deleted())),
             ("POST", ["api", "recycle-bin", item, "restore"]) => self.store.restore(item).map(|id| json!({"id": id})),
             ("GET", ["api", "projects", id, "policies"]) => self.policies(id),
+            ("POST", ["api", "projects", id, "portal", "confirm"]) => {
+                let b = json_body();
+                self.store.project(id).and_then(|p| p.confirm_recon(&s(&b, "kind"), &s(&b, "ledger"), &s(&b, "portal_id"))).map(|_| json!({"ok": true}))
+            }
             ("GET", ["api", "projects", id, "portal"]) => self.portal_recons(id).map(|(g, t)| json!({"gst": g, "tds": t})),
+            ("POST", ["api", "projects", id, "bankrec", "match"]) => self.bank_match(id, &json_body()),
             ("GET", ["api", "projects", id, "bankrec"]) => self.bank_recs(id).map(|(ledgers, recs)| json!({"ledgers": ledgers, "recs": recs})),
             ("GET", ["api", "projects", id, "rules"]) => self.rules_info(id),
             ("GET", ["api", "projects", id, "legal"]) => self.legal(id, q.get("tax_audit").map(|v| v != "0").unwrap_or(true)).map(|r| json!(r)),
@@ -972,11 +977,14 @@ impl App {
         let p = self.store.project(id)?;
         let st = p.load_settings()?;
         let (eng, _) = self.analysis(id)?;
+        let conf = p.recon_confirmations();
+        let empty = std::collections::BTreeMap::new();
         let gst = match &st.inputs.gstr2b {
             Some(f) => Some(lc_core::recon::reconcile(
                 "gstr2b",
                 &lc_core::recon::books_itc(&eng),
                 &lc_io::portal::read_gstr2b(&p.inputs_dir().join(f))?,
+                conf.get("gstr2b").unwrap_or(&empty),
             )),
             None => None,
         };
@@ -985,6 +993,7 @@ impl App {
                 "26as",
                 &lc_core::recon::books_tds(&eng),
                 &lc_io::portal::read_26as(&p.inputs_dir().join(f))?,
+                conf.get("26as").unwrap_or(&empty),
             )),
             None => None,
         };
@@ -1018,8 +1027,9 @@ impl App {
                 .map(|l| l.closing)
                 .unwrap_or_default();
             let book = lc_core::bankrec::book_lines(&eng, ledger, eng.fy_end);
+            let manual = p.bank_matches().get(&key).cloned().unwrap_or_default();
             recs.push(lc_core::bankrec::reconcile(
-                ledger, balance, &book, &bank, eng.fy_end, 10,
+                ledger, balance, &book, &bank, eng.fy_end, 10, &manual,
             ));
         }
         Ok((ledgers, recs))
@@ -1052,6 +1062,23 @@ impl App {
     }
 
     /// Standard accounting policy wording for this entity (to edit on screen).
+    fn bank_match(&self, id: &str, b: &Value) -> Result<Value, String> {
+        let m = lc_core::bankrec::ManualMatch {
+            voucher: s(b, "voucher"),
+            bank_date: chrono::NaiveDate::parse_from_str(&s(b, "bank_date"), "%Y-%m-%d")
+                .map_err(|_| "bank date must be YYYY-MM-DD".to_string())?,
+            amount: lc_core::Money(
+                b.get("amount")
+                    .and_then(|x| x.as_i64())
+                    .ok_or("amount (paise) missing")?,
+            ),
+        };
+        self.store
+            .project(id)
+            .and_then(|p| p.add_bank_match(&s(b, "ledger"), m))
+            .map(|_| json!({"ok": true}))
+    }
+
     fn policies(&self, id: &str) -> Result<Value, String> {
         let p = self.store.project(id)?;
         let st = p.load_settings()?;

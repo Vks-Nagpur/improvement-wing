@@ -43,8 +43,23 @@ pub struct ReconRow {
     pub portal_tax: Money,
     /// Portal minus books.
     pub difference: Money,
-    /// "exact" (same name), "close" (name looks alike: confirm), or "" when unmatched.
+    /// "identifier" (GSTIN/TAN in the ledger name, or your confirmation),
+    /// "exact" (same name: suggested, confirm it), or "" when not matched.
     pub matched_by: String,
+    /// matched (by identifier), suggested (same name), review (similar
+    /// names, not matched until you choose), unmatched.
+    #[serde(default)]
+    pub status: String,
+    /// Possible portal parties for a book party under review (best first).
+    #[serde(default)]
+    pub candidates: Vec<Candidate>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct Candidate {
+    pub id: String,
+    pub name: String,
+    pub score: f64,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -97,51 +112,141 @@ pub fn name_score(a: &str, b: &str) -> f64 {
     common / (ta.len().max(tb.len()) as f64)
 }
 
-pub fn reconcile(kind: &str, books: &[BookParty], portal: &[PortalParty]) -> Recon {
+/// A GSTIN (15 characters) or TAN (10) written inside a ledger name.
+pub fn id_in_name(name: &str) -> Option<String> {
+    name.split(|c: char| !c.is_ascii_alphanumeric())
+        .map(|t| t.to_ascii_uppercase())
+        .find(|t| {
+            let b = t.as_bytes();
+            (b.len() == 15
+                && b[..2].iter().all(|c| c.is_ascii_digit())
+                && b[2..7].iter().all(|c| c.is_ascii_uppercase()))
+                || (b.len() == 10
+                    && b[..4].iter().all(|c| c.is_ascii_uppercase())
+                    && b[4..9].iter().all(|c| c.is_ascii_digit())
+                    && b[9].is_ascii_uppercase())
+        })
+}
+
+/// Match book parties with portal parties.
+/// 1. Identifier: GSTIN/TAN in the ledger name, or a choice you confirmed
+///    (`confirmed`: normalised ledger name → portal id). Deterministic.
+/// 2. Same name (after removing noise words), unique on both sides:
+///    suggested; shown for confirmation.
+/// 3. Similar names: review only. The candidates are listed with scores and
+///    the portal party is NOT consumed, so both sides stay unmatched until
+///    you choose. Ties are never broken by order.
+pub fn reconcile(
+    kind: &str,
+    books: &[BookParty],
+    portal: &[PortalParty],
+    confirmed: &BTreeMap<String, String>,
+) -> Recon {
     let mut used = vec![false; portal.len()];
+    let mut done = vec![false; books.len()];
     let mut rows = Vec::new();
-    for b in books {
-        let best = portal
+    let pair = |b: &BookParty, p: &PortalParty, by: &str, status: &str| ReconRow {
+        ledger: Some(b.ledger.clone()),
+        portal_id: Some(p.id.clone()),
+        portal_name: Some(p.name.clone()),
+        books_base: b.base,
+        books_tax: b.tax,
+        portal_base: p.base,
+        portal_tax: p.tax,
+        difference: p.tax - b.tax,
+        matched_by: by.into(),
+        status: status.into(),
+        candidates: vec![],
+    };
+    // 1. Identifiers.
+    for (bi, b) in books.iter().enumerate() {
+        let id = confirmed
+            .get(&norm_name(&b.ledger))
+            .cloned()
+            .or_else(|| id_in_name(&b.ledger));
+        if let Some(id) = id {
+            if let Some(pi) = portal
+                .iter()
+                .enumerate()
+                .position(|(i, p)| !used[i] && p.id.eq_ignore_ascii_case(&id))
+            {
+                used[pi] = true;
+                done[bi] = true;
+                rows.push(pair(b, &portal[pi], "identifier", "matched"));
+            }
+        }
+    }
+    // 2. Same name, unique on both sides.
+    for (bi, b) in books.iter().enumerate() {
+        if done[bi] {
+            continue;
+        }
+        let same: Vec<usize> = (0..portal.len())
+            .filter(|&i| !used[i] && name_score(&b.ledger, &portal[i].name) >= 1.0)
+            .collect();
+        if same.len() != 1 {
+            continue;
+        }
+        let pi = same[0];
+        let rivals = books
+            .iter()
+            .enumerate()
+            .filter(|(j, o)| {
+                *j != bi && !done[*j] && name_score(&o.ledger, &portal[pi].name) >= 1.0
+            })
+            .count();
+        if rivals == 0 {
+            used[pi] = true;
+            done[bi] = true;
+            rows.push(pair(b, &portal[pi], "exact", "suggested"));
+        }
+    }
+    // 3. Similar names: candidates only.
+    for (bi, b) in books.iter().enumerate().filter(|(i, _)| !done[*i]) {
+        let mut cands: Vec<Candidate> = portal
             .iter()
             .enumerate()
             .filter(|(i, _)| !used[*i])
-            .map(|(i, p)| (i, name_score(&b.ledger, &p.name)))
-            .filter(|(_, s)| *s >= 0.6)
-            .max_by(|x, y| x.1.partial_cmp(&y.1).unwrap_or(std::cmp::Ordering::Equal));
-        match best {
-            Some((i, s)) => {
-                used[i] = true;
-                let p = &portal[i];
-                rows.push(ReconRow {
-                    ledger: Some(b.ledger.clone()),
-                    portal_id: Some(p.id.clone()),
-                    portal_name: Some(p.name.clone()),
-                    books_base: b.base,
-                    books_tax: b.tax,
-                    portal_base: p.base,
-                    portal_tax: p.tax,
-                    difference: p.tax - b.tax,
-                    matched_by: if s >= 1.0 { "exact" } else { "close" }.into(),
-                });
-            }
-            None if !b.tax.is_zero() => rows.push(ReconRow {
-                ledger: Some(b.ledger.clone()),
-                books_base: b.base,
-                books_tax: b.tax,
-                difference: -b.tax,
-                ..Default::default()
-            }),
-            None => {}
+            .map(|(_, p)| Candidate {
+                id: p.id.clone(),
+                name: p.name.clone(),
+                score: name_score(&b.ledger, &p.name),
+            })
+            .filter(|c| c.score >= 0.5)
+            .collect();
+        cands.sort_by(|x, y| {
+            y.score
+                .partial_cmp(&x.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        cands.truncate(3);
+        if cands.is_empty() && b.tax.is_zero() {
+            continue;
         }
+        let _ = bi;
+        rows.push(ReconRow {
+            ledger: Some(b.ledger.clone()),
+            books_base: b.base,
+            books_tax: b.tax,
+            difference: -b.tax,
+            status: if cands.is_empty() {
+                "unmatched"
+            } else {
+                "review"
+            }
+            .into(),
+            candidates: cands,
+            ..Default::default()
+        });
     }
-    for (i, p) in portal.iter().enumerate().filter(|(i, _)| !used[*i]) {
-        let _ = i;
+    for (_, p) in portal.iter().enumerate().filter(|(i, _)| !used[*i]) {
         rows.push(ReconRow {
             portal_id: Some(p.id.clone()),
             portal_name: Some(p.name.clone()),
             portal_base: p.base,
             portal_tax: p.tax,
             difference: p.tax,
+            status: "unmatched".into(),
             ..Default::default()
         });
     }
@@ -291,15 +396,86 @@ mod tests {
                 tax: Money(1800),
             },
         ];
-        let r = reconcile("gstr2b", &books, &portal);
+        let r = reconcile("gstr2b", &books, &portal, &BTreeMap::new());
         assert_eq!(r.rows.len(), 3);
         assert_eq!(r.rows[0].difference, Money::ZERO);
         assert_eq!(r.rows[0].matched_by, "exact");
+        assert_eq!(r.rows[0].status, "suggested", "a name alone is never final");
         assert_eq!(
             r.rows[1].portal_name, None,
             "in books, not in 2B: supplier may not have filed"
         );
         assert_eq!(r.rows[2].ledger, None, "in 2B, not in books");
+    }
+
+    fn bp(n: &str, t: i64) -> BookParty {
+        BookParty {
+            ledger: n.into(),
+            base: Money(t * 5),
+            tax: Money(t),
+        }
+    }
+    fn pp(id: &str, n: &str, t: i64) -> PortalParty {
+        PortalParty {
+            id: id.into(),
+            name: n.into(),
+            documents: 1,
+            base: Money(t * 5),
+            tax: Money(t),
+        }
+    }
+
+    #[test]
+    fn similar_names_are_review_only_and_ties_are_not_broken_by_order() {
+        let books = vec![bp("Shree Ganesh Traders", 100)];
+        let portal = vec![
+            pp("27AAAAA0000A1Z5", "Shree Ganesh Hardware", 100),
+            pp("27CCCCC0000C1Z5", "Shree Ganesh Steel", 100),
+        ];
+        let r = reconcile("gstr2b", &books, &portal, &BTreeMap::new());
+        let b = r.rows.iter().find(|x| x.ledger.is_some()).unwrap();
+        assert_eq!(b.status, "review");
+        assert_eq!(
+            b.portal_id, None,
+            "no portal party consumed by a similar name"
+        );
+        assert_eq!(b.candidates.len(), 2);
+        assert_eq!(
+            r.rows.iter().filter(|x| x.ledger.is_none()).count(),
+            2,
+            "both portal parties still listed"
+        );
+    }
+
+    #[test]
+    fn same_name_twice_is_not_matched_and_identifiers_win() {
+        let books = vec![bp("Om Traders", 50), bp("Om Traders Pvt Ltd", 60)];
+        let portal = vec![pp("27DDDDD0000D1Z5", "OM TRADERS", 60)];
+        let r = reconcile("gstr2b", &books, &portal, &BTreeMap::new());
+        assert!(
+            r.rows
+                .iter()
+                .all(|x| x.status != "suggested" && x.status != "matched"),
+            "two books claim the same name"
+        );
+        // The user confirms which ledger is that GSTIN.
+        let conf: BTreeMap<String, String> = [(
+            norm_name("Om Traders Pvt Ltd"),
+            "27DDDDD0000D1Z5".to_string(),
+        )]
+        .into();
+        let r = reconcile("gstr2b", &books, &portal, &conf);
+        let m = r.rows.iter().find(|x| x.status == "matched").unwrap();
+        assert_eq!(m.ledger.as_deref(), Some("Om Traders Pvt Ltd"));
+        assert_eq!(m.matched_by, "identifier");
+        // GSTIN written in the ledger name.
+        let r = reconcile(
+            "gstr2b",
+            &[bp("Om Traders (27DDDDD0000D1Z5)", 60)],
+            &portal,
+            &BTreeMap::new(),
+        );
+        assert_eq!(r.rows[0].matched_by, "identifier");
     }
 
     #[test]

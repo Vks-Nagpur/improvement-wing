@@ -1,0 +1,7 @@
+data/
+frontend/public/data/
+frontend/node_modules/
+frontend/dist/
+__pycache__/
+*.pyc
+.pytest_cache/

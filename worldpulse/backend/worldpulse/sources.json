@@ -1,0 +1,78 @@
+{
+  "_comment": "Source registry. Every source can be disabled with \"enabled\": false. interval_minutes is the minimum time between fetches in self-hosted mode. Respect each publisher's terms: only metadata, short excerpts and links are stored.",
+  "sources": [
+    {"id": "gn-world", "name": "Google News — World", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en", "category": null, "language": "en", "interval_minutes": 20},
+    {"id": "gn-business", "name": "Google News — Business", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en", "category": "economics", "language": "en", "interval_minutes": 30},
+    {"id": "gn-tech", "name": "Google News — Technology", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=en-US&gl=US&ceid=US:en", "category": "technology", "language": "en", "interval_minutes": 30},
+    {"id": "gn-health", "name": "Google News — Health", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/headlines/section/topic/HEALTH?hl=en-US&gl=US&ceid=US:en", "category": "public_health", "language": "en", "interval_minutes": 60},
+    {"id": "gn-in", "name": "Google News — India edition", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en", "category": null, "country": "IN", "language": "en", "interval_minutes": 30},
+    {"id": "gn-gb", "name": "Google News — UK edition", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss?hl=en-GB&gl=GB&ceid=GB:en", "category": null, "country": "GB", "language": "en", "interval_minutes": 30},
+    {"id": "gn-q-conflict", "name": "Google News — conflict search", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/search?q=airstrike+OR+troops+OR+missile+OR+ceasefire+when:1d&hl=en-US&gl=US&ceid=US:en", "category": "military_security", "language": "en", "interval_minutes": 30},
+    {"id": "gn-q-diplomacy", "name": "Google News — diplomacy search", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/search?q=summit+OR+%22foreign+minister%22+OR+sanctions+OR+treaty+when:1d&hl=en-US&gl=US&ceid=US:en", "category": "diplomacy", "language": "en", "interval_minutes": 30},
+    {"id": "gn-q-elections", "name": "Google News — elections search", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/search?q=election+OR+referendum+OR+ballot+when:1d&hl=en-US&gl=US&ceid=US:en", "category": "elections", "language": "en", "interval_minutes": 60},
+    {"id": "gn-q-energy", "name": "Google News — energy search", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/search?q=oil+OR+OPEC+OR+%22natural+gas%22+OR+LNG+when:1d&hl=en-US&gl=US&ceid=US:en", "category": "energy", "language": "en", "interval_minutes": 60},
+    {"id": "gn-q-trade", "name": "Google News — trade search", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/search?q=tariffs+OR+exports+OR+%22trade+deal%22+OR+shipping+when:1d&hl=en-US&gl=US&ceid=US:en", "category": "trade", "language": "en", "interval_minutes": 60},
+    {"id": "gn-q-cyber", "name": "Google News — cyber search", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/search?q=cyberattack+OR+ransomware+OR+%22data+breach%22+when:1d&hl=en-US&gl=US&ceid=US:en", "category": "cybersecurity", "language": "en", "interval_minutes": 60},
+    {"id": "gn-q-disaster", "name": "Google News — disasters search", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/search?q=earthquake+OR+flood+OR+cyclone+OR+wildfire+OR+eruption+when:1d&hl=en-US&gl=US&ceid=US:en", "category": "natural_disasters", "language": "en", "interval_minutes": 30},
+    {"id": "gn-q-climate", "name": "Google News — climate search", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/search?q=climate+OR+emissions+OR+pollution+when:1d&hl=en-US&gl=US&ceid=US:en", "category": "environment", "language": "en", "interval_minutes": 120},
+    {"id": "gn-q-internet", "name": "Google News — internet outages search", "kind": "rss", "source_type": "aggregator", "url": "https://news.google.com/rss/search?q=%22internet+outage%22+OR+%22internet+shutdown%22+OR+%22internet+blackout%22+when:2d&hl=en-US&gl=US&ceid=US:en", "category": "technology", "language": "en", "interval_minutes": 120},
+
+    {"id": "bbc-world", "name": "BBC News — World", "kind": "rss", "source_type": "publisher", "url": "https://feeds.bbci.co.uk/news/world/rss.xml", "category": null, "country": "GB", "language": "en", "interval_minutes": 20},
+    {"id": "bbc-business", "name": "BBC News — Business", "kind": "rss", "source_type": "publisher", "url": "https://feeds.bbci.co.uk/news/business/rss.xml", "category": "economics", "country": "GB", "language": "en", "interval_minutes": 30},
+    {"id": "aljazeera", "name": "Al Jazeera English", "kind": "rss", "source_type": "publisher", "url": "https://www.aljazeera.com/xml/rss/all.xml", "category": null, "country": "QA", "language": "en", "interval_minutes": 20},
+    {"id": "guardian-world", "name": "The Guardian — World", "kind": "rss", "source_type": "publisher", "url": "https://www.theguardian.com/world/rss", "category": null, "country": "GB", "language": "en", "interval_minutes": 30},
+    {"id": "npr-world", "name": "NPR — World", "kind": "rss", "source_type": "publisher", "url": "https://feeds.npr.org/1004/rss.xml", "category": null, "country": "US", "language": "en", "interval_minutes": 30},
+    {"id": "dw-world", "name": "DW — World", "kind": "rss", "source_type": "publisher", "url": "https://rss.dw.com/rdf/rss-en-world", "category": null, "country": "DE", "language": "en", "interval_minutes": 30},
+    {"id": "france24", "name": "France 24 — English", "kind": "rss", "source_type": "publisher", "url": "https://www.france24.com/en/rss", "category": null, "country": "FR", "language": "en", "interval_minutes": 30},
+
+    {"id": "un-news", "name": "UN News", "kind": "rss", "source_type": "institution", "url": "https://news.un.org/feed/subscribe/en/news/all/rss.xml", "category": "diplomacy", "language": "en", "interval_minutes": 60},
+    {"id": "who-news", "name": "World Health Organization — News", "kind": "rss", "source_type": "institution", "url": "https://www.who.int/rss-feeds/news-english.xml", "category": "public_health", "language": "en", "interval_minutes": 120},
+    {"id": "reliefweb", "name": "ReliefWeb — Updates", "kind": "rss", "source_type": "institution", "url": "https://reliefweb.int/updates/rss.xml", "category": "natural_disasters", "language": "en", "interval_minutes": 60},
+    {"id": "cisa-advisories", "name": "CISA — Cybersecurity advisories", "kind": "rss", "source_type": "government", "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml", "category": "cybersecurity", "country": "US", "language": "en", "interval_minutes": 120},
+    {"id": "gdacs", "name": "GDACS — Global disaster alerts", "kind": "gdacs", "source_type": "institution", "url": "https://www.gdacs.org/xml/rss.xml", "category": "natural_disasters", "language": "en", "interval_minutes": 30},
+
+    {"id": "gdelt-world", "name": "GDELT — global article list", "kind": "gdelt", "source_type": "aggregator", "url": "https://api.gdeltproject.org/api/v2/doc/doc?query=(conflict OR election OR sanctions OR earthquake OR economy) sourcelang:english&mode=artlist&format=json&maxrecords=150&timespan=1d&sort=datedesc", "category": null, "language": "en", "interval_minutes": 60},
+
+    {"id": "usgs-quakes", "name": "USGS — Earthquakes M2.5+ past 7 days", "kind": "usgs", "source_type": "scientific", "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson", "category": "natural_disasters", "interval_minutes": 15},
+    {"id": "usgs-quakes-month", "name": "USGS — Earthquakes M4.5+ past 30 days", "kind": "usgs", "source_type": "scientific", "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson", "category": "natural_disasters", "interval_minutes": 180},
+
+    {"id": "worldbank", "name": "World Bank — World Development Indicators", "kind": "worldbank", "source_type": "institution", "url": "https://api.worldbank.org/v2/", "category": "economics", "interval_minutes": 10080},
+    {"id": "ecb-fx", "name": "ECB reference rates via Frankfurter", "kind": "fx", "source_type": "market", "url": "https://api.frankfurter.app/", "category": "financial_markets", "interval_minutes": 360},
+    {"id": "markets-yahoo", "name": "Yahoo Finance chart endpoint (delayed, unofficial)", "kind": "market", "source_type": "market", "url": "https://query1.finance.yahoo.com/v8/finance/chart/", "category": "financial_markets", "interval_minutes": 60},
+    {"id": "coingecko", "name": "CoinGecko — public API", "kind": "crypto", "source_type": "market", "url": "https://api.coingecko.com/api/v3/", "category": "financial_markets", "interval_minutes": 60},
+    {"id": "ioda", "name": "IODA — Internet outage detection (Georgia Tech)", "kind": "ioda", "source_type": "scientific", "url": "https://api.ioda.inetintel.cc.gatech.edu/v2/outages/alerts", "category": "technology", "interval_minutes": 60},
+    {"id": "nasa-firms", "name": "NASA FIRMS — active fire detections (needs free MAP_KEY)", "kind": "firms", "source_type": "scientific", "url": "https://firms.modaps.eosdis.nasa.gov/api/country/csv/", "category": "natural_disasters", "interval_minutes": 360, "enabled": false}
+  ],
+  "volume_watchlist": ["US", "CN", "RU", "UA", "IL", "PS", "IR", "IN", "PK", "GB", "FR", "DE", "JP", "KR", "KP", "TW", "TR", "SA", "SY", "LB", "YE", "SD", "VE", "BR", "MX", "NG", "ZA", "EG", "ET", "CD"],
+  "topic_watchlist": {
+    "sanctions": "sanctions",
+    "protests": "(protest OR protests OR protesters)",
+    "military_incidents": "(airstrike OR \"missile strike\" OR shelling)",
+    "border_incidents": "(\"border clash\" OR \"border dispute\" OR \"border incident\")",
+    "trade_restrictions": "(tariff OR tariffs OR \"export ban\" OR \"export controls\")",
+    "diplomatic_disputes": "(\"expels diplomats\" OR \"recalls ambassador\" OR \"summons ambassador\")",
+    "cyberattacks": "(cyberattack OR ransomware)",
+    "humanitarian": "(famine OR \"humanitarian crisis\" OR refugees OR displaced)"
+  },
+  "markets": [
+    {"symbol": "^GSPC", "name": "S&P 500", "kind": "index", "country": "US", "unit": "points"},
+    {"symbol": "^IXIC", "name": "Nasdaq Composite", "kind": "index", "country": "US", "unit": "points"},
+    {"symbol": "^FTSE", "name": "FTSE 100", "kind": "index", "country": "GB", "unit": "points"},
+    {"symbol": "^GDAXI", "name": "DAX", "kind": "index", "country": "DE", "unit": "points"},
+    {"symbol": "^N225", "name": "Nikkei 225", "kind": "index", "country": "JP", "unit": "points"},
+    {"symbol": "^HSI", "name": "Hang Seng", "kind": "index", "country": "CN", "unit": "points"},
+    {"symbol": "000001.SS", "name": "Shanghai Composite", "kind": "index", "country": "CN", "unit": "points"},
+    {"symbol": "^BSESN", "name": "BSE Sensex", "kind": "index", "country": "IN", "unit": "points"},
+    {"symbol": "^NSEI", "name": "Nifty 50", "kind": "index", "country": "IN", "unit": "points"},
+    {"symbol": "^BVSP", "name": "Bovespa", "kind": "index", "country": "BR", "unit": "points"},
+    {"symbol": "CL=F", "name": "WTI crude oil (front-month future)", "kind": "commodity", "unit": "USD/bbl"},
+    {"symbol": "BZ=F", "name": "Brent crude oil (front-month future)", "kind": "commodity", "unit": "USD/bbl"},
+    {"symbol": "NG=F", "name": "Natural gas (Henry Hub future)", "kind": "commodity", "unit": "USD/MMBtu"},
+    {"symbol": "GC=F", "name": "Gold (front-month future)", "kind": "commodity", "unit": "USD/oz"},
+    {"symbol": "SI=F", "name": "Silver (front-month future)", "kind": "commodity", "unit": "USD/oz"},
+    {"symbol": "HG=F", "name": "Copper (front-month future)", "kind": "commodity", "unit": "USD/lb"},
+    {"symbol": "ZW=F", "name": "Wheat (front-month future)", "kind": "commodity", "unit": "USc/bu"}
+  ],
+  "fx_quotes": ["EUR", "GBP", "JPY", "CNY", "INR", "BRL", "TRY", "ZAR", "MXN", "KRW", "CHF", "IDR"],
+  "crypto": ["bitcoin", "ethereum"]
+}

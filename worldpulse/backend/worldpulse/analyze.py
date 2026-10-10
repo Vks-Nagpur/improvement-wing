@@ -41,6 +41,7 @@ def _utcnow() -> datetime:
 # ====================================================================== events
 
 def build_events(conn: sqlite3.Connection, days: int = 7) -> int:
+    conn.execute("DELETE FROM events WHERE origin='gdacs'")  # rebuilt below from current alerts
     cutoff = to_iso(_utcnow() - timedelta(days=days))
     rows = conn.execute(
         """SELECT a.*, s.source_type FROM articles a JOIN sources s ON s.id=a.source_id
@@ -107,7 +108,8 @@ def build_events(conn: sqlite3.Connection, days: int = 7) -> int:
         for o in conn.execute("SELECT * FROM signal_observations WHERE series LIKE 'gdacs:%' AND ts >= ?",
                               (to_iso(_utcnow() - timedelta(days=14)),)):
             rec = uj(o["source"], {})
-            if not rec or not rec.get("is_current"):
+            # green alerts stay stored as observations but are not developments
+            if not rec or not rec.get("is_current") or rec.get("alert_level") not in ("Orange", "Red"):
                 continue
             cs = rec.get("countries") or []
             _upsert_event(conn, {

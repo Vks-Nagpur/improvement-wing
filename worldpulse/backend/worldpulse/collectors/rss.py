@@ -36,6 +36,8 @@ def _children(el: ET.Element, name: str) -> list[ET.Element]:
 def parse_feed(content: bytes) -> tuple[dict, list[dict]]:
     """Return (feed_info, items). Each item: title, link, published, summary,
     publisher (if the feed names one per item), extra (namespaced fields)."""
+    if not content.strip():
+        raise FeedError("empty response (the publisher may block automated requests)")
     head = content[:4096].lower()
     if b"<!entity" in head or b"<!doctype" in head and b"[" in head:
         raise FeedError("feed declares a DTD/entities; refused")

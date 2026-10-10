@@ -321,7 +321,7 @@ class Collector:
         return "ok", n, n
 
 
-def collect_gdelt_timelines(conn: sqlite3.Connection, registry: dict, log=print, budget_s: float = 360) -> dict:
+def collect_gdelt_timelines(conn: sqlite3.Connection, registry: dict, log=print, budget_s: float = 360, max_series: int = 10) -> dict:
     """News-volume baselines from GDELT: daily article counts (30 days) for
     each watch-list country name and each geopolitical topic query.
     Stops after ``budget_s`` seconds so a slow GDELT cannot stall the run;
@@ -332,6 +332,11 @@ def collect_gdelt_timelines(conn: sqlite3.Connection, registry: dict, log=print,
     got = now_iso()
     jobs = [(f"vol:country:{iso2}", f'"{COUNTRIES[iso2].name}"') for iso2 in registry.get("volume_watchlist", [])]
     jobs += [(f"vol:topic:{k}", q) for k, q in registry.get("topic_watchlist", {}).items()]
+    # GDELT rate-limits shared IPs hard. Fetch the series refreshed longest ago
+    # first and only a few per run; the database keeps the rest from earlier runs.
+    last = dict(conn.execute("SELECT series, max(retrieved_at) FROM signal_observations WHERE series LIKE 'vol:%' GROUP BY series").fetchall())
+    jobs.sort(key=lambda jq: last.get(jq[0]) or "")
+    jobs = jobs[:max_series]
     log_id = conn.execute("INSERT INTO fetch_logs(source_id, started_at, status) VALUES ('gdelt-timelines',?, 'running')", (got,)).lastrowid
     ok = 0
     for series, q in jobs:
@@ -352,6 +357,8 @@ def collect_gdelt_timelines(conn: sqlite3.Connection, registry: dict, log=print,
         except Exception as e:
             summary[series] = f"error {e}"[:200]
             log(f"  {series}: {summary[series]}")
+            if "429" in str(e):
+                _time.sleep(15)  # back off harder after a rate-limit answer
             log_error(conn, "fetch", series, str(e), got)
     conn.execute("UPDATE fetch_logs SET finished_at=?, status=?, items=?, new_items=? WHERE id=?",
                  (now_iso(), "ok" if ok else "error", ok, ok, log_id))

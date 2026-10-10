@@ -25,7 +25,7 @@ USER_AGENT = f"WorldPulse/{__version__} (+https://github.com/vks-nagpur/improvem
 
 _host_lock = threading.Lock()
 _host_last: dict[str, float] = {}
-HOST_MIN_INTERVAL = {"api.gdeltproject.org": 5.5, "news.google.com": 1.5}
+HOST_MIN_INTERVAL = {"api.gdeltproject.org": 8.0, "news.google.com": 1.5}
 DEFAULT_MIN_INTERVAL = 0.5
 
 

@@ -33,6 +33,9 @@ CATEGORY_WORDS = {
     "technology": ["technology", "tech", "ai", "chips", "semiconductor"],
     "geopolitics": ["geopolitical", "geopolitics", "sanctions", "coup", "protest", "protests"],
 }
+HAZARDS = [(r"earthquake|quake|tremor", r"earthquake|quake|tremor|seismic"), (r"flood", r"flood"),
+           (r"cyclone|hurricane|typhoon|storm", r"cyclone|hurricane|typhoon|storm"), (r"wildfire|forest fire|bushfire", r"fire"),
+           (r"volcan|eruption", r"volcan|eruption"), (r"tsunami", r"tsunami"), (r"drought", r"drought")]
 QUESTION_STOP = set("""what which who when where how why is are was were did do does happened happening happen show me tell list give
 the a an in on of for about during last past this that these those today yesterday week weeks month months day days hours hour
 recent recently latest major significant important any all and or with involving between affecting summarize summarise developments
@@ -109,6 +112,9 @@ def answer(conn: sqlite3.Connection, question: str, limit: int = 12) -> dict:
             evs = both
     if p["keywords"] and not p["countries"] and not p["categories"]:
         evs = [e for e in evs if any(k.lower() in e["title"].lower() for k in p["keywords"])]
+    hazards = [t for q_rx, t in HAZARDS if re.search(q_rx, question.lower())]
+    if hazards:  # "earthquakes" should not return fires
+        evs = [e for e in evs if any(re.search(t, e["title"], re.I) for t in hazards)]
     for e in evs:
         bonus = {"instrument_observation": 3, "official_alert": 2.5, "official_statement": 2, "multi_source_reporting": 1.5}.get(e["verification"], 1)
         e["_s"] = _score(e["title"], p["keywords"], e["last_updated"], p["hours"]) * bonus * (1 + len(uj(e["source_refs"], [])) / 6)

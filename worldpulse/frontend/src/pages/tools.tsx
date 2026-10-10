@@ -64,6 +64,11 @@ function answerStatic(q: string, events: Event[], countries: CountrySummary[]): 
   if (cats.length) hits = hits.filter((e) => cats.includes(e.category))
   if (/significant/.test(ql) && cats.includes('natural_disasters')) hits = hits.filter((e) => e.origin !== 'usgs' || (e.magnitude || 0) >= 5.5)
   if (kws.length && !cs.size && !cats.length) hits = hits.filter((e) => kws.some((k) => e.title.toLowerCase().includes(k.toLowerCase())))
+  // a named hazard narrows to that hazard ("earthquakes" should not return fires)
+  const HAZ: [RegExp, RegExp][] = [[/earthquake|quake|tremor/, /earthquake|quake|tremor|seismic/i], [/flood/, /flood/i], [/cyclone|hurricane|typhoon|storm/, /cyclone|hurricane|typhoon|storm/i],
+    [/wildfire|forest fire|bushfire/, /fire/i], [/volcan|eruption/, /volcan|eruption/i], [/tsunami/, /tsunami/i], [/drought/, /drought/i]]
+  const haz = HAZ.filter(([q]) => q.test(ql)).map(([, t]) => t)
+  if (haz.length) hits = hits.filter((e) => haz.some((t) => t.test(e.title)))
   const bonus: Record<string, number> = { instrument_observation: 3, official_alert: 2.5, official_statement: 2, multi_source_reporting: 1.5, single_source_report: 1 }
   const score = (e: Event) => (1 + kws.filter((k) => e.title.toLowerCase().includes(k.toLowerCase())).length * 2) * (bonus[e.verification] || 1) * (1 + e.outlets / 6) * Math.exp(-(Date.now() - new Date(e.last_updated).getTime()) / 3.6e6 / Math.max(hours, 24))
   hits.sort((a, b) => score(b) - score(a))

@@ -314,9 +314,13 @@ class Collector:
         return "ok", n, n
 
 
-def collect_gdelt_timelines(conn: sqlite3.Connection, registry: dict, log=print) -> dict:
+def collect_gdelt_timelines(conn: sqlite3.Connection, registry: dict, log=print, budget_s: float = 600) -> dict:
     """News-volume baselines from GDELT: daily article counts (30 days) for
-    each watch-list country name and each geopolitical topic query."""
+    each watch-list country name and each geopolitical topic query.
+    Stops after ``budget_s`` seconds so a slow GDELT cannot stall the run;
+    series not reached keep their previous values."""
+    import time as _time
+    deadline = _time.monotonic() + budget_s
     summary = {}
     got = now_iso()
     jobs = [(f"vol:country:{iso2}", f'"{COUNTRIES[iso2].name}"') for iso2 in registry.get("volume_watchlist", [])]
@@ -324,10 +328,13 @@ def collect_gdelt_timelines(conn: sqlite3.Connection, registry: dict, log=print)
     log_id = conn.execute("INSERT INTO fetch_logs(source_id, started_at, status) VALUES ('gdelt-timelines',?, 'running')", (got,)).lastrowid
     ok = 0
     for series, q in jobs:
+        if _time.monotonic() > deadline:
+            summary[series] = "skipped (time budget)"
+            continue
         url = ("https://api.gdeltproject.org/api/v2/doc/doc?query=" + quote(q + " sourcelang:english") +
                "&mode=timelinevolraw&format=json&timespan=30d")
         try:
-            pts = ds.parse_gdelt_timeline(fetch(url, retries=2).content)
+            pts = ds.parse_gdelt_timeline(fetch(url, retries=1, timeout=(10, 20)).content)
             with tx(conn):
                 for day, v in pts:
                     conn.execute("INSERT OR REPLACE INTO signal_observations(series,ts,value,source,retrieved_at) VALUES (?,?,?,?,?)",

@@ -119,7 +119,7 @@ def fetch(
                 if attempt > retries:
                     raise FetchError(f"HTTP {r.status_code} after {retries} retries", r.status_code)
                 delay = float(ra) if ra.isdigit() else 2 ** attempt
-                time.sleep(min(delay, 60))
+                time.sleep(min(delay, 20))
                 continue
             if r.status_code >= 400:
                 r.close()

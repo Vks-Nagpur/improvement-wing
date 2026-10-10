@@ -47,7 +47,9 @@ jobs:
           fi
 
       - name: Collect, analyse, export
+        timeout-minutes: 22
         env:
+          PYTHONUNBUFFERED: "1"
           FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
           WORLDPULSE_DB: ${{ github.workspace }}/worldpulse/data/worldpulse.sqlite
           WORLDPULSE_EXPORT: ${{ github.workspace }}/worldpulse/data/public

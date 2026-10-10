@@ -87,6 +87,7 @@ def fetch(
     last_modified: str | None = None,
     timeout: tuple[float, float] = (10, 30),
     max_bytes: int = 15_000_000,
+    total_timeout: float = 60,
     retries: int = 3,
     session: requests.Session | None = None,
 ) -> Response:
@@ -125,8 +126,12 @@ def fetch(
                 r.close()
                 raise FetchError(f"HTTP {r.status_code}", r.status_code)
             buf = bytearray()
+            t0 = time.monotonic()
             for chunk in r.iter_content(65536):
                 buf += chunk
+                if time.monotonic() - t0 > total_timeout:
+                    r.close()
+                    raise FetchError(f"download took longer than {total_timeout:.0f}s")
                 if len(buf) > max_bytes:
                     r.close()
                     raise FetchError(f"response larger than {max_bytes} bytes")

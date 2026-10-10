@@ -84,7 +84,9 @@ class Collector:
         self.conn.commit()
 
     # ---- run ----
-    def run(self, force: bool = False, only: set[str] | None = None) -> dict:
+    def run(self, force: bool = False, only: set[str] | None = None, budget_s: float = 720) -> dict:
+        import time as _time
+        deadline = _time.monotonic() + budget_s
         summary = {}
         rows = self.conn.execute("SELECT * FROM sources WHERE enabled=1").fetchall()
         for row in rows:
@@ -96,6 +98,11 @@ class Collector:
             handler = getattr(self, f"_do_{row['kind']}", None)
             if handler is None:
                 continue
+            if _time.monotonic() > deadline:
+                summary[row["id"]] = "skipped (run time budget reached)"
+                self.log(f"  {row['id']}: skipped (time budget)")
+                continue
+            t_src = _time.monotonic()
             log_id, _ = self._start(row["id"])
             try:
                 status, items, new = handler(row)
@@ -108,7 +115,7 @@ class Collector:
                 log_error(self.conn, "fetch", row["id"], traceback.format_exc(limit=3), now_iso())
                 self.conn.commit()
                 summary[row["id"]] = f"error {msg}"
-            self.log(f"  {row['id']}: {summary[row['id']]}")
+            self.log(f"  {row['id']}: {summary[row['id']]} ({_time.monotonic() - t_src:.1f}s)")
         return summary
 
     # ---- news ----
@@ -314,7 +321,7 @@ class Collector:
         return "ok", n, n
 
 
-def collect_gdelt_timelines(conn: sqlite3.Connection, registry: dict, log=print, budget_s: float = 600) -> dict:
+def collect_gdelt_timelines(conn: sqlite3.Connection, registry: dict, log=print, budget_s: float = 360) -> dict:
     """News-volume baselines from GDELT: daily article counts (30 days) for
     each watch-list country name and each geopolitical topic query.
     Stops after ``budget_s`` seconds so a slow GDELT cannot stall the run;
@@ -341,8 +348,10 @@ def collect_gdelt_timelines(conn: sqlite3.Connection, registry: dict, log=print,
                                  (series, day, v, f"GDELT DOC 2.0 timelinevolraw query={q}", got))
             ok += 1
             summary[series] = len(pts)
+            log(f"  {series}: {len(pts)} days")
         except Exception as e:
             summary[series] = f"error {e}"[:200]
+            log(f"  {series}: {summary[series]}")
             log_error(conn, "fetch", series, str(e), got)
     conn.execute("UPDATE fetch_logs SET finished_at=?, status=?, items=?, new_items=? WHERE id=?",
                  (now_iso(), "ok" if ok else "error", ok, ok, log_id))

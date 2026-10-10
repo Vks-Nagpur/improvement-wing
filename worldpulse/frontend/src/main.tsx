@@ -21,7 +21,7 @@ function useRoute() {
 
 function useTheme() {
   const pref = () => { try { return localStorage.getItem('worldpulse.theme') } catch { return null } }
-  const [t, setT] = useState<string>(pref() || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
+  const [t, setT] = useState<string>(pref() || 'light')
   useEffect(() => {
     document.documentElement.dataset.theme = t
     try { localStorage.setItem('worldpulse.theme', t) } catch { /* ignore */ }
